@@ -3,11 +3,19 @@ import GameManager from './gameManager';
 import UI from './ui';
 import SoundManager from './soundManager';
 
-const canvas = GameGlobal.canvas;
-const ctx = canvas.getContext('2d');
+let canvas;
+let ctx;
 
 export default class FindGameMain {
   constructor() {
+    canvas = GameGlobal.canvas;
+    ctx = canvas.getContext('2d');
+    
+    if (!canvas || !ctx) {
+      console.error('Canvas or context not available');
+      return;
+    }
+    
     this.gameManager = new GameManager(SCREEN_WIDTH, SCREEN_HEIGHT);
     this.ui = new UI(SCREEN_WIDTH, SCREEN_HEIGHT);
     this.soundManager = new SoundManager();
@@ -26,6 +34,11 @@ export default class FindGameMain {
   setupEventListeners() {
     if (!canvas) {
       console.error('Canvas not available');
+      return;
+    }
+    
+    if (typeof canvas.addEventListener !== 'function') {
+      console.error('Canvas does not have addEventListener method');
       return;
     }
     
