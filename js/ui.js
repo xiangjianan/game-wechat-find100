@@ -328,16 +328,16 @@ export default class UI {
     ctx.fill();
 
     ctx.fillStyle = '#2C3E50';
-    ctx.font = 'bold 28px Arial';
+    ctx.font = 'bold 24px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(this.modalTitle, this.width / 2, modalY + 50);
 
     ctx.fillStyle = '#7F8C8D';
-    ctx.font = '18px Arial';
+    ctx.font = '16px Arial';
     
     const messageLines = this.modalMessage.split('\n');
-    const lineHeight = 25;
+    const lineHeight = 24;
     const messageY = modalY + 100 - (messageLines.length - 1) * lineHeight / 2;
     
     for (let i = 0; i < messageLines.length; i++) {
@@ -360,7 +360,7 @@ export default class UI {
       ctx.fill();
 
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 16px Arial';
+      ctx.font = 'bold 14px Arial';
       ctx.fillText(button.text, bx + buttonWidth / 2, buttonY + buttonHeight / 2);
     }
 
@@ -396,7 +396,7 @@ export default class UI {
     ctx.fillRect(0, 0, this.width, this.height);
 
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 48px Arial';
+    ctx.font = 'bold 40px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('数字点击游戏', this.width / 2, this.height / 4);
@@ -411,7 +411,7 @@ export default class UI {
     ctx.fillRect(0, 0, this.width, 80);
 
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 24px Arial';
+    ctx.font = 'bold 20px Arial';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillText(`${this.levelConfig[this.currentLevel].name}`, 20, 30);
@@ -422,7 +422,7 @@ export default class UI {
     ctx.textAlign = 'right';
     ctx.fillText(`进度: ${currentNumber - 1}/${totalNumbers}`, this.width - 20, 30);
 
-    ctx.font = 'bold 28px Arial';
+    ctx.font = 'bold 24px Arial';
     
     if (timeLeft <= 2.0) {
       ctx.fillStyle = '#FF0000';
@@ -441,12 +441,12 @@ export default class UI {
     ctx.fillRect(0, 0, this.width, this.height);
 
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 32px Arial';
+    ctx.font = 'bold 28px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('游戏说明', this.width / 2, this.height / 4);
 
-    ctx.font = '20px Arial';
+    ctx.font = '18px Arial';
     const instructions = [
       '1. 游戏共有两个关卡',
       '2. 第一关：10个图形',
@@ -469,7 +469,7 @@ export default class UI {
     let y = this.height / 3;
     for (const instruction of instructions) {
       ctx.fillText(instruction, this.width / 2, y);
-      y += 30;
+      y += 28;
     }
   }
 
@@ -479,38 +479,38 @@ export default class UI {
 
     if (this.showFailure) {
       ctx.fillStyle = '#FF6B6B';
-      ctx.font = 'bold 48px Arial';
+      ctx.font = 'bold 40px Arial';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('😢 游戏失败！', this.width / 2, this.height / 3);
 
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = '24px Arial';
+      ctx.font = '20px Arial';
       ctx.fillText(`完成进度: ${this.failureProgress}/${this.failureTotal}`, this.width / 2, this.height / 2 - 20);
       ctx.fillText(`用时: ${this.failureTime.toFixed(2)}秒`, this.width / 2, this.height / 2 + 20);
     } else if (this.shouldAutoAdvance()) {
       ctx.fillStyle = '#4CAF50';
-      ctx.font = 'bold 48px Arial';
+      ctx.font = 'bold 40px Arial';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('🎉 第一关通关！', this.width / 2, this.height / 3);
 
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = '28px Arial';
+      ctx.font = '24px Arial';
       ctx.fillText(`完成时间: ${this.completionTime.toFixed(2)}秒`, this.width / 2, this.height / 2 - 30);
       
-      ctx.font = '24px Arial';
+      ctx.font = '20px Arial';
       ctx.fillStyle = '#FFD700';
       ctx.fillText('即将进入第二关...', this.width / 2, this.height / 2 + 30);
     } else {
       ctx.fillStyle = '#4CAF50';
-      ctx.font = 'bold 48px Arial';
+      ctx.font = 'bold 40px Arial';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('🎉 恭喜通关！', this.width / 2, this.height / 3);
 
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = '28px Arial';
+      ctx.font = '24px Arial';
       ctx.fillText(`完成时间: ${this.completionTime.toFixed(2)}秒`, this.width / 2, this.height / 2);
     }
   }
@@ -542,7 +542,7 @@ export default class UI {
       ctx.fillRect(button.x, button.y, button.width, button.height);
 
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 32px Arial';
+      ctx.font = 'bold 28px Arial';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(button.text, button.x + button.width / 2, button.y + button.height / 2);

@@ -27,7 +27,7 @@
     "useCompilerPlugins": false
   },
   "compileType": "game",
-  "libVersion": "latest",
+  "libVersion": "3.14.1",
   "appid": "wx70984ecad9ea8872",
   "projectname": "find100wx",
   "condition": {
