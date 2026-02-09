@@ -591,6 +591,11 @@ export default class UI {
   }
 
   handleClick(x, y) {
+    if (this.showInstructions) {
+      this.showInstructions = false;
+      return true;
+    }
+    
     const allButtons = [...this.buttons];
     if (this.showModal) {
       allButtons.push(...this.modalButtons);
