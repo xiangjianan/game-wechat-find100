@@ -15,36 +15,43 @@ export default class UI {
   }
 
   initMenu() {
+    const buttonWidth = 60;
+    const buttonHeight = 60;
+    const buttonSpacing = 20;
+    const totalWidth = buttonWidth * 3 + buttonSpacing * 2;
+    const startX = (this.width - totalWidth) / 2;
+    const buttonY = this.height / 2 - 30;
+    
     this.buttons = [
       {
         id: 'start',
-        text: `开始${this.levelConfig[this.currentLevel].name}`,
-        x: this.width / 2 - 80,
-        y: this.height / 2 - 50,
-        width: 160,
-        height: 50,
+        text: '▶️',
+        x: startX,
+        y: buttonY,
+        width: buttonWidth,
+        height: buttonHeight,
         color: '#4CAF50',
         hoverColor: '#45a049',
         action: () => this.onStartGame()
       },
       {
         id: 'level',
-        text: `关卡: ${this.currentLevel}/${this.totalLevels}`,
-        x: this.width / 2 - 80,
-        y: this.height / 2 + 20,
-        width: 160,
-        height: 50,
+        text: '🎯',
+        x: startX + buttonWidth + buttonSpacing,
+        y: buttonY,
+        width: buttonWidth,
+        height: buttonHeight,
         color: '#FF9800',
         hoverColor: '#e68a00',
         action: () => this.onChangeLevel()
       },
       {
         id: 'instructions',
-        text: '游戏说明',
-        x: this.width / 2 - 80,
-        y: this.height / 2 + 90,
-        width: 160,
-        height: 50,
+        text: '❓',
+        x: startX + (buttonWidth + buttonSpacing) * 2,
+        y: buttonY,
+        width: buttonWidth,
+        height: buttonHeight,
         color: '#2196F3',
         hoverColor: '#0b7dda',
         action: () => this.onShowInstructions()
@@ -53,25 +60,32 @@ export default class UI {
   }
 
   initGame() {
+    const buttonWidth = 60;
+    const buttonHeight = 60;
+    const buttonSpacing = 20;
+    const totalWidth = buttonWidth * 2 + buttonSpacing;
+    const startX = (this.width - totalWidth) / 2;
+    const buttonY = this.height - 80;
+    
     this.buttons = [
       {
         id: 'reset',
-        text: '重新开始',
-        x: this.width / 2 - 80,
-        y: this.height - 80,
-        width: 160,
-        height: 50,
+        text: '🔄',
+        x: startX,
+        y: buttonY,
+        width: buttonWidth,
+        height: buttonHeight,
         color: '#f44336',
         hoverColor: '#da190b',
         action: () => this.onResetGame()
       },
       {
         id: 'menu',
-        text: '返回菜单',
-        x: this.width / 2 - 80,
-        y: this.height - 140,
-        width: 160,
-        height: 50,
+        text: '🏠',
+        x: startX + buttonWidth + buttonSpacing,
+        y: buttonY,
+        width: buttonWidth,
+        height: buttonHeight,
         color: '#9E9E9E',
         hoverColor: '#757575',
         action: () => this.onBackToMenu()
@@ -85,15 +99,23 @@ export default class UI {
     this.showFailure = false;
     
     const hasNextLevel = this.currentLevel < this.totalLevels;
+    const buttonWidth = 60;
+    const buttonHeight = 60;
+    const buttonSpacing = 20;
+    
+    let buttonCount = hasNextLevel ? 3 : 2;
+    const totalWidth = buttonWidth * buttonCount + buttonSpacing * (buttonCount - 1);
+    const startX = (this.width - totalWidth) / 2;
+    const buttonY = this.height / 2 + 80;
     
     this.buttons = [
       {
         id: 'playAgain',
-        text: '再玩一次',
-        x: this.width / 2 - 80,
-        y: this.height / 2 + 50,
-        width: 160,
-        height: 50,
+        text: '🔄',
+        x: startX,
+        y: buttonY,
+        width: buttonWidth,
+        height: buttonHeight,
         color: '#4CAF50',
         hoverColor: '#45a049',
         action: () => this.onPlayAgain()
@@ -103,11 +125,11 @@ export default class UI {
     if (hasNextLevel) {
       this.buttons.push({
         id: 'nextLevel',
-        text: '下一关',
-        x: this.width / 2 - 80,
-        y: this.height / 2 + 120,
-        width: 160,
-        height: 50,
+        text: '➡️',
+        x: startX + buttonWidth + buttonSpacing,
+        y: buttonY,
+        width: buttonWidth,
+        height: buttonHeight,
         color: '#2196F3',
         hoverColor: '#0b7dda',
         action: () => this.onNextLevel()
@@ -116,11 +138,11 @@ export default class UI {
     
     this.buttons.push({
       id: 'menu',
-      text: '返回菜单',
-      x: this.width / 2 - 80,
-      y: this.height / 2 + (hasNextLevel ? 190 : 120),
-      width: 160,
-      height: 50,
+      text: '🏠',
+      x: startX + buttonWidth * (hasNextLevel ? 2 : 1) + buttonSpacing * (hasNextLevel ? 2 : 1),
+      y: buttonY,
+      width: buttonWidth,
+      height: buttonHeight,
       color: '#9E9E9E',
       hoverColor: '#757575',
       action: () => this.onBackToMenu()
@@ -205,8 +227,6 @@ export default class UI {
 
   onChangeLevel() {
     this.currentLevel = (this.currentLevel % this.totalLevels) + 1;
-    this.buttons[1].text = `关卡: ${this.currentLevel}/${this.totalLevels}`;
-    this.buttons[0].text = `开始${this.levelConfig[this.currentLevel].name}`;
   }
 
   onPlayAgain() {
@@ -312,13 +332,17 @@ export default class UI {
       '9. 第一关通关后会自动进入第二关',
       '10. 第二关通关后显示最终成绩',
       '',
+      '按钮说明：',
+      '▶️ 开始游戏  🎯 切换关卡  ❓ 游戏说明',
+      '🔄 重新开始  🏠 返回菜单  ➡️ 下一关',
+      '',
       '点击任意处返回'
     ];
 
     let y = this.height / 3;
     for (const instruction of instructions) {
       ctx.fillText(instruction, this.width / 2, y);
-      y += 35;
+      y += 30;
     }
   }
 
@@ -365,15 +389,31 @@ export default class UI {
   }
 
   renderButtons(ctx) {
+    const buttonLabels = {
+      'start': '开始',
+      'level': '关卡',
+      'instructions': '说明',
+      'reset': '重置',
+      'menu': '菜单',
+      'playAgain': '再玩',
+      'nextLevel': '下一关'
+    };
+    
     for (const button of this.buttons) {
       ctx.fillStyle = button.color;
       ctx.fillRect(button.x, button.y, button.width, button.height);
 
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 20px Arial';
+      ctx.font = 'bold 32px Arial';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(button.text, button.x + button.width / 2, button.y + button.height / 2);
+      
+      if (buttonLabels[button.id]) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.font = 'bold 12px Arial';
+        ctx.fillText(buttonLabels[button.id], button.x + button.width / 2, button.y + button.height + 12);
+      }
     }
   }
 }
