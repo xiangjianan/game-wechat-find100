@@ -43,12 +43,12 @@ export default class UI {
   }
 
   initMenu() {
-    const buttonWidth = 60;
-    const buttonHeight = 60;
-    const buttonSpacing = 20;
+    const buttonWidth = 80;
+    const buttonHeight = 80;
+    const buttonSpacing = 30;
     const totalWidth = buttonWidth * 2 + buttonSpacing;
     const startX = (this.width - totalWidth) / 2;
-    const buttonY = this.height / 2 - 30;
+    const buttonY = this.height / 2 - 40;
     
     this.buttons = [
       {
@@ -74,15 +74,17 @@ export default class UI {
         action: () => this.onShowInstructions()
       }
     ];
+    
+    console.log('Menu buttons initialized:', this.buttons);
   }
 
   initGame() {
-    const buttonWidth = 60;
-    const buttonHeight = 60;
-    const buttonSpacing = 20;
+    const buttonWidth = 80;
+    const buttonHeight = 80;
+    const buttonSpacing = 30;
     const totalWidth = buttonWidth * 2 + buttonSpacing;
     const startX = (this.width - totalWidth) / 2;
-    const buttonY = this.height - 80;
+    const buttonY = this.height - 100;
     
     this.buttons = [
       {
@@ -108,6 +110,8 @@ export default class UI {
         action: () => this.onBackToMenu()
       }
     ];
+    
+    console.log('Game buttons initialized:', this.buttons);
   }
 
   initCompletion(time) {
@@ -571,8 +575,11 @@ export default class UI {
   }
 
   handleClick(x, y) {
+    console.log('handleClick called:', { x, y, showInstructions: this.showInstructions, showModal: this.showModal });
+    
     if (this.showInstructions) {
       this.showInstructions = false;
+      console.log('Instructions closed');
       return true;
     }
     
@@ -581,20 +588,26 @@ export default class UI {
       allButtons.push(...this.modalButtons);
     }
     
+    console.log('Checking buttons:', allButtons.length);
+    
     for (const button of allButtons) {
       if (this.isPointInButton(x, y, button)) {
+        console.log('Button clicked:', button.id);
         this.clickedButton = button.id;
         this.clickAnimation = 1;
         setTimeout(() => {
           this.clickedButton = null;
           this.clickAnimation = 0;
           if (button.action) {
+            console.log('Executing button action:', button.id);
             button.action();
           }
         }, 150);
         return true;
       }
     }
+    
+    console.log('No button clicked');
     return false;
   }
 

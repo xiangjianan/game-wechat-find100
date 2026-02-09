@@ -39,41 +39,115 @@ export default class FindGameMain {
     
     if (typeof canvas.addEventListener !== 'function') {
       console.error('Canvas does not have addEventListener method');
+      console.error('Canvas type:', typeof canvas);
+      console.error('Canvas object:', canvas);
       return;
     }
     
-    canvas.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      const touch = e.touches[0];
-      const rect = canvas.getBoundingClientRect();
-      const x = touch.clientX - rect.left;
-      const y = touch.clientY - rect.top;
-      this.ui.updateMousePosition(x, y);
-      this.handleInput(x, y);
-    });
-
-    canvas.addEventListener('touchmove', (e) => {
-      e.preventDefault();
-      const touch = e.touches[0];
-      const rect = canvas.getBoundingClientRect();
-      const x = touch.clientX - rect.left;
-      const y = touch.clientY - rect.top;
-      this.ui.updateMousePosition(x, y);
-    });
-
-    canvas.addEventListener('mousemove', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      this.ui.updateMousePosition(x, y);
-    });
-
-    canvas.addEventListener('click', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      this.handleInput(x, y);
-    });
+    console.log('Setting up event listeners on canvas:', canvas);
+    
+    const handleTouch = (e) => {
+      try {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (!e.touches || e.touches.length === 0) {
+          console.warn('No touch data available');
+          return;
+        }
+        
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        
+        this.ui.updateMousePosition(x, y);
+        this.handleInput(x, y);
+        
+        console.log('Touch event handled:', { x, y, type: e.type });
+      } catch (error) {
+        console.error('Error handling touch event:', error);
+      }
+    };
+    
+    const handleMouse = (e) => {
+      try {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        this.ui.updateMousePosition(x, y);
+        
+        if (e.type === 'click') {
+          this.handleInput(x, y);
+        }
+        
+        console.log('Mouse event handled:', { x, y, type: e.type });
+      } catch (error) {
+        console.error('Error handling mouse event:', error);
+      }
+    };
+    
+    try {
+      canvas.addEventListener('touchstart', handleTouch, { passive: false });
+      console.log('touchstart listener added');
+    } catch (error) {
+      console.error('Failed to add touchstart listener:', error);
+    }
+    
+    try {
+      canvas.addEventListener('touchmove', (e) => {
+        try {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          if (!e.touches || e.touches.length === 0) {
+            return;
+          }
+          
+          const touch = e.touches[0];
+          const rect = canvas.getBoundingClientRect();
+          const x = touch.clientX - rect.left;
+          const y = touch.clientY - rect.top;
+          this.ui.updateMousePosition(x, y);
+        } catch (error) {
+          console.error('Error handling touchmove:', error);
+        }
+      }, { passive: false });
+      console.log('touchmove listener added');
+    } catch (error) {
+      console.error('Failed to add touchmove listener:', error);
+    }
+    
+    try {
+      canvas.addEventListener('touchend', (e) => {
+        try {
+          e.preventDefault();
+          e.stopPropagation();
+        } catch (error) {
+          console.error('Error handling touchend:', error);
+        }
+      }, { passive: false });
+      console.log('touchend listener added');
+    } catch (error) {
+      console.error('Failed to add touchend listener:', error);
+    }
+    
+    try {
+      canvas.addEventListener('mousemove', handleMouse);
+      console.log('mousemove listener added');
+    } catch (error) {
+      console.error('Failed to add mousemove listener:', error);
+    }
+    
+    try {
+      canvas.addEventListener('click', handleMouse);
+      console.log('click listener added');
+    } catch (error) {
+      console.error('Failed to add click listener:', error);
+    }
+    
+    console.log('Event listeners setup complete');
   }
 
   setupUICallbacks() {
