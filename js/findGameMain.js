@@ -1,4 +1,4 @@
-import { SCREEN_WIDTH, SCREEN_HEIGHT } from './render';
+import { SCREEN_WIDTH, SCREEN_HEIGHT, getContext, getCanvas } from './render';
 import GameManager from './gameManager';
 import UI from './ui';
 import SoundManager from './soundManager';
@@ -8,8 +8,8 @@ let ctx;
 
 export default class FindGameMain {
   constructor() {
-    canvas = GameGlobal.canvas;
-    ctx = canvas.getContext('2d');
+    canvas = getCanvas();
+    ctx = getContext();
     
     if (!canvas || !ctx) {
       console.error('Canvas or context not available');

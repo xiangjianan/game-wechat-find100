@@ -99,10 +99,12 @@ export default class Polygon {
 
     ctx.strokeStyle = '#000000';
     ctx.lineWidth = this.isHighlighted ? 3 : 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
     ctx.stroke();
 
     const fontSize = Math.max(12, Math.min(24, Math.sqrt(this.getArea()) / 4));
-    ctx.font = `${fontSize}px Arial`;
+    ctx.font = `bold ${fontSize}px Arial, sans-serif`;
     // 未点击的图形显示黑色文字，已点击的图形显示白色文字
     ctx.fillStyle = this.isClicked ? '#FFFFFF' : '#000000';
     ctx.textAlign = 'center';
