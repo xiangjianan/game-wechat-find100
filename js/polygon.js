@@ -75,8 +75,6 @@ export default class Polygon {
   }
 
   render(ctx) {
-    if (this.isClicked) return;
-
     ctx.save();
     
     const center = this.getCenter();
@@ -91,16 +89,22 @@ export default class Polygon {
     }
     ctx.closePath();
 
-    ctx.fillStyle = this.isHighlighted ? '#FFD700' : this.color;
+    // 未点击的图形显示白色背景，已点击的图形显示彩色背景
+    if (this.isClicked) {
+      ctx.fillStyle = this.color;
+    } else {
+      ctx.fillStyle = this.isHighlighted ? '#FFD700' : '#FFFFFF';
+    }
     ctx.fill();
 
-    ctx.strokeStyle = this.isHighlighted ? '#FF6B6B' : '#FFFFFF';
+    ctx.strokeStyle = this.isHighlighted ? '#FF6B6B' : '#CCCCCC';
     ctx.lineWidth = this.isHighlighted ? 3 : 2;
     ctx.stroke();
 
     const fontSize = Math.max(16, Math.min(32, Math.sqrt(this.getArea()) / 3));
     ctx.font = `bold ${fontSize}px Arial`;
-    ctx.fillStyle = '#FFFFFF';
+    // 未点击的图形显示黑色文字，已点击的图形显示白色文字
+    ctx.fillStyle = this.isClicked ? '#FFFFFF' : '#000000';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(this.number.toString(), center.x, center.y);
