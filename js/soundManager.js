@@ -9,25 +9,42 @@ export default class SoundManager {
   }
 
   init() {
+    console.log('SoundManager init: Using generated audio only');
+    this.useGeneratedAudio = true;
+    
     if (typeof wx === 'undefined' || !wx.createInnerAudioContext) {
       console.log('wx API not available, using generated audio');
-      this.useGeneratedAudio = true;
       return;
     }
     
     try {
       this.sounds.click = wx.createInnerAudioContext();
       this.sounds.click.src = 'audio/click.mp3';
+      this.sounds.click.onError(() => {
+        console.log('Click audio load failed, using generated audio');
+        this.useGeneratedAudio = true;
+      });
       
       this.sounds.error = wx.createInnerAudioContext();
       this.sounds.error.src = 'audio/error.mp3';
+      this.sounds.error.onError(() => {
+        console.log('Error audio load failed, using generated audio');
+        this.useGeneratedAudio = true;
+      });
       
       this.sounds.complete = wx.createInnerAudioContext();
       this.sounds.complete.src = 'audio/complete.mp3';
+      this.sounds.complete.onError(() => {
+        console.log('Complete audio load failed, using generated audio');
+        this.useGeneratedAudio = true;
+      });
       
       this.sounds.bg = wx.createInnerAudioContext();
       this.sounds.bg.src = 'audio/bgm.mp3';
       this.sounds.bg.loop = true;
+      this.sounds.bg.onError(() => {
+        console.log('BGM audio load failed, skipping background music');
+      });
     } catch (e) {
       console.log('Sound initialization failed, using generated audio:', e);
       this.useGeneratedAudio = true;

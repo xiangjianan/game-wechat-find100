@@ -3,6 +3,12 @@ export class AudioGenerator {
     if (!this.audioContext) {
       try {
         this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        if (this.audioContext.state === 'suspended') {
+          this.audioContext.resume().catch(e => {
+            console.error('Failed to resume AudioContext:', e);
+          });
+        }
       } catch (e) {
         console.error('Failed to create AudioContext:', e);
         return null;
@@ -13,11 +19,16 @@ export class AudioGenerator {
 
   static generateClickSound() {
     const audioContext = this.getAudioContext();
-    if (!audioContext) return;
+    if (!audioContext || !audioContext.destination) return;
     
     try {
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
+      
+      if (!oscillator || !gainNode) {
+        console.error('Failed to create audio nodes');
+        return;
+      }
       
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
@@ -37,11 +48,16 @@ export class AudioGenerator {
 
   static generateErrorSound() {
     const audioContext = this.getAudioContext();
-    if (!audioContext) return;
+    if (!audioContext || !audioContext.destination) return;
     
     try {
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
+      
+      if (!oscillator || !gainNode) {
+        console.error('Failed to create audio nodes');
+        return;
+      }
       
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
@@ -61,7 +77,7 @@ export class AudioGenerator {
 
   static generateCompleteSound() {
     const audioContext = this.getAudioContext();
-    if (!audioContext) return;
+    if (!audioContext || !audioContext.destination) return;
     
     try {
       const notes = [523.25, 659.25, 783.99, 1046.50];
@@ -69,6 +85,11 @@ export class AudioGenerator {
       notes.forEach((frequency, index) => {
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
+        
+        if (!oscillator || !gainNode) {
+          console.error('Failed to create audio nodes');
+          return;
+        }
         
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
