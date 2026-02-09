@@ -89,15 +89,15 @@ export default class Polygon {
     }
     ctx.closePath();
 
-    // 未点击的图形显示白色背景，已点击的图形显示彩色背景
+    // 未点击的图形显示白色背景，已点击的图形显示绿色背景
     if (this.isClicked) {
-      ctx.fillStyle = this.color;
+      ctx.fillStyle = '#4CAF50';
     } else {
       ctx.fillStyle = this.isHighlighted ? '#FFD700' : '#FFFFFF';
     }
     ctx.fill();
 
-    ctx.strokeStyle = this.isHighlighted ? '#FF6B6B' : '#CCCCCC';
+    ctx.strokeStyle = '#000000';
     ctx.lineWidth = this.isHighlighted ? 3 : 2;
     ctx.stroke();
 
