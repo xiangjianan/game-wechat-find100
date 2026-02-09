@@ -6,15 +6,19 @@ export default class UI {
     this.showInstructions = false;
     this.showCompletion = false;
     this.completionTime = 0;
-    this.difficulty = 'normal';
-    this.polygonCount = 10;
+    this.currentLevel = 1;
+    this.totalLevels = 2;
+    this.levelConfig = {
+      1: { count: 10, name: '第一关' },
+      2: { count: 100, name: '第二关' }
+    };
   }
 
   initMenu() {
     this.buttons = [
       {
         id: 'start',
-        text: '开始游戏',
+        text: `开始${this.levelConfig[this.currentLevel].name}`,
         x: this.width / 2 - 80,
         y: this.height / 2 - 50,
         width: 160,
@@ -24,26 +28,26 @@ export default class UI {
         action: () => this.onStartGame()
       },
       {
+        id: 'level',
+        text: `关卡: ${this.currentLevel}/${this.totalLevels}`,
+        x: this.width / 2 - 80,
+        y: this.height / 2 + 20,
+        width: 160,
+        height: 50,
+        color: '#FF9800',
+        hoverColor: '#e68a00',
+        action: () => this.onChangeLevel()
+      },
+      {
         id: 'instructions',
         text: '游戏说明',
         x: this.width / 2 - 80,
-        y: this.height / 2 + 20,
+        y: this.height / 2 + 90,
         width: 160,
         height: 50,
         color: '#2196F3',
         hoverColor: '#0b7dda',
         action: () => this.onShowInstructions()
-      },
-      {
-        id: 'difficulty',
-        text: '难度: 普通',
-        x: this.width / 2 - 80,
-        y: this.height / 2 + 90,
-        width: 160,
-        height: 50,
-        color: '#FF9800',
-        hoverColor: '#e68a00',
-        action: () => this.onChangeDifficulty()
       }
     ];
   }
@@ -79,6 +83,9 @@ export default class UI {
     this.showCompletion = true;
     this.completionTime = time;
     this.showFailure = false;
+    
+    const hasNextLevel = this.currentLevel < this.totalLevels;
+    
     this.buttons = [
       {
         id: 'playAgain',
@@ -90,19 +97,38 @@ export default class UI {
         color: '#4CAF50',
         hoverColor: '#45a049',
         action: () => this.onPlayAgain()
-      },
-      {
-        id: 'menu',
-        text: '返回菜单',
+      }
+    ];
+    
+    if (hasNextLevel) {
+      this.buttons.push({
+        id: 'nextLevel',
+        text: '下一关',
         x: this.width / 2 - 80,
         y: this.height / 2 + 120,
         width: 160,
         height: 50,
-        color: '#9E9E9E',
-        hoverColor: '#757575',
-        action: () => this.onBackToMenu()
-      }
-    ];
+        color: '#2196F3',
+        hoverColor: '#0b7dda',
+        action: () => this.onNextLevel()
+      });
+    }
+    
+    this.buttons.push({
+      id: 'menu',
+      text: '返回菜单',
+      x: this.width / 2 - 80,
+      y: this.height / 2 + (hasNextLevel ? 190 : 120),
+      width: 160,
+      height: 50,
+      color: '#9E9E9E',
+      hoverColor: '#757575',
+      action: () => this.onBackToMenu()
+    });
+  }
+
+  shouldAutoAdvance() {
+    return this.currentLevel === 1;
   }
 
   initFailure(progress, total, time) {
@@ -156,7 +182,7 @@ export default class UI {
 
   onStartGame() {
     if (this.onGameStart) {
-      this.onGameStart(this.polygonCount, this.difficulty);
+      this.onGameStart(this.levelConfig[this.currentLevel].count, this.currentLevel);
     }
   }
 
@@ -177,27 +203,24 @@ export default class UI {
     this.showInstructions = true;
   }
 
-  onChangeDifficulty() {
-    const difficulties = ['easy', 'normal', 'hard'];
-    const currentIndex = difficulties.indexOf(this.difficulty);
-    this.difficulty = difficulties[(currentIndex + 1) % difficulties.length];
-    
-    const difficultyText = {
-      'easy': '简单 (10个)',
-      'normal': '普通 (25个)',
-      'hard': '困难 (50个)'
-    };
-    
-    this.buttons[2].text = `难度: ${difficultyText[this.difficulty]}`;
-    
-    const counts = { 'easy': 10, 'normal': 25, 'hard': 50 };
-    this.polygonCount = counts[this.difficulty];
+  onChangeLevel() {
+    this.currentLevel = (this.currentLevel % this.totalLevels) + 1;
+    this.buttons[1].text = `关卡: ${this.currentLevel}/${this.totalLevels}`;
+    this.buttons[0].text = `开始${this.levelConfig[this.currentLevel].name}`;
   }
 
   onPlayAgain() {
     this.showCompletion = false;
     if (this.onGameStart) {
-      this.onGameStart(this.polygonCount, this.difficulty);
+      this.onGameStart(this.levelConfig[this.currentLevel].count, this.currentLevel);
+    }
+  }
+
+  onNextLevel() {
+    this.showCompletion = false;
+    this.currentLevel++;
+    if (this.onNextLevel) {
+      this.onNextLevel(this.currentLevel);
     }
   }
 
@@ -244,13 +267,13 @@ export default class UI {
     ctx.font = 'bold 24px Arial';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`当前: ${currentNumber}`, 20, 30);
+    ctx.fillText(`${this.levelConfig[this.currentLevel].name}`, 20, 30);
 
     ctx.textAlign = 'center';
-    ctx.fillText(`进度: ${currentNumber - 1}/${totalNumbers}`, this.width / 2, 30);
+    ctx.fillText(`当前: ${currentNumber}`, this.width / 2, 30);
 
     ctx.textAlign = 'right';
-    ctx.fillText(`目标: ${totalNumbers}`, this.width - 20, 30);
+    ctx.fillText(`进度: ${currentNumber - 1}/${totalNumbers}`, this.width - 20, 30);
 
     ctx.font = 'bold 28px Arial';
     
@@ -278,13 +301,16 @@ export default class UI {
 
     ctx.font = '20px Arial';
     const instructions = [
-      '1. 游戏开始后会显示多个不规则图形',
-      '2. 每个图形都有一个数字标识',
-      '3. 按照数字从小到大的顺序点击图形',
-      '4. 点击正确会有高亮反馈并增加时间',
-      '5. 点击错误会有震动效果并扣除时间',
-      '6. 时间耗尽则游戏失败',
-      '7. 按顺序点击完所有数字即可通关',
+      '1. 游戏共有两个关卡',
+      '2. 第一关：10个图形',
+      '3. 第二关：100个图形',
+      '4. 每个图形都有一个数字标识',
+      '5. 按照数字从小到大的顺序点击图形',
+      '6. 点击正确会有高亮反馈并增加时间',
+      '7. 点击错误会有震动效果并扣除时间',
+      '8. 时间耗尽则游戏失败',
+      '9. 第一关通关后会自动进入第二关',
+      '10. 第二关通关后显示最终成绩',
       '',
       '点击任意处返回'
     ];
@@ -311,6 +337,20 @@ export default class UI {
       ctx.font = '24px Arial';
       ctx.fillText(`完成进度: ${this.failureProgress}/${this.failureTotal}`, this.width / 2, this.height / 2 - 20);
       ctx.fillText(`用时: ${this.failureTime.toFixed(2)}秒`, this.width / 2, this.height / 2 + 20);
+    } else if (this.shouldAutoAdvance()) {
+      ctx.fillStyle = '#4CAF50';
+      ctx.font = 'bold 48px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🎉 第一关通关！', this.width / 2, this.height / 3);
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '28px Arial';
+      ctx.fillText(`完成时间: ${this.completionTime.toFixed(2)}秒`, this.width / 2, this.height / 2 - 30);
+      
+      ctx.font = '24px Arial';
+      ctx.fillStyle = '#FFD700';
+      ctx.fillText('即将进入第二关...', this.width / 2, this.height / 2 + 30);
     } else {
       ctx.fillStyle = '#4CAF50';
       ctx.font = 'bold 48px Arial';

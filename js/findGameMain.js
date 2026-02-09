@@ -41,8 +41,8 @@ export default class FindGameMain {
   }
 
   setupUICallbacks() {
-    this.ui.onGameStart = (count, difficulty) => {
-      this.startGame(count, difficulty);
+    this.ui.onGameStart = (count, level) => {
+      this.startGame(count, level);
     };
 
     this.ui.onGameReset = () => {
@@ -51,6 +51,10 @@ export default class FindGameMain {
 
     this.ui.onBackToMenu = () => {
       this.backToMenu();
+    };
+    
+    this.ui.onNextLevel = (level) => {
+      this.startNextLevel(level);
     };
     
     this.gameManager.onGameComplete = (time) => {
@@ -80,15 +84,20 @@ export default class FindGameMain {
     }
   }
 
-  startGame(count, difficulty) {
-    this.gameManager.initGame(count, difficulty);
+  startGame(count, level) {
+    this.gameManager.initGame(count, level);
     this.ui.initGame();
+  }
+
+  startNextLevel(level) {
+    this.ui.currentLevel = level;
+    this.startGame(this.ui.levelConfig[level].count, level);
   }
 
   resetGame() {
     const count = this.gameManager.polygonCount;
-    const difficulty = this.gameManager.difficulty;
-    this.gameManager.initGame(count, difficulty);
+    const level = this.gameManager.currentLevel;
+    this.gameManager.initGame(count, level);
   }
 
   backToMenu() {
@@ -99,7 +108,14 @@ export default class FindGameMain {
   handleGameComplete(time) {
     this.soundManager.playComplete();
     this.saveGameProgress(time);
-    this.ui.initCompletion(time);
+    
+    if (this.ui.shouldAutoAdvance()) {
+      setTimeout(() => {
+        this.startNextLevel(2);
+      }, 2000);
+    } else {
+      this.ui.initCompletion(time);
+    }
   }
 
   handleGameFailed() {
@@ -145,13 +161,13 @@ export default class FindGameMain {
     try {
       const progress = {
         bestTime: time,
-        difficulty: this.gameManager.difficulty,
+        level: this.gameManager.currentLevel,
         polygonCount: this.gameManager.polygonCount,
         timestamp: Date.now()
       };
       
       const savedProgress = wx.getStorageSync('gameProgress') || {};
-      const key = `${this.gameManager.difficulty}_${this.gameManager.polygonCount}`;
+      const key = `level_${this.gameManager.currentLevel}`;
       
       if (!savedProgress[key] || time < savedProgress[key].bestTime) {
         savedProgress[key] = progress;

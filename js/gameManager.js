@@ -11,7 +11,7 @@ export default class GameManager {
     this.gameState = 'menu';
     this.startTime = 0;
     this.endTime = 0;
-    this.difficulty = 'normal';
+    this.currentLevel = 1;
     this.polygonCount = 10;
     this.onGameComplete = null;
     this.onError = null;
@@ -25,10 +25,10 @@ export default class GameManager {
     this.errorCount = 0;
   }
 
-  initGame(count, difficulty = 'normal') {
+  initGame(count, level = 1) {
     this.polygonCount = count;
-    this.difficulty = difficulty;
-    this.polygons = this.generator.generatePolygons(count, difficulty);
+    this.currentLevel = level;
+    this.polygons = this.generator.generatePolygons(count, 'normal');
     this.currentNumber = 1;
     this.totalNumbers = count;
     this.gameState = 'playing';
@@ -100,6 +100,10 @@ export default class GameManager {
     if (this.onGameComplete) {
       this.onGameComplete(completionTime);
     }
+  }
+
+  hasNextLevel() {
+    return this.currentLevel < 2;
   }
 
   reset() {
