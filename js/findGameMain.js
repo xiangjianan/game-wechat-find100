@@ -244,6 +244,11 @@ export default class FindGameMain {
   }
 
   saveGameProgress(time) {
+    if (typeof wx === 'undefined' || !wx.setStorageSync) {
+      console.log('wx API not available, skipping save');
+      return;
+    }
+    
     try {
       const progress = {
         bestTime: time,
@@ -265,6 +270,11 @@ export default class FindGameMain {
   }
 
   loadGameProgress() {
+    if (typeof wx === 'undefined' || !wx.getStorageSync) {
+      console.log('wx API not available, skipping load');
+      return;
+    }
+    
     try {
       const savedProgress = wx.getStorageSync('gameProgress');
       if (savedProgress) {

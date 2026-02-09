@@ -9,6 +9,12 @@ export default class SoundManager {
   }
 
   init() {
+    if (typeof wx === 'undefined' || !wx.createInnerAudioContext) {
+      console.log('wx API not available, using generated audio');
+      this.useGeneratedAudio = true;
+      return;
+    }
+    
     try {
       this.sounds.click = wx.createInnerAudioContext();
       this.sounds.click.src = 'audio/click.mp3';
