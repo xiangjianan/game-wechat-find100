@@ -79,38 +79,7 @@ export default class UI {
   }
 
   initGame() {
-    const buttonWidth = 80;
-    const buttonHeight = 80;
-    const buttonSpacing = 30;
-    const totalWidth = buttonWidth * 2 + buttonSpacing;
-    const startX = (this.width - totalWidth) / 2;
-    const buttonY = this.height - 100;
-    
-    this.buttons = [
-      {
-        id: 'reset',
-        text: '🔄',
-        x: startX,
-        y: buttonY,
-        width: buttonWidth,
-        height: buttonHeight,
-        color: '#f44336',
-        hoverColor: '#da190b',
-        action: () => this.onResetGame()
-      },
-      {
-        id: 'menu',
-        text: '🏠',
-        x: startX + buttonWidth + buttonSpacing,
-        y: buttonY,
-        width: buttonWidth,
-        height: buttonHeight,
-        color: '#9E9E9E',
-        hoverColor: '#757575',
-        action: () => this.onBackToMenu()
-      }
-    ];
-    
+    this.buttons = [];
     console.log('Game buttons initialized:', this.buttons);
   }
 
@@ -428,6 +397,57 @@ export default class UI {
     
     ctx.textAlign = 'center';
     ctx.fillText(`⏱️ ${timeLeft.toFixed(1)}s`, this.width / 2, 65);
+
+    const headerButtonSize = 40;
+    const headerButtonSpacing = 10;
+    const headerButtonY = 20;
+    const headerButtonStartX = 120;
+
+    this.headerButtons = [
+      {
+        id: 'reset',
+        text: '🔄',
+        x: headerButtonStartX,
+        y: headerButtonY,
+        width: headerButtonSize,
+        height: headerButtonSize,
+        color: '#f44336',
+        hoverColor: '#da190b',
+        action: () => this.onResetGame()
+      },
+      {
+        id: 'menu',
+        text: '🏠',
+        x: headerButtonStartX + headerButtonSize + headerButtonSpacing,
+        y: headerButtonY,
+        width: headerButtonSize,
+        height: headerButtonSize,
+        color: '#9E9E9E',
+        hoverColor: '#757575',
+        action: () => this.onBackToMenu()
+      }
+    ];
+
+    this.headerButtons.forEach(button => {
+      const isHovered = this.isPointInButton(this.mouseX, this.mouseY, button);
+      const isClicked = this.clickedButton === button.id;
+      
+      ctx.fillStyle = isHovered ? button.hoverColor : button.color;
+      if (isClicked) {
+        ctx.globalAlpha = 0.7;
+      }
+      
+      this.roundRect(ctx, button.x, button.y, button.width, button.height, 8);
+      ctx.fill();
+      
+      ctx.globalAlpha = 1;
+      
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '20px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(button.text, button.x + button.width / 2, button.y + button.height / 2);
+    });
   }
 
   renderInstructions(ctx) {
@@ -561,6 +581,10 @@ export default class UI {
       allButtons.push(...this.modalButtons);
     }
     
+    if (this.headerButtons) {
+      allButtons.push(...this.headerButtons);
+    }
+    
     for (const button of allButtons) {
       if (this.isPointInButton(this.mouseX, this.mouseY, button)) {
         this.hoveredButton = button.id;
@@ -586,6 +610,10 @@ export default class UI {
     const allButtons = [...this.buttons];
     if (this.showModal) {
       allButtons.push(...this.modalButtons);
+    }
+    
+    if (this.headerButtons) {
+      allButtons.push(...this.headerButtons);
     }
     
     console.log('Checking buttons:', allButtons.length);
