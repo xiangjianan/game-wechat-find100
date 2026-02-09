@@ -78,6 +78,7 @@ export default class UI {
   initCompletion(time) {
     this.showCompletion = true;
     this.completionTime = time;
+    this.showFailure = false;
     this.buttons = [
       {
         id: 'playAgain',
@@ -88,6 +89,38 @@ export default class UI {
         height: 50,
         color: '#4CAF50',
         hoverColor: '#45a049',
+        action: () => this.onPlayAgain()
+      },
+      {
+        id: 'menu',
+        text: '返回菜单',
+        x: this.width / 2 - 80,
+        y: this.height / 2 + 120,
+        width: 160,
+        height: 50,
+        color: '#9E9E9E',
+        hoverColor: '#757575',
+        action: () => this.onBackToMenu()
+      }
+    ];
+  }
+
+  initFailure(progress, total, time) {
+    this.showCompletion = true;
+    this.showFailure = true;
+    this.failureProgress = progress;
+    this.failureTotal = total;
+    this.failureTime = time;
+    this.buttons = [
+      {
+        id: 'tryAgain',
+        text: '再试一次',
+        x: this.width / 2 - 80,
+        y: this.height / 2 + 50,
+        width: 160,
+        height: 50,
+        color: '#FF6B6B',
+        hoverColor: '#FF5252',
         action: () => this.onPlayAgain()
       },
       {
@@ -150,14 +183,14 @@ export default class UI {
     this.difficulty = difficulties[(currentIndex + 1) % difficulties.length];
     
     const difficultyText = {
-      'easy': '简单',
-      'normal': '普通',
-      'hard': '困难'
+      'easy': '简单 (10个)',
+      'normal': '普通 (25个)',
+      'hard': '困难 (50个)'
     };
     
     this.buttons[2].text = `难度: ${difficultyText[this.difficulty]}`;
     
-    const counts = { 'easy': 5, 'normal': 10, 'hard': 15 };
+    const counts = { 'easy': 10, 'normal': 25, 'hard': 50 };
     this.polygonCount = counts[this.difficulty];
   }
 
@@ -168,7 +201,7 @@ export default class UI {
     }
   }
 
-  render(ctx, gameState, currentNumber, totalNumbers) {
+  render(ctx, gameState, currentNumber, totalNumbers, timeLeft = 5.0) {
     if (this.showInstructions) {
       this.renderInstructions(ctx);
       return;
@@ -182,7 +215,7 @@ export default class UI {
     if (gameState === 'menu') {
       this.renderMenu(ctx);
     } else if (gameState === 'playing' || gameState === 'completed') {
-      this.renderGameUI(ctx, currentNumber, totalNumbers);
+      this.renderGameUI(ctx, gameState, currentNumber, totalNumbers, timeLeft);
     }
 
     this.renderButtons(ctx);
@@ -203,7 +236,7 @@ export default class UI {
     ctx.fillText('按顺序点击数字', this.width / 2, this.height / 4 + 50);
   }
 
-  renderGameUI(ctx, currentNumber, totalNumbers) {
+  renderGameUI(ctx, gameState, currentNumber, totalNumbers, timeLeft) {
     ctx.fillStyle = '#34495E';
     ctx.fillRect(0, 0, this.width, 80);
 
@@ -211,13 +244,26 @@ export default class UI {
     ctx.font = 'bold 24px Arial';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`当前: ${currentNumber}`, 20, 40);
+    ctx.fillText(`当前: ${currentNumber}`, 20, 30);
 
     ctx.textAlign = 'center';
-    ctx.fillText(`进度: ${currentNumber - 1}/${totalNumbers}`, this.width / 2, 40);
+    ctx.fillText(`进度: ${currentNumber - 1}/${totalNumbers}`, this.width / 2, 30);
 
     ctx.textAlign = 'right';
-    ctx.fillText(`目标: ${totalNumbers}`, this.width - 20, 40);
+    ctx.fillText(`目标: ${totalNumbers}`, this.width - 20, 30);
+
+    ctx.font = 'bold 28px Arial';
+    
+    if (timeLeft <= 2.0) {
+      ctx.fillStyle = '#FF0000';
+    } else if (timeLeft <= 3.0) {
+      ctx.fillStyle = '#FFA500';
+    } else {
+      ctx.fillStyle = '#FF6B6B';
+    }
+    
+    ctx.textAlign = 'center';
+    ctx.fillText(`⏱️ ${timeLeft.toFixed(1)}s`, this.width / 2, 65);
   }
 
   renderInstructions(ctx) {
@@ -235,9 +281,10 @@ export default class UI {
       '1. 游戏开始后会显示多个不规则图形',
       '2. 每个图形都有一个数字标识',
       '3. 按照数字从小到大的顺序点击图形',
-      '4. 点击正确会有高亮反馈',
-      '5. 点击错误会有震动效果',
-      '6. 按顺序点击完所有数字即可通关',
+      '4. 点击正确会有高亮反馈并增加时间',
+      '5. 点击错误会有震动效果并扣除时间',
+      '6. 时间耗尽则游戏失败',
+      '7. 按顺序点击完所有数字即可通关',
       '',
       '点击任意处返回'
     ];
@@ -253,15 +300,28 @@ export default class UI {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
     ctx.fillRect(0, 0, this.width, this.height);
 
-    ctx.fillStyle = '#4CAF50';
-    ctx.font = 'bold 48px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('恭喜通关！', this.width / 2, this.height / 3);
+    if (this.showFailure) {
+      ctx.fillStyle = '#FF6B6B';
+      ctx.font = 'bold 48px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('😢 游戏失败！', this.width / 2, this.height / 3);
 
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = '28px Arial';
-    ctx.fillText(`完成时间: ${this.completionTime.toFixed(2)}秒`, this.width / 2, this.height / 2);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '24px Arial';
+      ctx.fillText(`完成进度: ${this.failureProgress}/${this.failureTotal}`, this.width / 2, this.height / 2 - 20);
+      ctx.fillText(`用时: ${this.failureTime.toFixed(2)}秒`, this.width / 2, this.height / 2 + 20);
+    } else {
+      ctx.fillStyle = '#4CAF50';
+      ctx.font = 'bold 48px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🎉 恭喜通关！', this.width / 2, this.height / 3);
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '28px Arial';
+      ctx.fillText(`完成时间: ${this.completionTime.toFixed(2)}秒`, this.width / 2, this.height / 2);
+    }
   }
 
   renderButtons(ctx) {

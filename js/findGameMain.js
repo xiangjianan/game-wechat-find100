@@ -57,6 +57,10 @@ export default class FindGameMain {
       this.handleGameComplete(time);
     };
     
+    this.gameManager.onGameFailed = () => {
+      this.handleGameFailed();
+    };
+    
     this.gameManager.onError = () => {
       this.soundManager.playError();
     };
@@ -98,6 +102,15 @@ export default class FindGameMain {
     this.ui.initCompletion(time);
   }
 
+  handleGameFailed() {
+    this.soundManager.playError();
+    this.ui.initFailure(
+      this.gameManager.getProgress(),
+      this.gameManager.getTotalProgress(),
+      this.gameManager.getCompletionTime()
+    );
+  }
+
   update() {
     this.gameManager.update();
   }
@@ -113,7 +126,8 @@ export default class FindGameMain {
       ctx,
       this.gameManager.gameState,
       this.gameManager.currentNumber,
-      this.gameManager.totalNumbers
+      this.gameManager.totalNumbers,
+      this.gameManager.getTimeLeft()
     );
   }
 

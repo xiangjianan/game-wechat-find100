@@ -15,6 +15,14 @@ export default class GameManager {
     this.polygonCount = 10;
     this.onGameComplete = null;
     this.onError = null;
+    this.onCorrectClick = null;
+    
+    this.timeLeft = 5.0;
+    this.initialTime = 5.0;
+    this.timeBonus = 5.0;
+    this.timerInterval = null;
+    this.clickCount = 0;
+    this.errorCount = 0;
   }
 
   initGame(count, difficulty = 'normal') {
@@ -25,6 +33,11 @@ export default class GameManager {
     this.totalNumbers = count;
     this.gameState = 'playing';
     this.startTime = Date.now();
+    this.timeLeft = this.initialTime;
+    this.clickCount = 0;
+    this.errorCount = 0;
+    
+    this.startTimer();
   }
 
   handleClick(x, y) {
@@ -51,6 +64,9 @@ export default class GameManager {
     }, 200);
 
     this.currentNumber++;
+    this.clickCount++;
+    
+    this.timeLeft += this.timeBonus;
 
     if (this.currentNumber > this.totalNumbers) {
       this.handleGameComplete();
@@ -63,6 +79,13 @@ export default class GameManager {
 
   handleWrongClick(polygon) {
     polygon.shake();
+    this.errorCount++;
+    this.clickCount++;
+    
+    this.timeLeft -= this.timeBonus;
+    if (this.timeLeft < 0) {
+      this.timeLeft = 0;
+    }
     
     if (this.onError) {
       this.onError();
@@ -80,11 +103,15 @@ export default class GameManager {
   }
 
   reset() {
+    this.stopTimer();
     this.polygons = [];
     this.currentNumber = 1;
     this.gameState = 'menu';
     this.startTime = 0;
     this.endTime = 0;
+    this.timeLeft = this.initialTime;
+    this.clickCount = 0;
+    this.errorCount = 0;
   }
 
   update() {
@@ -111,5 +138,45 @@ export default class GameManager {
 
   getTotalProgress() {
     return this.totalNumbers;
+  }
+
+  startTimer() {
+    this.stopTimer();
+    this.timerInterval = setInterval(() => {
+      this.updateTimer();
+    }, 100);
+  }
+
+  stopTimer() {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
+  }
+
+  updateTimer() {
+    this.timeLeft -= 0.1;
+    
+    if (this.timeLeft <= 0) {
+      this.timeLeft = 0;
+      this.stopTimer();
+      this.gameState = 'failed';
+      
+      if (this.onGameFailed) {
+        this.onGameFailed();
+      }
+    }
+  }
+
+  getTimeLeft() {
+    return this.timeLeft;
+  }
+
+  getClickCount() {
+    return this.clickCount;
+  }
+
+  getErrorCount() {
+    return this.errorCount;
   }
 }
