@@ -46,7 +46,7 @@ export default class UI {
     const buttonWidth = 60;
     const buttonHeight = 60;
     const buttonSpacing = 20;
-    const totalWidth = buttonWidth * 3 + buttonSpacing * 2;
+    const totalWidth = buttonWidth * 2 + buttonSpacing;
     const startX = (this.width - totalWidth) / 2;
     const buttonY = this.height / 2 - 30;
     
@@ -63,20 +63,9 @@ export default class UI {
         action: () => this.onStartGame()
       },
       {
-        id: 'level',
-        text: '🎯',
-        x: startX + buttonWidth + buttonSpacing,
-        y: buttonY,
-        width: buttonWidth,
-        height: buttonHeight,
-        color: '#FF9800',
-        hoverColor: '#e68a00',
-        action: () => this.onChangeLevel()
-      },
-      {
         id: 'instructions',
         text: '❓',
-        x: startX + (buttonWidth + buttonSpacing) * 2,
+        x: startX + buttonWidth + buttonSpacing,
         y: buttonY,
         width: buttonWidth,
         height: buttonHeight,
@@ -231,6 +220,7 @@ export default class UI {
   }
 
   onStartGame() {
+    this.currentLevel = 1;
     if (this.onGameStart) {
       this.onGameStart(this.levelConfig[this.currentLevel].count, this.currentLevel);
     }
@@ -449,16 +439,9 @@ export default class UI {
     ctx.font = '18px Arial';
     const instructions = [
       '游戏规则',
-      '• 两个关卡：第一关10个图形，第二关100个图形',
-      '• 每个图形有数字标识',
-      '• 按数字顺序点击图形',
-      '• 点击正确增加时间，点击错误扣除时间',
-      '• 时间耗尽则游戏失败',
-      '• 第一关通关后进入第二关，第二关通关显示成绩',
-      '',
-      '按钮功能',
-      '▶️ 开始  🎯 切换关卡  ❓ 说明',
-      '🔄 重开  🏠 菜单  ➡️ 下一关',
+      '1. 依序点击数字，直到100为止',
+      '2. 点对加时5秒，点错减5秒',
+      '3. 倒计时归零则失败',
       '',
       '点击任意处返回'
     ];
