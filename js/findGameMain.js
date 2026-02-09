@@ -3,6 +3,7 @@ import GameManager from './gameManager';
 import UI from './ui';
 import SoundManager from './soundManager';
 
+const canvas = GameGlobal.canvas;
 const ctx = canvas.getContext('2d');
 
 export default class FindGameMain {
@@ -23,6 +24,11 @@ export default class FindGameMain {
   }
 
   setupEventListeners() {
+    if (!canvas) {
+      console.error('Canvas not available');
+      return;
+    }
+    
     canvas.addEventListener('touchstart', (e) => {
       e.preventDefault();
       const touch = e.touches[0];
