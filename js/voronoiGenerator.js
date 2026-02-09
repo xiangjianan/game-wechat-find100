@@ -13,10 +13,10 @@ export default class VoronoiGenerator {
     const polygons = [];
     
     const bounds = {
-      x: 50,
-      y: 100,
-      width: this.width - 100,
-      height: this.height - 200
+      x: 0,
+      y: 80,
+      width: this.width,
+      height: this.height - 80
     };
 
     const totalArea = bounds.width * bounds.height;

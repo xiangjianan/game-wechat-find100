@@ -45,3 +45,8 @@ if (typeof canvas.style !== 'undefined') {
 
 export const SCREEN_WIDTH = windowInfo.screenWidth;
 export const SCREEN_HEIGHT = windowInfo.screenHeight;
+export const GAME_WIDTH_PERCENT = 1.0;
+export const GAME_WIDTH = Math.floor(SCREEN_WIDTH * GAME_WIDTH_PERCENT);
+export const GAME_HEIGHT = SCREEN_HEIGHT;
+export const GAME_X = Math.floor((SCREEN_WIDTH - GAME_WIDTH) / 2);
+export const GAME_Y = 0;
