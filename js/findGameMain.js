@@ -29,7 +29,24 @@ export default class FindGameMain {
       const rect = canvas.getBoundingClientRect();
       const x = touch.clientX - rect.left;
       const y = touch.clientY - rect.top;
+      this.ui.updateMousePosition(x, y);
       this.handleInput(x, y);
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+      this.ui.updateMousePosition(x, y);
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      this.ui.updateMousePosition(x, y);
     });
 
     canvas.addEventListener('click', (e) => {
@@ -75,6 +92,11 @@ export default class FindGameMain {
   }
 
   handleInput(x, y) {
+    if (this.ui.showModal) {
+      this.ui.handleModalClick(x, y);
+      return;
+    }
+
     if (this.ui.handleClick(x, y)) {
       return;
     }
@@ -85,6 +107,7 @@ export default class FindGameMain {
   }
 
   startGame(count, level) {
+    this.ui.currentLevel = level;
     this.gameManager.initGame(count, level);
     this.ui.initGame();
   }
@@ -110,25 +133,88 @@ export default class FindGameMain {
     this.saveGameProgress(time);
     
     if (this.ui.shouldAutoAdvance()) {
-      setTimeout(() => {
-        this.startNextLevel(2);
-      }, 2000);
+      this.ui.showModalDialog(
+        'levelComplete',
+        '🎉 恭喜通关！',
+        `完成时间: ${time.toFixed(2)}秒`,
+        [
+          {
+            id: 'nextLevel',
+            text: '进入下一关',
+            color: '#4CAF50',
+            hoverColor: '#45a049',
+            action: () => {
+              this.ui.hideModal();
+              this.startNextLevel(2);
+            }
+          }
+        ]
+      );
     } else {
-      this.ui.initCompletion(time);
+      this.ui.showModalDialog(
+        'gameComplete',
+        '🎉 恭喜通关！',
+        `完成时间: ${time.toFixed(2)}秒`,
+        [
+          {
+            id: 'playAgain',
+            text: '再玩一次',
+            color: '#4CAF50',
+            hoverColor: '#45a049',
+            action: () => {
+              this.ui.hideModal();
+              this.ui.initCompletion(time);
+            }
+          },
+          {
+            id: 'menu',
+            text: '返回菜单',
+            color: '#9E9E9E',
+            hoverColor: '#757575',
+            action: () => {
+              this.ui.hideModal();
+              this.backToMenu();
+            }
+          }
+        ]
+      );
     }
   }
 
   handleGameFailed() {
     this.soundManager.playError();
-    this.ui.initFailure(
-      this.gameManager.getProgress(),
-      this.gameManager.getTotalProgress(),
-      this.gameManager.getCompletionTime()
+    this.ui.showModalDialog(
+      'gameFailed',
+      '😢 游戏失败！',
+      `完成进度: ${this.gameManager.getProgress()}/${this.gameManager.getTotalProgress()}\n用时: ${this.gameManager.getCompletionTime().toFixed(2)}秒`,
+      [
+        {
+          id: 'restart',
+          text: '重新开始',
+          color: '#4CAF50',
+          hoverColor: '#45a049',
+          action: () => {
+            this.ui.hideModal();
+            this.resetGame();
+          }
+        },
+        {
+          id: 'menu',
+          text: '返回主界面',
+          color: '#9E9E9E',
+          hoverColor: '#757575',
+          action: () => {
+            this.ui.hideModal();
+            this.backToMenu();
+          }
+        }
+      ]
     );
   }
 
   update() {
     this.gameManager.update();
+    this.ui.updateModalAnimation(0.016);
   }
 
   render() {

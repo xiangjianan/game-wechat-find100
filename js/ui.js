@@ -12,6 +12,34 @@ export default class UI {
       1: { count: 10, name: '第一关' },
       2: { count: 100, name: '第二关' }
     };
+    
+    this.showModal = false;
+    this.modalType = null;
+    this.modalTitle = '';
+    this.modalMessage = '';
+    this.modalButtons = [];
+    this.modalAnimation = 0;
+    this.modalTargetAnimation = 1;
+    
+    this.mouseX = 0;
+    this.mouseY = 0;
+    this.hoveredButton = null;
+    this.clickedButton = null;
+    this.clickAnimation = 0;
+  }
+
+  roundRect(ctx, x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
   }
 
   initMenu() {
@@ -244,6 +272,101 @@ export default class UI {
     }
   }
 
+  showModalDialog(type, title, message, buttons) {
+    this.modalType = type;
+    this.modalTitle = title;
+    this.modalMessage = message;
+    this.modalButtons = buttons;
+    this.showModal = true;
+    this.modalAnimation = 0;
+    this.modalTargetAnimation = 1;
+  }
+
+  hideModal() {
+    this.modalTargetAnimation = 0;
+  }
+
+  updateModalAnimation(deltaTime) {
+    if (this.showModal) {
+      if (this.modalAnimation < this.modalTargetAnimation) {
+        this.modalAnimation += deltaTime * 5;
+        if (this.modalAnimation > this.modalTargetAnimation) {
+          this.modalAnimation = this.modalTargetAnimation;
+        }
+      } else if (this.modalAnimation > this.modalTargetAnimation) {
+        this.modalAnimation -= deltaTime * 5;
+        if (this.modalAnimation < this.modalTargetAnimation) {
+          this.modalAnimation = this.modalTargetAnimation;
+        }
+      }
+      
+      if (this.modalAnimation <= 0 && this.modalTargetAnimation === 0) {
+        this.showModal = false;
+      }
+    }
+  }
+
+  renderModal(ctx) {
+    const alpha = this.modalAnimation;
+    const scale = 0.8 + 0.2 * alpha;
+    
+    ctx.fillStyle = `rgba(0, 0, 0, ${0.6 * alpha})`;
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    const modalWidth = Math.min(400, this.width - 40);
+    const modalHeight = 280;
+    const modalX = (this.width - modalWidth) / 2;
+    const modalY = (this.height - modalHeight) / 2;
+
+    ctx.save();
+    ctx.translate(this.width / 2, this.height / 2);
+    ctx.scale(scale, scale);
+    ctx.translate(-this.width / 2, -this.height / 2);
+
+    ctx.fillStyle = '#FFFFFF';
+    this.roundRect(ctx, modalX, modalY, modalWidth, modalHeight, 15);
+    ctx.fill();
+
+    ctx.fillStyle = '#2C3E50';
+    ctx.font = 'bold 28px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(this.modalTitle, this.width / 2, modalY + 50);
+
+    ctx.fillStyle = '#7F8C8D';
+    ctx.font = '18px Arial';
+    
+    const messageLines = this.modalMessage.split('\n');
+    const lineHeight = 25;
+    const messageY = modalY + 100 - (messageLines.length - 1) * lineHeight / 2;
+    
+    for (let i = 0; i < messageLines.length; i++) {
+      ctx.fillText(messageLines[i], this.width / 2, messageY + i * lineHeight);
+    }
+
+    const buttonWidth = 120;
+    const buttonHeight = 45;
+    const buttonSpacing = 20;
+    const totalButtonWidth = buttonWidth * this.modalButtons.length + buttonSpacing * (this.modalButtons.length - 1);
+    const startX = (this.width - totalButtonWidth) / 2;
+    const buttonY = modalY + 200;
+
+    for (let i = 0; i < this.modalButtons.length; i++) {
+      const button = this.modalButtons[i];
+      const bx = startX + i * (buttonWidth + buttonSpacing);
+      
+      ctx.fillStyle = button.color;
+      this.roundRect(ctx, bx, buttonY, buttonWidth, buttonHeight, 8);
+      ctx.fill();
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText(button.text, bx + buttonWidth / 2, buttonY + buttonHeight / 2);
+    }
+
+    ctx.restore();
+  }
+
   render(ctx, gameState, currentNumber, totalNumbers, timeLeft = 5.0) {
     if (this.showInstructions) {
       this.renderInstructions(ctx);
@@ -262,6 +385,10 @@ export default class UI {
     }
 
     this.renderButtons(ctx);
+    
+    if (this.showModal) {
+      this.renderModal(ctx);
+    }
   }
 
   renderMenu(ctx) {
@@ -329,7 +456,7 @@ export default class UI {
       '6. 点击正确会有高亮反馈并增加时间',
       '7. 点击错误会有震动效果并扣除时间',
       '8. 时间耗尽则游戏失败',
-      '9. 第一关通关后会自动进入第二关',
+      '9. 第一关通关后点击确认进入第二关',
       '10. 第二关通关后显示最终成绩',
       '',
       '按钮说明：',
@@ -400,7 +527,18 @@ export default class UI {
     };
     
     for (const button of this.buttons) {
-      ctx.fillStyle = button.color;
+      const isHovered = this.hoveredButton === button.id;
+      const isClicked = this.clickedButton === button.id;
+      
+      let fillColor = button.color;
+      if (isHovered) {
+        fillColor = button.hoverColor;
+      }
+      if (isClicked) {
+        fillColor = this.darkenColor(fillColor, 0.2);
+      }
+      
+      ctx.fillStyle = fillColor;
       ctx.fillRect(button.x, button.y, button.width, button.height);
 
       ctx.fillStyle = '#FFFFFF';
@@ -415,5 +553,99 @@ export default class UI {
         ctx.fillText(buttonLabels[button.id], button.x + button.width / 2, button.y + button.height + 12);
       }
     }
+  }
+
+  darkenColor(color, amount) {
+    const hex = color.replace('#', '');
+    const r = Math.max(0, parseInt(hex.substr(0, 2), 16) - Math.floor(255 * amount));
+    const g = Math.max(0, parseInt(hex.substr(2, 2), 16) - Math.floor(255 * amount));
+    const b = Math.max(0, parseInt(hex.substr(4, 2), 16) - Math.floor(255 * amount));
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+  }
+
+  updateMousePosition(x, y) {
+    this.mouseX = x;
+    this.mouseY = y;
+    this.updateHoveredButton();
+  }
+
+  updateHoveredButton() {
+    this.hoveredButton = null;
+    
+    const allButtons = [...this.buttons];
+    if (this.showModal) {
+      allButtons.push(...this.modalButtons);
+    }
+    
+    for (const button of allButtons) {
+      if (this.isPointInButton(this.mouseX, this.mouseY, button)) {
+        this.hoveredButton = button.id;
+        break;
+      }
+    }
+  }
+
+  isPointInButton(x, y, button) {
+    return x >= button.x && x <= button.x + button.width &&
+           y >= button.y && y <= button.y + button.height;
+  }
+
+  handleClick(x, y) {
+    const allButtons = [...this.buttons];
+    if (this.showModal) {
+      allButtons.push(...this.modalButtons);
+    }
+    
+    for (const button of allButtons) {
+      if (this.isPointInButton(x, y, button)) {
+        this.clickedButton = button.id;
+        this.clickAnimation = 1;
+        setTimeout(() => {
+          this.clickedButton = null;
+          this.clickAnimation = 0;
+          if (button.action) {
+            button.action();
+          }
+        }, 150);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  handleModalClick(x, y) {
+    if (!this.showModal) return false;
+    if (this.modalTargetAnimation === 0) return false;
+    
+    const modalWidth = Math.min(400, this.width - 40);
+    const modalHeight = 280;
+    const modalX = (this.width - modalWidth) / 2;
+    const modalY = (this.height - modalHeight) / 2;
+    
+    const buttonWidth = 120;
+    const buttonHeight = 45;
+    const buttonSpacing = 20;
+    const totalButtonWidth = buttonWidth * this.modalButtons.length + buttonSpacing * (this.modalButtons.length - 1);
+    const startX = (this.width - totalButtonWidth) / 2;
+    const buttonY = modalY + 200;
+    
+    for (let i = 0; i < this.modalButtons.length; i++) {
+      const button = this.modalButtons[i];
+      const bx = startX + i * (buttonWidth + buttonSpacing);
+      
+      if (x >= bx && x <= bx + buttonWidth && y >= buttonY && y <= buttonY + buttonHeight) {
+        this.clickedButton = button.id;
+        this.clickAnimation = 1;
+        setTimeout(() => {
+          this.clickedButton = null;
+          this.clickAnimation = 0;
+          if (button.action) {
+            button.action();
+          }
+        }, 150);
+        return true;
+      }
+    }
+    return false;
   }
 }
