@@ -93,6 +93,7 @@ export default class GameManager {
   }
 
   handleGameComplete() {
+    this.stopTimer();
     this.gameState = 'completed';
     this.endTime = Date.now();
     const completionTime = (this.endTime - this.startTime) / 1000;
