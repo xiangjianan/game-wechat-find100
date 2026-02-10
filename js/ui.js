@@ -446,12 +446,12 @@ export default class UI {
 
     ctx.font = 'bold 24px Arial';
     
-    if (timeLeft <= 2.0) {
+    if (timeLeft <= 5.0) {
       ctx.fillStyle = '#FF0000';
-    } else if (timeLeft <= 3.0) {
+    } else if (timeLeft <= 10.0) {
       ctx.fillStyle = '#FFA500';
     } else {
-      ctx.fillStyle = '#FF6B6B';
+      ctx.fillStyle = '#FFFFFF';
     }
     
     ctx.textAlign = 'center';
