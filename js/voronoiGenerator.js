@@ -21,14 +21,18 @@ export default class VoronoiGenerator {
 
     const totalArea = bounds.width * bounds.height;
     const expectedArea = totalArea / count;
-    const minDistance = Math.sqrt(expectedArea) * 0.4;
-
+    // 确保最小间距至少为10px
+    const minDistance = Math.max(10, Math.sqrt(expectedArea) * 0.5);
+ 
     const points = this.generateSeedPoints(count, bounds, minDistance);
     
-    const gridSize = 4;
-    const grid = this.generateGrid(bounds, gridSize, points);
+    // 应用力导向布局调整
+    const adjustedPoints = this.applyForceDirectedLayout(points, bounds);
     
-    for (let i = 0; i < points.length; i++) {
+    const gridSize = 4;
+    const grid = this.generateGrid(bounds, gridSize, adjustedPoints);
+    
+    for (let i = 0; i < adjustedPoints.length; i++) {
       const regionPoints = grid.filter(p => p.region === i);
       
       if (regionPoints.length === 0) continue;
@@ -152,5 +156,60 @@ export default class VoronoiGenerator {
     }
     
     return hull;
+  }
+
+  applyForceDirectedLayout(points, bounds) {
+    const iterations = 50;
+    const repulsionStrength = 200;
+    const centerStrength = 0.01;
+    const minDistance = 10;
+
+    for (let iter = 0; iter < iterations; iter++) {
+      // 计算每个点的受力
+      const forces = points.map(() => ({ x: 0, y: 0 }));
+
+      // 斥力：点之间互相排斥
+      for (let i = 0; i < points.length; i++) {
+        for (let j = i + 1; j < points.length; j++) {
+          const dx = points[i].x - points[j].x;
+          const dy = points[i].y - points[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < minDistance && dist > 0) {
+            const force = repulsionStrength / (dist * dist);
+            const fx = (dx / dist) * force;
+            const fy = (dy / dist) * force;
+
+            forces[i].x += fx;
+            forces[i].y += fy;
+            forces[j].x -= fx;
+            forces[j].y -= fy;
+          }
+        }
+      }
+
+      // 中心引力：将点拉向中心
+      const centerX = bounds.x + bounds.width / 2;
+      const centerY = bounds.y + bounds.height / 2;
+
+      for (let i = 0; i < points.length; i++) {
+        const dx = centerX - points[i].x;
+        const dy = centerY - points[i].y;
+        forces[i].x += dx * centerStrength;
+        forces[i].y += dy * centerStrength;
+      }
+
+      // 应用力并更新位置
+      for (let i = 0; i < points.length; i++) {
+        points[i].x += forces[i].x * 0.1;
+        points[i].y += forces[i].y * 0.1;
+
+        // 确保点在边界内
+        points[i].x = Math.max(bounds.x, Math.min(bounds.x + bounds.width, points[i].x));
+        points[i].y = Math.max(bounds.y, Math.min(bounds.y + bounds.height, points[i].y));
+      }
+    }
+
+    return points;
   }
 }

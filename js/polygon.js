@@ -103,7 +103,12 @@ export default class Polygon {
     ctx.lineJoin = 'round';
     ctx.stroke();
 
-    const fontSize = Math.max(12, Math.min(24, Math.sqrt(this.getArea()) / 4));
+    // 根据数字位数动态调整字体大小
+    const baseFontSize = Math.max(12, Math.min(24, Math.sqrt(this.getArea()) / 4));
+    const digitCount = this.number.toString().length;
+    // 1位数: 100%, 2位数: 90%, 3位数: 80%
+    const digitMultiplier = digitCount === 1 ? 1.0 : digitCount === 2 ? 0.9 : 0.8;
+    const fontSize = baseFontSize * digitMultiplier;
     ctx.font = `bold ${fontSize}px Arial, sans-serif`;
     // 未点击的图形显示彩色文字，已点击的图形显示白色文字
     if (this.isClicked) {
