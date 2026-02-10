@@ -355,7 +355,11 @@ export default class UI {
   }
 
   renderMenu(ctx) {
-    ctx.fillStyle = '#2C3E50';
+    // 天蓝渐变背景
+    const gradient = ctx.createLinearGradient(0, 0, 0, this.height);
+    gradient.addColorStop(0, '#7dd7fa');
+    gradient.addColorStop(1, '#2f96fc');
+    ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, this.width, this.height);
 
     ctx.fillStyle = '#FFFFFF';
