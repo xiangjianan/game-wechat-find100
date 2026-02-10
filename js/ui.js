@@ -528,8 +528,25 @@ export default class UI {
     ctx.textBaseline = 'middle';
     // ctx.fillText(`${this.levelConfig[this.currentLevel].name}`, 110, 30);
 
-    ctx.textAlign = 'center';
-    ctx.fillText(`进度: ${currentNumber - 1}/${totalNumbers}`, this.width / 2, 30);
+    // 绘制迷你进度条
+    const progressBarWidth = 200;
+    const progressBarHeight = 12;
+    const progressBarX = (this.width - progressBarWidth) / 2;
+    const progressBarY = 24;
+    const progress = (currentNumber - 1) / totalNumbers;
+
+    // 进度条背景
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    this.roundRect(ctx, progressBarX, progressBarY, progressBarWidth, progressBarHeight, 6);
+    ctx.fill();
+
+    // 进度条填充
+    const fillWidth = progressBarWidth * progress;
+    if (fillWidth > 0) {
+      ctx.fillStyle = '#4CAF50';
+      this.roundRect(ctx, progressBarX, progressBarY, fillWidth, progressBarHeight, 6);
+      ctx.fill();
+    }
 
     ctx.textAlign = 'right';
 
