@@ -546,7 +546,8 @@ export default class UI {
       }
       
       ctx.fillStyle = fillColor;
-      ctx.fillRect(button.x, button.y, button.width, button.height);
+      this.roundRect(ctx, button.x, button.y, button.width, button.height, 15);
+      ctx.fill();
 
       ctx.fillStyle = '#FFFFFF';
       ctx.font = 'bold 28px Arial';
