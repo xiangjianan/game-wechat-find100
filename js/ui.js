@@ -26,6 +26,7 @@ export default class UI {
     this.hoveredButton = null;
     this.clickedButton = null;
     this.clickAnimation = 0;
+    this.onPlayClickSound = null;
   }
 
   roundRect(ctx, x, y, width, height, radius) {
@@ -674,6 +675,9 @@ export default class UI {
       const bx = startX + i * (buttonWidth + buttonSpacing);
       
       if (x >= bx && x <= bx + buttonWidth && y >= buttonY && y <= buttonY + buttonHeight) {
+        if (this.onPlayClickSound) {
+          this.onPlayClickSound();
+        }
         this.clickedButton = button.id;
         this.clickAnimation = 1;
         setTimeout(() => {

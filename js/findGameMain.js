@@ -249,6 +249,10 @@ export default class FindGameMain {
     this.ui.onNextLevel = (level) => {
       this.startNextLevel(level);
     };
+
+    this.ui.onPlayClickSound = () => {
+      this.soundManager.playClick();
+    };
     
     this.gameManager.onGameComplete = (time) => {
       this.handleGameComplete(time);
