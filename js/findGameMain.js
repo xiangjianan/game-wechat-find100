@@ -311,7 +311,7 @@ export default class FindGameMain {
     if (this.ui.shouldAutoAdvance()) {
       this.ui.showModalDialog(
         'levelComplete',
-        '🎉 恭喜通关！',
+        '🎉 恭喜过关！',
         `完成时间: ${time.toFixed(2)}秒`,
         [
           {

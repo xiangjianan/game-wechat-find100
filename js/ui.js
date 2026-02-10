@@ -128,7 +128,7 @@ export default class UI {
     
     this.buttons.push({
       id: 'menu',
-      text: '🏠',
+      text: '返回',
       x: startX + buttonWidth * (hasNextLevel ? 2 : 1) + buttonSpacing * (hasNextLevel ? 2 : 1),
       y: buttonY,
       width: buttonWidth,
@@ -377,11 +377,62 @@ export default class UI {
     ctx.fillStyle = '#34495E';
     ctx.fillRect(0, 0, this.width, 80);
 
+    const headerButtonSize = 60;
+    const headerButtonSpacing = 10;
+    const headerButtonY = 20;
+    const headerButtonStartX = 10;
+
+    this.headerButtons = [
+      {
+        id: 'menu',
+        text: '返回',
+        x: headerButtonStartX,
+        y: headerButtonY,
+        width: headerButtonSize,
+        height: headerButtonSize - 20,
+        color: '#9E9E9E',
+        hoverColor: '#757575',
+        action: () => this.onBackToMenu()
+      },
+      {
+        id: 'reset',
+        text: '重试',
+        x: headerButtonStartX + headerButtonSize + headerButtonSpacing,
+        y: headerButtonY,
+        width: headerButtonSize,
+        height: headerButtonSize - 20,
+        color: '#f44336',
+        hoverColor: '#da190b',
+        action: () => this.onResetGame()
+      }
+    ];
+
+    this.headerButtons.forEach(button => {
+      const isHovered = this.isPointInButton(this.mouseX, this.mouseY, button);
+      const isClicked = this.clickedButton === button.id;
+      
+      ctx.fillStyle = isHovered ? button.hoverColor : button.color;
+      if (isClicked) {
+        ctx.globalAlpha = 0.7;
+      }
+      
+      this.roundRect(ctx, button.x, button.y, button.width, button.height, 8);
+      ctx.fill();
+      
+      ctx.globalAlpha = 1;
+      
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '20px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(button.text, button.x + button.width / 2, button.y + button.height / 2);
+    });
+
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 20px Arial';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`${this.levelConfig[this.currentLevel].name}`, 20, 30);
+    // ctx.fillText(`${this.levelConfig[this.currentLevel].name}`, 110, 30);
 
     ctx.textAlign = 'center';
     ctx.fillText(`当前: ${currentNumber}`, this.width / 2, 30);
@@ -401,36 +452,6 @@ export default class UI {
     
     ctx.textAlign = 'center';
     ctx.fillText(`⏱️ ${timeLeft.toFixed(1)}s`, this.width / 2, 65);
-
-    const headerButtonSize = 40;
-    const headerButtonSpacing = 10;
-    const headerButtonY = 20;
-    const headerButtonStartX = 120;
-
-    this.headerButtons = [
-      {
-        id: 'reset',
-        text: '🔄',
-        x: headerButtonStartX,
-        y: headerButtonY,
-        width: headerButtonSize,
-        height: headerButtonSize,
-        color: '#f44336',
-        hoverColor: '#da190b',
-        action: () => this.onResetGame()
-      },
-      {
-        id: 'menu',
-        text: '🏠',
-        x: headerButtonStartX + headerButtonSize + headerButtonSpacing,
-        y: headerButtonY,
-        width: headerButtonSize,
-        height: headerButtonSize,
-        color: '#9E9E9E',
-        hoverColor: '#757575',
-        action: () => this.onBackToMenu()
-      }
-    ];
 
     this.headerButtons.forEach(button => {
       const isHovered = this.isPointInButton(this.mouseX, this.mouseY, button);
@@ -495,20 +516,6 @@ export default class UI {
       ctx.font = '20px Arial';
       ctx.fillText(`完成进度: ${this.failureProgress}/${this.failureTotal}`, this.width / 2, this.height / 2 - 20);
       ctx.fillText(`用时: ${this.failureTime.toFixed(2)}秒`, this.width / 2, this.height / 2 + 20);
-    } else if (this.shouldAutoAdvance()) {
-      ctx.fillStyle = '#4CAF50';
-      ctx.font = 'bold 40px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('🎉 第一关通关！', this.width / 2, this.height / 3);
-
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = '24px Arial';
-      ctx.fillText(`完成时间: ${this.completionTime.toFixed(2)}秒`, this.width / 2, this.height / 2 - 30);
-      
-      ctx.font = '20px Arial';
-      ctx.fillStyle = '#FFD700';
-      ctx.fillText('即将进入第二关...', this.width / 2, this.height / 2 + 30);
     } else {
       ctx.fillStyle = '#4CAF50';
       ctx.font = 'bold 40px Arial';
