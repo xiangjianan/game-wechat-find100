@@ -73,7 +73,8 @@ export default class GameManager {
     }
     
     if (this.onCorrectClick) {
-      this.onCorrectClick();
+      const center = polygon.getCenter();
+      this.onCorrectClick(center);
     }
   }
 
@@ -88,7 +89,8 @@ export default class GameManager {
     }
     
     if (this.onError) {
-      this.onError();
+      const center = polygon.getCenter();
+      this.onError(center);
     }
   }
 

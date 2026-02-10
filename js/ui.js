@@ -27,6 +27,17 @@ export default class UI {
     this.clickedButton = null;
     this.clickAnimation = 0;
     this.onPlayClickSound = null;
+    
+    // 浮动文字效果
+    this.floatingTexts = [];
+    
+    // 屏幕红闪效果
+    this.flashAlpha = 0;
+    this.flashTargetAlpha = 0;
+    
+    // 震动效果
+    this.shakeOffset = { x: 0, y: 0 };
+    this.shakeTime = 0;
   }
 
   roundRect(ctx, x, y, width, height, radius) {
@@ -41,6 +52,76 @@ export default class UI {
     ctx.lineTo(x, y + radius);
     ctx.quadraticCurveTo(x, y, x + radius, y);
     ctx.closePath();
+  }
+
+  showFloatingText(x, y, text, color) {
+    this.floatingTexts.push({
+      x, y, text, color,
+      alpha: 1,
+      offsetY: 0,
+      life: 1.0
+    });
+  }
+
+  triggerFlash() {
+    this.flashAlpha = 0.5;
+  }
+
+  triggerShake() {
+    this.shakeTime = 10;
+  }
+
+  updateEffects(deltaTime) {
+    // 更新浮动文字
+    for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+      const ft = this.floatingTexts[i];
+      ft.life -= deltaTime * 1.5;
+      ft.offsetY -= deltaTime * 100;
+      ft.alpha = Math.max(0, ft.life);
+      
+      if (ft.life <= 0) {
+        this.floatingTexts.splice(i, 1);
+      }
+    }
+
+    // 更新屏幕红闪
+    if (this.flashAlpha > 0) {
+      this.flashAlpha -= deltaTime * 3;
+      if (this.flashAlpha < 0) {
+        this.flashAlpha = 0;
+      }
+    }
+
+    // 更新震动
+    if (this.shakeTime > 0) {
+      this.shakeOffset.x = (Math.random() - 0.5) * 20;
+      this.shakeOffset.y = (Math.random() - 0.5) * 20;
+      this.shakeTime -= deltaTime * 60;
+      if (this.shakeTime < 0) {
+        this.shakeTime = 0;
+        this.shakeOffset = { x: 0, y: 0 };
+      }
+    }
+  }
+
+  renderEffects(ctx) {
+    // 渲染屏幕红闪
+    if (this.flashAlpha > 0) {
+      ctx.fillStyle = `rgba(255, 0, 0, ${this.flashAlpha})`;
+      ctx.fillRect(0, 0, this.width, this.height);
+    }
+
+    // 渲染浮动文字
+    for (const ft of this.floatingTexts) {
+      ctx.save();
+      ctx.globalAlpha = ft.alpha;
+      ctx.fillStyle = ft.color;
+      ctx.font = 'bold 32px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(ft.text, ft.x, ft.y + ft.offsetY);
+      ctx.restore();
+    }
   }
 
   initMenu() {
@@ -331,14 +412,19 @@ export default class UI {
     ctx.restore();
   }
 
-  render(ctx, gameState, currentNumber, totalNumbers, timeLeft = 5.0) {
+  render(ctx, gameState, currentNumber, totalNumbers, timeLeft = 5.0, deltaTime = 0.016) {
+    // 更新效果
+    this.updateEffects(deltaTime);
+
     if (this.showInstructions) {
       this.renderInstructions(ctx);
+      this.renderEffects(ctx);
       return;
     }
 
     if (this.showCompletion) {
       this.renderCompletion(ctx);
+      this.renderEffects(ctx);
       return;
     }
 
@@ -353,6 +439,9 @@ export default class UI {
     if (this.showModal) {
       this.renderModal(ctx);
     }
+
+    // 渲染效果
+    this.renderEffects(ctx);
   }
 
   renderMenu(ctx) {

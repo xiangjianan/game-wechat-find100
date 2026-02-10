@@ -262,12 +262,16 @@ export default class FindGameMain {
       this.handleGameFailed();
     };
     
-    this.gameManager.onError = () => {
+    this.gameManager.onError = (center) => {
       this.soundManager.playError();
+      this.ui.triggerFlash();
+      this.ui.triggerShake();
+      this.ui.showFloatingText(center.x, center.y, '-5秒', '#FF4444');
     };
     
-    this.gameManager.onCorrectClick = () => {
+    this.gameManager.onCorrectClick = (center) => {
       this.soundManager.playClick();
+      this.ui.showFloatingText(center.x, center.y, '+5秒', '#44FF44');
     };
   }
 
@@ -397,7 +401,7 @@ export default class FindGameMain {
     this.ui.updateModalAnimation(0.016);
   }
 
-  render() {
+  render(deltaTime = 0.016) {
     ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     if (this.gameManager.gameState === 'playing' || this.gameManager.gameState === 'completed') {
@@ -409,13 +413,18 @@ export default class FindGameMain {
       this.gameManager.gameState,
       this.gameManager.currentNumber,
       this.gameManager.totalNumbers,
-      this.gameManager.getTimeLeft()
+      this.gameManager.getTimeLeft(),
+      deltaTime
     );
   }
 
   loop() {
+    const now = Date.now();
+    const deltaTime = this.lastFrameTime ? (now - this.lastFrameTime) / 1000 : 0.016;
+    this.lastFrameTime = now;
+    
     this.update();
-    this.render();
+    this.render(deltaTime);
     this.aniId = requestAnimationFrame(this.loop.bind(this));
   }
 
