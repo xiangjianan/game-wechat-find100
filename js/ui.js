@@ -455,7 +455,7 @@ export default class UI {
     }
     
     ctx.textAlign = 'center';
-    ctx.fillText(`⏱️ ${timeLeft.toFixed(1)}s`, this.width / 2, 65);
+    ctx.fillText(`${timeLeft.toFixed(0)}s`, this.width / 2, 65);
 
     this.headerButtons.forEach(button => {
       const isHovered = this.isPointInButton(this.mouseX, this.mouseY, button);
