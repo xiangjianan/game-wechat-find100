@@ -43,19 +43,19 @@ export default class UI {
   }
 
   initMenu() {
-    const buttonWidth = 80;
+    const buttonWidth = 280;
     const buttonHeight = 80;
     const buttonSpacing = 30;
-    const totalWidth = buttonWidth * 2 + buttonSpacing;
-    const startX = (this.width - totalWidth) / 2;
-    const buttonY = this.height / 2 - 40;
+    const verticalSpacing = 20;
+    const centerX = this.width / 2;
+    const startY = this.height / 2 - 60;
     
     this.buttons = [
       {
         id: 'start',
-        text: '▶️',
-        x: startX,
-        y: buttonY,
+        text: '开始游戏',
+        x: centerX - buttonWidth / 2,
+        y: startY,
         width: buttonWidth,
         height: buttonHeight,
         color: '#4CAF50',
@@ -64,9 +64,9 @@ export default class UI {
       },
       {
         id: 'instructions',
-        text: '❓',
-        x: startX + buttonWidth + buttonSpacing,
-        y: buttonY,
+        text: '游戏规则',
+        x: centerX - buttonWidth / 2,
+        y: startY + buttonHeight + verticalSpacing,
         width: buttonWidth,
         height: buttonHeight,
         color: '#2196F3',
@@ -370,7 +370,7 @@ export default class UI {
 
     ctx.font = '20px Arial';
     ctx.fillStyle = '#BDC3C7';
-    ctx.fillText('按顺序点击数字', this.width / 2, this.height / 4 + 50);
+    ctx.fillText('', this.width / 2, this.height / 4 + 50);
   }
 
   renderGameUI(ctx, gameState, currentNumber, totalNumbers, timeLeft) {
@@ -462,14 +462,13 @@ export default class UI {
     ctx.font = 'bold 28px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('游戏说明', this.width / 2, this.height / 4);
+    ctx.fillText('游戏规则', this.width / 2, this.height / 4);
 
     ctx.font = '18px Arial';
     const instructions = [
-      '游戏规则',
-      '1. 依序点击数字，直到100为止',
+      '1. 按顺序点击数字，直到100为止',
       '2. 点对加时5秒，点错减5秒',
-      '3. 倒计时归零则失败',
+      '3. 倒计时归零则通关失败',
       '',
       '点击任意处返回'
     ];
@@ -525,9 +524,9 @@ export default class UI {
 
   renderButtons(ctx) {
     const buttonLabels = {
-      'start': '开始',
+      'start': '',
       'level': '关卡',
-      'instructions': '说明',
+      'instructions': '',
       'reset': '重置',
       'menu': '菜单',
       'playAgain': '再玩',
