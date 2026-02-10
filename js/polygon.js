@@ -97,7 +97,7 @@ export default class Polygon {
     }
     ctx.fill();
 
-    ctx.strokeStyle = '#000000';
+    ctx.strokeStyle = '#333333';
     ctx.lineWidth = this.isHighlighted ? 3 : 2;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
