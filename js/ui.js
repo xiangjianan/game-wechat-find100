@@ -38,6 +38,11 @@ export default class UI {
     // 震动效果
     this.shakeOffset = { x: 0, y: 0 };
     this.shakeTime = 0;
+
+    // 排行榜相关
+    this.showRank = false;
+    this.onOpenRank = null;
+    this.onCloseRank = null;
   }
 
   roundRect(ctx, x, y, width, height, radius) {
@@ -130,7 +135,7 @@ export default class UI {
     const buttonSpacing = 30;
     const verticalSpacing = 20;
     const centerX = this.width / 2;
-    const startY = this.height / 2 - 60;
+    const startY = this.height / 2 - 80;
     
     this.buttons = [
       {
@@ -154,6 +159,17 @@ export default class UI {
         color: '#2196F3',
         hoverColor: '#0b7dda',
         action: () => this.onShowInstructions()
+      },
+      {
+        id: 'rank',
+        text: '排行榜',
+        x: centerX - buttonWidth / 2,
+        y: startY + (buttonHeight + verticalSpacing) * 2,
+        width: buttonWidth,
+        height: buttonHeight,
+        color: '#FF9800',
+        hoverColor: '#F57C00',
+        action: () => this.onOpenRank()
       }
     ];
     
@@ -258,6 +274,11 @@ export default class UI {
   }
 
   handleClick(x, y) {
+    // 如果排行榜打开，不处理点击（由排行榜管理器处理）
+    if (this.showRank) {
+      return false;
+    }
+
     for (const button of this.buttons) {
       if (x >= button.x && x <= button.x + button.width &&
           y >= button.y && y <= button.y + button.height) {
@@ -315,6 +336,22 @@ export default class UI {
     if (this.onNextLevel) {
       this.onNextLevel(this.currentLevel);
     }
+  }
+
+  onOpenRank() {
+    if (this.onOpenRank) {
+      this.onOpenRank();
+    }
+  }
+
+  showRank() {
+    this.showRank = true;
+    this.buttons = [];
+  }
+
+  hideRank() {
+    this.showRank = false;
+    this.initMenu();
   }
 
   showModalDialog(type, title, message, buttons) {

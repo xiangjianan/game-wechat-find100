@@ -2,6 +2,7 @@ import { SCREEN_WIDTH, SCREEN_HEIGHT, getContext, getCanvas } from './render';
 import GameManager from './gameManager';
 import UI from './ui';
 import SoundManager from './soundManager';
+import RankManager from './rankManager';
 
 let canvas;
 let ctx;
@@ -19,9 +20,11 @@ export default class FindGameMain {
     this.gameManager = new GameManager(SCREEN_WIDTH, SCREEN_HEIGHT);
     this.ui = new UI(SCREEN_WIDTH, SCREEN_HEIGHT);
     this.soundManager = new SoundManager();
+    this.rankManager = new RankManager();
     this.aniId = 0;
     
     this.soundManager.init();
+    this.rankManager.init();
     this.loadGameProgress();
     
     this.setupEventListeners();
@@ -253,6 +256,14 @@ export default class FindGameMain {
     this.ui.onPlayClickSound = () => {
       this.soundManager.playClick();
     };
+
+    this.ui.onOpenRank = () => {
+      this.openRank();
+    };
+
+    this.ui.onCloseRank = () => {
+      this.closeRank();
+    };
     
     this.gameManager.onGameComplete = (time) => {
       this.handleGameComplete(time);
@@ -278,6 +289,12 @@ export default class FindGameMain {
   handleInput(x, y) {
     if (this.ui.showModal) {
       this.ui.handleModalClick(x, y);
+      return;
+    }
+
+    // 处理排行榜点击
+    if (this.rankManager.isRankOpen()) {
+      this.rankManager.handleClick(x, y, SCREEN_WIDTH, SCREEN_HEIGHT);
       return;
     }
 
@@ -315,6 +332,9 @@ export default class FindGameMain {
   handleGameComplete(time) {
     this.soundManager.playComplete();
     this.saveGameProgress(time);
+    
+    // 上传分数到排行榜
+    this.rankManager.uploadScore(time, this.gameManager.currentLevel);
     
     if (this.ui.shouldAutoAdvance()) {
       this.ui.showModalDialog(
@@ -416,6 +436,11 @@ export default class FindGameMain {
       this.gameManager.getTimeLeft(),
       deltaTime
     );
+
+    // 渲染排行榜
+    if (this.rankManager.isRankOpen()) {
+      this.rankManager.render(ctx, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    }
   }
 
   loop() {
@@ -472,6 +497,18 @@ export default class FindGameMain {
     } catch (e) {
       console.log('Load game progress failed:', e);
     }
+  }
+
+  openRank() {
+    this.rankManager.open(() => {
+      this.ui.hideRank();
+    });
+    this.ui.showRank();
+  }
+
+  closeRank() {
+    this.rankManager.close();
+    this.ui.hideRank();
   }
 
   getBestTime(difficulty, count) {
