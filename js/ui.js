@@ -356,8 +356,8 @@ export default class UI {
   }
 
   renderMenu(ctx) {
-    // 天蓝渐变背景
-    const gradient = ctx.createLinearGradient(0, 0, 0, this.height);
+    // 天蓝渐变背景，旋转45度（从左上到右下）
+    const gradient = ctx.createLinearGradient(0, 0, this.width, this.height);
     gradient.addColorStop(0, '#667eea');
     gradient.addColorStop(1, '#764ba2');
     ctx.fillStyle = gradient;
