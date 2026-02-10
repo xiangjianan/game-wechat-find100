@@ -362,7 +362,7 @@ export default class UI {
     ctx.font = 'bold 40px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('数数乐', this.width / 2, this.height / 4);
+    ctx.fillText('数一数', this.width / 2, this.height / 4);
 
     ctx.font = '20px Arial';
     ctx.fillStyle = '#BDC3C7';
