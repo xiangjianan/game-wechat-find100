@@ -374,7 +374,11 @@ export default class UI {
   }
 
   renderGameUI(ctx, gameState, currentNumber, totalNumbers, timeLeft) {
-    ctx.fillStyle = '#34495E';
+    // 天蓝色渐变背景
+    const gradient = ctx.createLinearGradient(0, 0, 0, 80);
+    gradient.addColorStop(0, '#17b7f6');
+    gradient.addColorStop(1, '#469df5');
+    ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, this.width, 80);
 
     const headerButtonSize = 60;
@@ -435,10 +439,9 @@ export default class UI {
     // ctx.fillText(`${this.levelConfig[this.currentLevel].name}`, 110, 30);
 
     ctx.textAlign = 'center';
-    ctx.fillText(`当前: ${currentNumber}`, this.width / 2, 30);
+    ctx.fillText(`进度: ${currentNumber - 1}/${totalNumbers}`, this.width / 2, 30);
 
     ctx.textAlign = 'right';
-    ctx.fillText(`进度: ${currentNumber - 1}/${totalNumbers}`, this.width - 20, 30);
 
     ctx.font = 'bold 24px Arial';
     
