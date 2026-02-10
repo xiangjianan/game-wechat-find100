@@ -105,13 +105,19 @@ export default class Polygon {
 
     const fontSize = Math.max(12, Math.min(24, Math.sqrt(this.getArea()) / 4));
     ctx.font = `bold ${fontSize}px Arial, sans-serif`;
-    // 未点击的图形显示彩色文字，已点击的图形显示黑色文字
+    // 未点击的图形显示彩色文字，已点击的图形显示白色文字
     if (this.isClicked) {
-      ctx.fillStyle = '#000000';
+      ctx.fillStyle = '#FFFFFF';
     } else {
-      // 根据数字生成彩色文字，使用 HSL 颜色模式
-      const hue = (this.number * 37) % 360; // 37是质数，确保颜色分布均匀
-      ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
+      // 根据数字生成彩色文字，使用预定义颜色数组确保兼容性
+      const colors = [
+        '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
+        '#F7DC6F', '#BB8FCE', '#85C1E9', '#F8B739', '#52BE80',
+        '#E74C3C', '#3498DB', '#9B59B6', '#1ABC9C', '#F39C12',
+        '#D35400', '#2ECC71', '#34495E', '#E67E22', '#16A085'
+      ];
+      const colorIndex = (this.number - 1) % colors.length;
+      ctx.fillStyle = colors[colorIndex];
     }
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
