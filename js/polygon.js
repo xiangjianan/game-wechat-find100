@@ -105,8 +105,14 @@ export default class Polygon {
 
     const fontSize = Math.max(12, Math.min(24, Math.sqrt(this.getArea()) / 4));
     ctx.font = `bold ${fontSize}px Arial, sans-serif`;
-    // 未点击的图形显示黑色文字，已点击的图形显示白色文字
-    ctx.fillStyle = this.isClicked ? '#FFFFFF' : '#000000';
+    // 未点击的图形显示彩色文字，已点击的图形显示黑色文字
+    if (this.isClicked) {
+      ctx.fillStyle = '#000000';
+    } else {
+      // 根据数字生成彩色文字，使用 HSL 颜色模式
+      const hue = (this.number * 37) % 360; // 37是质数，确保颜色分布均匀
+      ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
+    }
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(this.number.toString(), center.x, center.y);
