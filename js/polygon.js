@@ -98,9 +98,9 @@ export default class Polygon {
     ctx.fill();
 
     ctx.strokeStyle = '#333333';
-    ctx.lineWidth = this.isHighlighted ? 3 : 2;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'square';
+    ctx.lineJoin = 'miter';
     ctx.stroke();
 
     // 根据数字位数动态调整字体大小

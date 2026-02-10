@@ -60,7 +60,8 @@ if (typeof canvas.style !== 'undefined') {
 }
 
 ctx = canvas.getContext('2d', {
-  alpha: true,
+  antialias: true,        // 开启抗锯齿
+  alpha: false,
   desynchronized: false
 });
 
