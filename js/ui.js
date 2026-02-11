@@ -813,6 +813,11 @@ export default class UI {
       return;
     }
 
+    // 当不在菜单页时，清理按钮悬停状态，避免残留
+    if (gameState !== 'menu') {
+      this.hoveredButton = null;
+    }
+
     if (gameState === 'menu') {
       this.renderMenu(ctx);
     } else if (gameState === 'playing' || gameState === 'completed' || gameState === 'failed') {
@@ -1199,7 +1204,7 @@ export default class UI {
 
   renderInstructions(ctx) {
     const isMobile = this.width < 768;
-    
+
     // 半透明深色背景遮罩
     ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
     ctx.fillRect(0, 0, this.width, this.height);
@@ -1216,12 +1221,8 @@ export default class UI {
     ctx.shadowBlur = 40;
     ctx.shadowOffsetY = 10;
 
-    // 弹框背景 - 深色渐变，与整体风格一致
-    const bgGradient = ctx.createLinearGradient(modalX, modalY, modalX, modalY + modalHeight);
-    bgGradient.addColorStop(0, 'rgba(49, 46, 129, 0.98)');
-    bgGradient.addColorStop(0.5, 'rgba(30, 27, 75, 0.98)');
-    bgGradient.addColorStop(1, 'rgba(15, 23, 42, 0.98)');
-    ctx.fillStyle = bgGradient;
+    // 弹框背景 - 使用纯色代替渐变，提高性能
+    ctx.fillStyle = 'rgba(30, 27, 75, 0.98)';
     this.roundRect(ctx, modalX, modalY, modalWidth, modalHeight, borderRadius);
     ctx.fill();
 
@@ -1234,26 +1235,13 @@ export default class UI {
     this.roundRect(ctx, modalX, modalY, modalWidth, modalHeight, borderRadius);
     ctx.stroke();
 
-    // 内部高光边框
-    const innerGradient = ctx.createLinearGradient(modalX + 4, modalY + 4, modalX + 4, modalY + modalHeight - 8);
-    innerGradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
-    innerGradient.addColorStop(1, 'rgba(255, 255, 255, 0.02)');
-    ctx.fillStyle = innerGradient;
-    this.roundRect(ctx, modalX + 4, modalY + 4, modalWidth - 8, modalHeight - 8, borderRadius - 4);
-    ctx.fill();
-
     // 标题样式优化
     const titleY = modalY + (isMobile ? 50 : 60);
     ctx.fillStyle = '#FBBF24';
     ctx.font = `bold ${isMobile ? 26 : 32}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    
-    // 标题发光效果
-    ctx.shadowColor = 'rgba(251, 191, 36, 0.3)';
-    ctx.shadowBlur = 15;
     ctx.fillText('游戏规则', this.width / 2, titleY);
-    ctx.shadowBlur = 0;
 
     // 标题装饰线
     const titleWidth = ctx.measureText('游戏规则').width;
@@ -1264,24 +1252,32 @@ export default class UI {
     ctx.lineTo(this.width / 2 + titleWidth / 2 + 20, titleY + 20);
     ctx.stroke();
 
-    // 规则内容样式优化
-    const instructions = [
+    // 规则内容样式优化 - 预定义数据，避免每帧创建
+    const instructions = this.instructionsData || [
       { icon: '🔢', text: '按顺序点击数字，直到100为止', color: '#60A5FA' },
       { icon: '⏱️', text: '点对加时5秒，点错减5秒', color: '#34D399' },
       { icon: '⚠️', text: '倒计时归零则通关失败', color: '#F87171' }
     ];
+    // 缓存数据，避免重复创建
+    if (!this.instructionsData) {
+      this.instructionsData = instructions;
+    }
 
     const contentStartY = modalY + (isMobile ? 110 : 130);
     const lineHeight = isMobile ? 70 : 80;
 
-    instructions.forEach((instruction, index) => {
-      const y = contentStartY + index * lineHeight;
-      
+    // 预设置字体，避免重复设置
+    ctx.textBaseline = 'middle';
+
+    for (let i = 0; i < instructions.length; i++) {
+      const instruction = instructions[i];
+      const y = contentStartY + i * lineHeight;
+
       // 图标背景圆形
       const iconSize = isMobile ? 44 : 52;
       const iconX = modalX + (isMobile ? 30 : 40);
       const iconY = y;
-      
+
       // 图标圆形背景
       ctx.beginPath();
       ctx.arc(iconX + iconSize / 2, iconY, iconSize / 2, 0, Math.PI * 2);
@@ -1290,47 +1286,41 @@ export default class UI {
       ctx.strokeStyle = instruction.color;
       ctx.lineWidth = 2;
       ctx.stroke();
-      
+
       // 图标
       ctx.font = `${isMobile ? 22 : 26}px Arial`;
       ctx.fillStyle = instruction.color;
       ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
       ctx.fillText(instruction.icon, iconX + iconSize / 2, iconY);
-      
+
       // 规则文字
       ctx.font = `${isMobile ? 15 : 17}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
       ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
       ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
       ctx.fillText(instruction.text, iconX + iconSize + (isMobile ? 15 : 20), y);
-    });
+    }
 
     // 底部提示按钮样式
     const buttonWidth = isMobile ? 160 : 200;
     const buttonHeight = isMobile ? 44 : 52;
     const buttonX = (this.width - buttonWidth) / 2;
     const buttonY = modalY + modalHeight - (isMobile ? 80 : 90);
-    
-    // 按钮背景渐变
-    const buttonGradient = ctx.createLinearGradient(buttonX, buttonY, buttonX, buttonY + buttonHeight);
-    buttonGradient.addColorStop(0, 'rgba(139, 92, 246, 0.8)');
-    buttonGradient.addColorStop(1, 'rgba(124, 58, 237, 0.8)');
-    ctx.fillStyle = buttonGradient;
-    this.roundRect(ctx, buttonX, buttonY, buttonWidth, buttonHeight, buttonHeight / 2);
+
+    // 按钮背景 - 使用纯色代替渐变
+    ctx.fillStyle = 'rgba(139, 92, 246, 0.8)';
+    this.roundRect(ctx, buttonX, buttonY, buttonWidth, buttonHeight, (buttonHeight / 2) | 0);
     ctx.fill();
-    
+
     // 按钮边框
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
     ctx.lineWidth = 1.5;
-    this.roundRect(ctx, buttonX, buttonY, buttonWidth, buttonHeight, buttonHeight / 2);
+    this.roundRect(ctx, buttonX, buttonY, buttonWidth, buttonHeight, (buttonHeight / 2) | 0);
     ctx.stroke();
-    
+
     // 按钮文字
     ctx.fillStyle = '#FFFFFF';
     ctx.font = `bold ${isMobile ? 15 : 17}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
     ctx.fillText('知道了', this.width / 2, buttonY + buttonHeight / 2);
   }
 
@@ -1452,6 +1442,9 @@ export default class UI {
     
     if (this.showInstructions) {
       this.showInstructions = false;
+      // 清理可能残留的悬停状态，避免性能问题
+      this.hoveredButton = null;
+      this.clickedButton = null;
       console.log('Instructions closed');
       return true;
     }
