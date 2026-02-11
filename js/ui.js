@@ -1134,9 +1134,9 @@ export default class UI {
       ctx.fillText(button.text, scaledX + (scaledSize / 2) | 0, scaledY + (scaledSize / 2) | 0);
     });
 
-    // 计时器 - 保持原有位置不变
+    // 计时器 - 与返回按钮垂直中心对齐
     const centerX = this.width / 2;
-    const timerY = contentStartY + (contentHeight) / 2 + 5;
+    const timerY = buttonY + buttonSize / 2;
     const timerFontSize = isMobile ? 24 : 32;
     
     // 简化计时器颜色逻辑
