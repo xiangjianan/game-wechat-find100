@@ -1033,7 +1033,10 @@ export default class UI {
 
   renderGameUI(ctx, gameState, currentNumber, totalNumbers, timeLeft) {
     const isMobile = this.width < 768;
-    const headerHeight = isMobile ? 80 : 100;
+    // 增加header高度，确保与小程序关闭按钮保持安全距离
+    // iPhone X+ 顶部安全区域约44px，加上header内容需要约60-70px
+    const headerHeight = isMobile ? 110 : 130;
+    const topSafeArea = isMobile ? 44 : 0; // iPhone顶部安全区域
     
     // 深色渐变背景，与菜单页保持一致
     const gradient = ctx.createLinearGradient(0, 0, 0, headerHeight);
@@ -1051,10 +1054,13 @@ export default class UI {
     ctx.fillStyle = borderGradient;
     ctx.fillRect(0, headerHeight - 2, this.width, 2);
 
-    // 左侧按钮组
+    // 左侧按钮组 - 调整位置，考虑顶部安全区域
     const buttonSize = isMobile ? 44 : 52;
     const buttonSpacing = isMobile ? 12 : 16;
-    const buttonY = (headerHeight - buttonSize) / 2;
+    // 按钮垂直居中于header内容区域（排除顶部安全区域）
+    const contentStartY = topSafeArea;
+    const contentHeight = headerHeight - topSafeArea;
+    const buttonY = contentStartY + (contentHeight - buttonSize) / 2;
     const buttonStartX = isMobile ? 16 : 24;
 
     this.headerButtons = [
@@ -1121,7 +1127,8 @@ export default class UI {
     const centerX = this.width / 2;
     const progressBarWidth = isMobile ? 180 : 240;
     const progressBarHeight = isMobile ? 12 : 16;
-    const progressBarY = isMobile ? 18 : 22;
+    // 调整进度条位置，考虑顶部安全区域
+    const progressBarY = contentStartY + (contentHeight - progressBarHeight) / 2 - 15;
     const progress = (currentNumber - 1) / totalNumbers;
     const progressRadius = (progressBarHeight / 2) | 0;
 
@@ -1138,8 +1145,8 @@ export default class UI {
       ctx.fill();
     }
 
-    // 计时器 - 简化渲染
-    const timerY = isMobile ? 58 : 72;
+    // 计时器 - 调整位置
+    const timerY = contentStartY + (contentHeight) / 2 + 18;
     const timerFontSize = isMobile ? 24 : 32;
     
     // 简化计时器颜色逻辑
@@ -1158,8 +1165,8 @@ export default class UI {
     ctx.textBaseline = 'middle';
     ctx.fillText(`${timeLeft.toFixed(1)}s`, centerX, timerY);
     
-    // 当前数字/总数显示
-    const countY = isMobile ? 75 : 92;
+    // 当前数字/总数显示 - 调整位置
+    const countY = timerY + (isMobile ? 22 : 26);
     ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
     ctx.font = `${isMobile ? 12 : 14}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
     ctx.fillText(`${currentNumber - 1} / ${totalNumbers}`, centerX, countY);

@@ -17,13 +17,18 @@ export default class LineDividerGenerator {
   generatePolygons(count, difficulty = 'normal') {
     // 根据屏幕宽度动态调整header高度
     const isMobile = this.width < 768;
-    const headerHeight = isMobile ? 70 : 80;
+    // 增加header高度，确保与小程序关闭按钮保持至少16px安全距离
+    // iPhone X+ 顶部安全区域约44px，加上header内容需要约60-70px，总计约110px
+    const headerHeight = isMobile ? 110 : 130;
+    // 底部安全区域 - 处理屏幕圆角和底部手势条
+    // iPhone X+ 底部安全区域约34px，加上内容间距，总计约50px
+    const bottomSafeArea = isMobile ? 50 : 60;
     
     const bounds = {
       x: 0,
       y: headerHeight,
       width: this.width,
-      height: this.height - headerHeight
+      height: this.height - headerHeight - bottomSafeArea
     };
 
     // 根据目标数量动态调整最小面积和最小宽度
