@@ -134,10 +134,16 @@ export default class LineDividerGenerator {
       polygons = polygons.slice(0, count);
     }
 
-    // 为每个多边形分配数字和颜色
+    // 为每个多边形分配数字和颜色（随机打乱顺序以增加数字位置的随机性）
     const result = [];
+    
+    // 创建索引数组并随机打乱
+    const indices = Array.from({ length: polygons.length }, (_, i) => i);
+    this.shuffleArray(indices);
+    
     for (let i = 0; i < polygons.length; i++) {
-      const vertices = polygons[i].vertices;
+      const polygonIndex = indices[i];
+      const vertices = polygons[polygonIndex].vertices;
       const center = this.calculateCenter(vertices);
       
       result.push({
@@ -324,5 +330,13 @@ export default class LineDividerGenerator {
       y += vertex.y;
     }
     return { x: x / vertices.length, y: y / vertices.length };
+  }
+
+  // Fisher-Yates 洗牌算法：随机打乱数组
+  shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
   }
 }
