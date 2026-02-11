@@ -1176,14 +1176,10 @@ export default class UI {
     ctx.fillStyle = borderGradient;
     ctx.fillRect(0, footerY, this.width, 2);
     
-    // 内容区域（排除底部安全区域）
-    const contentHeight = footerHeight - bottomSafeArea;
-    const contentStartY = footerY;
-    
-    // 进度条 - 移到footer
+    // 进度条在footer中垂直居中
     const progressBarWidth = isMobile ? 200 : 280;
     const progressBarHeight = isMobile ? 12 : 14;
-    const progressBarY = contentStartY + (contentHeight - progressBarHeight) / 2;
+    const progressBarY = footerY + (footerHeight - progressBarHeight) / 2;
     const progress = (currentNumber - 1) / totalNumbers;
     const progressRadius = (progressBarHeight / 2) | 0;
 
