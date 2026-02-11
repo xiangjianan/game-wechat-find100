@@ -523,7 +523,7 @@ export default class UI {
     ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('找回消失的专注，从找到第一个1开始...', this.width / 2, titleY + titleSize * 0.7);
+    ctx.fillText('找回消失的专注，从找到第一个1开始...', this.width / 2, titleY + titleSize * 0.9);
 
     this.renderFeatureCards(ctx, isMobile);
     
@@ -647,36 +647,8 @@ export default class UI {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
-    const textMetrics = ctx.measureText(title);
-    const textWidth = textMetrics.width;
-    const ribbonWidth = textWidth + size * 1.2;
-    const ribbonHeight = size * 0.5;
-    
-    const ribbonY = y + size * 0.1;
-    
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    this.roundRect(ctx, x - ribbonWidth / 2, ribbonY - ribbonHeight / 2, ribbonWidth, ribbonHeight, 4);
-    ctx.fill();
-    
-    const tailSize = size * 0.25;
-    ctx.beginPath();
-    ctx.moveTo(x - ribbonWidth / 2, ribbonY - ribbonHeight / 2);
-    ctx.lineTo(x - ribbonWidth / 2 - tailSize, ribbonY - ribbonHeight / 2 - tailSize * 0.5);
-    ctx.lineTo(x - ribbonWidth / 2 - tailSize, ribbonY + ribbonHeight / 2 + tailSize * 0.5);
-    ctx.lineTo(x - ribbonWidth / 2, ribbonY + ribbonHeight / 2);
-    ctx.closePath();
-    ctx.fill();
-    
-    ctx.beginPath();
-    ctx.moveTo(x + ribbonWidth / 2, ribbonY - ribbonHeight / 2);
-    ctx.lineTo(x + ribbonWidth / 2 + tailSize, ribbonY - ribbonHeight / 2 - tailSize * 0.5);
-    ctx.lineTo(x + ribbonWidth / 2 + tailSize, ribbonY + ribbonHeight / 2 + tailSize * 0.5);
-    ctx.lineTo(x + ribbonWidth / 2, ribbonY + ribbonHeight / 2);
-    ctx.closePath();
-    ctx.fill();
-    
-    ctx.fillStyle = '#1E1B4B';
-    ctx.font = `bold ${size}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    // 白色文字
+    ctx.fillStyle = '#FFFFFF';
     ctx.fillText(title, x, y);
     
     ctx.restore();
