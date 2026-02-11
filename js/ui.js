@@ -1323,9 +1323,19 @@ export default class UI {
     
     // 优先检查弹框按钮
     if (this.showModal && this.modalButtons.length > 0) {
-      console.log('Checking modal buttons:', this.modalButtons.map(b => ({ id: b.id, x: b.x, y: b.y, w: b.width, h: b.height })));
+      // 计算当前的动画缩放值（与renderModal中的一致）
+      const alpha = this.modalAnimation;
+      const scale = 0.85 + 0.15 * alpha;
+      
+      // 将屏幕坐标转换为弹框内部坐标（反向应用缩放变换）
+      const localX = (x - this.width / 2) / scale + this.width / 2;
+      const localY = (y - this.height / 2) / scale + this.height / 2;
+      
+      console.log('Checking modal buttons:', this.modalButtons.map(b => ({ id: b.id, x: b.x, y: b.y, w: b.width, h: b.height })), 'local coords:', { localX, localY });
       for (const button of this.modalButtons) {
-        if (button.x !== undefined && this.isPointInButton(x, y, button)) {
+        if (button.x !== undefined && 
+            localX >= button.x && localX <= button.x + button.width &&
+            localY >= button.y && localY <= button.y + button.height) {
           console.log('Modal button clicked:', button.id);
           this.clickedButton = button.id;
           this.clickAnimation = 1;
@@ -1343,7 +1353,7 @@ export default class UI {
           return true;
         }
       }
-      console.log('No modal button clicked at:', { x, y });
+      console.log('No modal button clicked at:', { x, y, localX, localY });
     }
     
     const allButtons = [...this.buttons];
