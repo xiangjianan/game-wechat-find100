@@ -474,6 +474,7 @@ export default class UI {
     ctx.shadowBlur = 10;
     ctx.fillText('恭喜通关！', centerX, y + (isMobile ? 110 : 130));
     ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
     
     const messageLines = this.modalMessage.split('\n');
     let timeValue = '';
@@ -778,6 +779,8 @@ export default class UI {
       ctx.fill();
       
       ctx.shadowBlur = 0;
+      ctx.shadowColor = 'transparent';
+      ctx.shadowOffsetY = 0;
       
       if (button.id !== 'menu') {
         const highlightGradient = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.5);
@@ -804,6 +807,12 @@ export default class UI {
   }
 
   render(ctx, gameState, currentNumber, totalNumbers, timeLeft = 5.0, deltaTime = 0.016) {
+    // 重置所有可能残留的 canvas 状态，避免性能问题
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+
     this.updateEffects(deltaTime);
     this.updateMenuAnimation(deltaTime);
 
@@ -1228,6 +1237,7 @@ export default class UI {
 
     ctx.shadowBlur = 0;
     ctx.shadowOffsetY = 0;
+    ctx.shadowColor = 'transparent';
 
     // 边框效果
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
