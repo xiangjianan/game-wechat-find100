@@ -465,7 +465,7 @@ export default class UI {
 
     if (gameState === 'menu') {
       this.renderMenu(ctx);
-    } else if (gameState === 'playing' || gameState === 'completed') {
+    } else if (gameState === 'playing' || gameState === 'completed' || gameState === 'failed') {
       this.renderGameUI(ctx, gameState, currentNumber, totalNumbers, timeLeft);
     }
 

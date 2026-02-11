@@ -424,7 +424,7 @@ export default class FindGameMain {
   render(deltaTime = 0.016) {
     ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-    if (this.gameManager.gameState === 'playing' || this.gameManager.gameState === 'completed') {
+    if (this.gameManager.gameState === 'playing' || this.gameManager.gameState === 'completed' || this.gameManager.gameState === 'failed') {
       this.gameManager.render(ctx);
     }
 
