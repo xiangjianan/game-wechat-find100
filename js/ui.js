@@ -28,21 +28,19 @@ export default class UI {
     this.clickAnimation = 0;
     this.onPlayClickSound = null;
     
-    // 浮动文字效果
     this.floatingTexts = [];
-    
-    // 屏幕红闪效果
     this.flashAlpha = 0;
     this.flashTargetAlpha = 0;
-    
-    // 震动效果
     this.shakeOffset = { x: 0, y: 0 };
     this.shakeTime = 0;
 
-    // 排行榜相关
     this.showRank = false;
     this.onOpenRank = null;
     this.onCloseRank = null;
+
+    this.menuAnimation = 0;
+    this.menuTargetAnimation = 1;
+    this.particleOffset = 0;
   }
 
   roundRect(ctx, x, y, width, height, radius) {
@@ -132,12 +130,15 @@ export default class UI {
   initMenu() {
     this.showCompletion = false;
     this.showFailure = false;
-    const buttonWidth = 280;
-    const buttonHeight = 80;
-    const buttonSpacing = 30;
-    const verticalSpacing = 20;
+    this.menuAnimation = 0;
+    this.menuTargetAnimation = 1;
+    
+    const isMobile = this.width < 768;
+    const buttonWidth = isMobile ? 240 : 280;
+    const buttonHeight = isMobile ? 64 : 72;
+    const buttonSpacing = isMobile ? 16 : 20;
     const centerX = this.width / 2;
-    const startY = this.height / 2 - 80;
+    const startY = this.height / 2 + 20;
     
     this.buttons = [
       {
@@ -147,35 +148,33 @@ export default class UI {
         y: startY,
         width: buttonWidth,
         height: buttonHeight,
-        color: '#4CAF50',
-        hoverColor: '#45a049',
+        color: '#F97316',
+        hoverColor: '#EA580C',
         action: () => this.onStartGame()
       },
       {
         id: 'instructions',
         text: '游戏规则',
         x: centerX - buttonWidth / 2,
-        y: startY + buttonHeight + verticalSpacing,
+        y: startY + buttonHeight + buttonSpacing,
         width: buttonWidth,
         height: buttonHeight,
-        color: '#2196F3',
-        hoverColor: '#0b7dda',
+        color: '#0EA5E9',
+        hoverColor: '#0284C7',
         action: () => this.onShowInstructions()
       },
       {
         id: 'rank',
         text: '排行榜',
         x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + verticalSpacing) * 2,
+        y: startY + (buttonHeight + buttonSpacing) * 2,
         width: buttonWidth,
         height: buttonHeight,
-        color: '#FF9800',
-        hoverColor: '#F57C00',
+        color: '#38BDF8',
+        hoverColor: '#0EA5E9',
         action: () => this.onOpenRank()
       }
     ];
-    
-    console.log('Menu buttons initialized:', this.buttons);
   }
 
   initGame() {
@@ -190,10 +189,11 @@ export default class UI {
     this.completionTime = time;
     this.showFailure = false;
     
+    const isMobile = this.width < 768;
     const hasNextLevel = this.currentLevel < this.totalLevels;
-    const buttonWidth = 60;
-    const buttonHeight = 60;
-    const buttonSpacing = 20;
+    const buttonWidth = isMobile ? 100 : 120;
+    const buttonHeight = isMobile ? 48 : 56;
+    const buttonSpacing = isMobile ? 12 : 16;
     
     let buttonCount = hasNextLevel ? 3 : 2;
     const totalWidth = buttonWidth * buttonCount + buttonSpacing * (buttonCount - 1);
@@ -203,13 +203,13 @@ export default class UI {
     this.buttons = [
       {
         id: 'playAgain',
-        text: '🔄',
+        text: '再玩一次',
         x: startX,
         y: buttonY,
         width: buttonWidth,
         height: buttonHeight,
-        color: '#4CAF50',
-        hoverColor: '#45a049',
+        color: '#F97316',
+        hoverColor: '#EA580C',
         action: () => this.onPlayAgain()
       }
     ];
@@ -217,26 +217,26 @@ export default class UI {
     if (hasNextLevel) {
       this.buttons.push({
         id: 'nextLevel',
-        text: '➡️',
+        text: '下一关',
         x: startX + buttonWidth + buttonSpacing,
         y: buttonY,
         width: buttonWidth,
         height: buttonHeight,
-        color: '#2196F3',
-        hoverColor: '#0b7dda',
+        color: '#0EA5E9',
+        hoverColor: '#0284C7',
         action: () => this.onNextLevel()
       });
     }
     
     this.buttons.push({
       id: 'menu',
-      text: '返回',
+      text: '返回菜单',
       x: startX + buttonWidth * (hasNextLevel ? 2 : 1) + buttonSpacing * (hasNextLevel ? 2 : 1),
       y: buttonY,
       width: buttonWidth,
       height: buttonHeight,
-      color: '#9E9E9E',
-      hoverColor: '#757575',
+      color: 'rgba(255, 255, 255, 0.2)',
+      hoverColor: 'rgba(255, 255, 255, 0.35)',
       action: () => this.onBackToMenu()
     });
   }
@@ -251,27 +251,33 @@ export default class UI {
     this.failureProgress = progress;
     this.failureTotal = total;
     this.failureTime = time;
+    
+    const isMobile = this.width < 768;
+    const buttonWidth = isMobile ? 140 : 160;
+    const buttonHeight = isMobile ? 48 : 56;
+    const buttonSpacing = isMobile ? 12 : 16;
+    
     this.buttons = [
       {
         id: 'tryAgain',
         text: '再试一次',
-        x: this.width / 2 - 80,
+        x: this.width / 2 - buttonWidth / 2,
         y: this.height / 2 + 50,
-        width: 160,
-        height: 50,
-        color: '#FF6B6B',
-        hoverColor: '#FF5252',
+        width: buttonWidth,
+        height: buttonHeight,
+        color: '#F97316',
+        hoverColor: '#EA580C',
         action: () => this.onPlayAgain()
       },
       {
         id: 'menu',
         text: '返回菜单',
-        x: this.width / 2 - 80,
-        y: this.height / 2 + 120,
-        width: 160,
-        height: 50,
-        color: '#9E9E9E',
-        hoverColor: '#757575',
+        x: this.width / 2 - buttonWidth / 2,
+        y: this.height / 2 + 50 + buttonHeight + buttonSpacing,
+        width: buttonWidth,
+        height: buttonHeight,
+        color: 'rgba(255, 255, 255, 0.2)',
+        hoverColor: 'rgba(255, 255, 255, 0.35)',
         action: () => this.onBackToMenu()
       }
     ];
@@ -393,14 +399,15 @@ export default class UI {
   }
 
   renderModal(ctx) {
+    const isMobile = this.width < 768;
     const alpha = this.modalAnimation;
     const scale = 0.8 + 0.2 * alpha;
     
     ctx.fillStyle = `rgba(0, 0, 0, ${0.6 * alpha})`;
     ctx.fillRect(0, 0, this.width, this.height);
 
-    const modalWidth = Math.min(400, this.width - 40);
-    const modalHeight = 280;
+    const modalWidth = isMobile ? Math.min(320, this.width - 32) : 400;
+    const modalHeight = isMobile ? 260 : 280;
     const modalX = (this.width - modalWidth) / 2;
     const modalY = (this.height - modalHeight) / 2;
 
@@ -410,43 +417,43 @@ export default class UI {
     ctx.translate(-this.width / 2, -this.height / 2);
 
     ctx.fillStyle = '#FFFFFF';
-    this.roundRect(ctx, modalX, modalY, modalWidth, modalHeight, 15);
+    this.roundRect(ctx, modalX, modalY, modalWidth, modalHeight, isMobile ? 16 : 20);
     ctx.fill();
 
-    ctx.fillStyle = '#2C3E50';
-    ctx.font = 'bold 24px Arial';
+    ctx.fillStyle = '#0C4A6E';
+    ctx.font = `bold ${isMobile ? 22 : 24}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(this.modalTitle, this.width / 2, modalY + 50);
 
-    ctx.fillStyle = '#7F8C8D';
-    ctx.font = '16px Arial';
+    ctx.fillStyle = '#475569';
+    ctx.font = `${isMobile ? 15 : 16}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
     
     const messageLines = this.modalMessage.split('\n');
-    const lineHeight = 24;
+    const lineHeight = isMobile ? 22 : 24;
     const messageY = modalY + 100 - (messageLines.length - 1) * lineHeight / 2;
     
     for (let i = 0; i < messageLines.length; i++) {
       ctx.fillText(messageLines[i], this.width / 2, messageY + i * lineHeight);
     }
 
-    const buttonWidth = 120;
-    const buttonHeight = 45;
-    const buttonSpacing = 20;
+    const buttonWidth = isMobile ? 100 : 120;
+    const buttonHeight = isMobile ? 40 : 45;
+    const buttonSpacing = isMobile ? 12 : 20;
     const totalButtonWidth = buttonWidth * this.modalButtons.length + buttonSpacing * (this.modalButtons.length - 1);
     const startX = (this.width - totalButtonWidth) / 2;
-    const buttonY = modalY + 200;
+    const buttonY = modalY + (isMobile ? 190 : 200);
 
     for (let i = 0; i < this.modalButtons.length; i++) {
       const button = this.modalButtons[i];
       const bx = startX + i * (buttonWidth + buttonSpacing);
       
       ctx.fillStyle = button.color;
-      this.roundRect(ctx, bx, buttonY, buttonWidth, buttonHeight, 8);
+      this.roundRect(ctx, bx, buttonY, buttonWidth, buttonHeight, isMobile ? 8 : 10);
       ctx.fill();
 
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 14px Arial';
+      ctx.font = `bold ${isMobile ? 14 : 15}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
       ctx.fillText(button.text, bx + buttonWidth / 2, buttonY + buttonHeight / 2);
     }
 
@@ -454,8 +461,8 @@ export default class UI {
   }
 
   render(ctx, gameState, currentNumber, totalNumbers, timeLeft = 5.0, deltaTime = 0.016) {
-    // 更新效果
     this.updateEffects(deltaTime);
+    this.updateMenuAnimation(deltaTime);
 
     if (this.showInstructions) {
       this.renderInstructions(ctx);
@@ -475,41 +482,109 @@ export default class UI {
       this.renderModal(ctx);
     }
 
-    // 渲染效果
     this.renderEffects(ctx);
   }
 
+  updateMenuAnimation(deltaTime) {
+    if (this.menuAnimation < this.menuTargetAnimation) {
+      this.menuAnimation += deltaTime * 4;
+      if (this.menuAnimation > this.menuTargetAnimation) {
+        this.menuAnimation = this.menuTargetAnimation;
+      }
+    } else if (this.menuAnimation > this.menuTargetAnimation) {
+      this.menuAnimation -= deltaTime * 4;
+      if (this.menuAnimation < this.menuTargetAnimation) {
+        this.menuAnimation = this.menuTargetAnimation;
+      }
+    }
+  }
+
   renderMenu(ctx) {
-    // 天蓝渐变背景，旋转45度（从左上到右下）
+    const isMobile = this.width < 768;
+    
     const gradient = ctx.createLinearGradient(0, 0, this.width, this.height);
-    gradient.addColorStop(0, '#667eea');
-    gradient.addColorStop(1, '#764ba2');
+    gradient.addColorStop(0, '#0EA5E9');
+    gradient.addColorStop(1, '#38BDF8');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, this.width, this.height);
 
+    this.particleOffset += 0.5;
+    this.renderParticles(ctx);
+
+    const titleY = isMobile ? this.height * 0.25 : this.height * 0.22;
+    const titleSize = isMobile ? 48 : 64;
+    const subtitleSize = isMobile ? 16 : 18;
+
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, this.menuAnimation * 1.5);
+    
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 40px Arial';
+    ctx.font = `bold ${titleSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('数一数', this.width / 2, this.height / 4);
+    ctx.fillText('数一数', this.width / 2, titleY);
 
-    ctx.font = '20px Arial';
-    ctx.fillStyle = '#BDC3C7';
-    ctx.fillText('', this.width / 2, this.height / 4 + 50);
+    ctx.font = `${subtitleSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.fillText('挑战你的观察力与反应速度', this.width / 2, titleY + 40);
+
+    const features = [
+      { icon: '⚡', text: '快速反应' },
+      { icon: '🎯', text: '精准点击' },
+      { icon: '🏆', text: '挑战极限' }
+    ];
+
+    const featureY = isMobile ? this.height * 0.38 : this.height * 0.35;
+    const featureSpacing = isMobile ? 100 : 140;
+    const featureStartX = this.width / 2 - featureSpacing;
+
+    ctx.font = `${isMobile ? 14 : 16}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+
+    features.forEach((feature, index) => {
+      const x = featureStartX + index * featureSpacing;
+      const delay = index * 0.1;
+      const featureAlpha = Math.min(1, Math.max(0, (this.menuAnimation - delay) * 2));
+      ctx.globalAlpha = featureAlpha;
+      ctx.textAlign = 'center';
+      ctx.fillText(feature.icon, x, featureY);
+      ctx.fillText(feature.text, x, featureY + 24);
+    });
+    
+    ctx.restore();
+  }
+
+  renderParticles(ctx) {
+    const particleCount = 20;
+    const time = Date.now() * 0.001;
+
+    for (let i = 0; i < particleCount; i++) {
+      const x = ((i * 137.5 + this.particleOffset) % this.width);
+      const y = ((i * 89.3 + Math.sin(time + i) * 50) % this.height);
+      const size = 2 + Math.sin(time * 2 + i) * 1;
+      const alpha = 0.1 + Math.sin(time + i * 0.5) * 0.05;
+
+      ctx.beginPath();
+      ctx.arc(x, y, Math.max(0.5, size), 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, alpha)})`;
+      ctx.fill();
+    }
   }
 
   renderGameUI(ctx, gameState, currentNumber, totalNumbers, timeLeft) {
-    // 天蓝色渐变背景
-    const gradient = ctx.createLinearGradient(0, 0, 0, 80);
-    gradient.addColorStop(0, '#17b7f6');
-    gradient.addColorStop(1, '#469df5');
+    const isMobile = this.width < 768;
+    const headerHeight = isMobile ? 70 : 80;
+    
+    const gradient = ctx.createLinearGradient(0, 0, 0, headerHeight);
+    gradient.addColorStop(0, '#0EA5E9');
+    gradient.addColorStop(1, '#38BDF8');
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, this.width, 80);
+    ctx.fillRect(0, 0, this.width, headerHeight);
 
-    const headerButtonSize = 60;
-    const headerButtonSpacing = 10;
-    const headerButtonY = 20;
-    const headerButtonStartX = 10;
+    const headerButtonSize = isMobile ? 50 : 60;
+    const headerButtonSpacing = isMobile ? 8 : 10;
+    const headerButtonY = isMobile ? 15 : 20;
+    const headerButtonStartX = isMobile ? 8 : 10;
 
     this.headerButtons = [
       {
@@ -519,8 +594,8 @@ export default class UI {
         y: headerButtonY,
         width: headerButtonSize,
         height: headerButtonSize - 20,
-        color: '#9E9E9E',
-        hoverColor: '#757575',
+        color: 'rgba(255, 255, 255, 0.2)',
+        hoverColor: 'rgba(255, 255, 255, 0.35)',
         action: () => this.onBackToMenu()
       },
       {
@@ -530,8 +605,8 @@ export default class UI {
         y: headerButtonY,
         width: headerButtonSize,
         height: headerButtonSize - 20,
-        color: '#f44336',
-        hoverColor: '#da190b',
+        color: 'rgba(255, 255, 255, 0.2)',
+        hoverColor: 'rgba(255, 255, 255, 0.35)',
         action: () => this.onResetGame()
       }
     ];
@@ -545,145 +620,152 @@ export default class UI {
         ctx.globalAlpha = 0.7;
       }
       
-      this.roundRect(ctx, button.x, button.y, button.width, button.height, 8);
+      this.roundRect(ctx, button.x, button.y, button.width, button.height, isMobile ? 6 : 8);
       ctx.fill();
       
       ctx.globalAlpha = 1;
       
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = '20px Arial';
+      ctx.font = `${isMobile ? 16 : 18}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(button.text, button.x + button.width / 2, button.y + button.height / 2);
     });
 
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 20px Arial';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    // ctx.fillText(`${this.levelConfig[this.currentLevel].name}`, 110, 30);
-
-    // 绘制迷你进度条
-    const progressBarWidth = 200;
-    const progressBarHeight = 12;
+    const progressBarWidth = isMobile ? 160 : 200;
+    const progressBarHeight = isMobile ? 10 : 12;
     const progressBarX = (this.width - progressBarWidth) / 2;
-    const progressBarY = 24;
+    const progressBarY = isMobile ? 20 : 24;
     const progress = (currentNumber - 1) / totalNumbers;
 
-    // 进度条背景
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-    this.roundRect(ctx, progressBarX, progressBarY, progressBarWidth, progressBarHeight, 6);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+    this.roundRect(ctx, progressBarX, progressBarY, progressBarWidth, progressBarHeight, isMobile ? 5 : 6);
     ctx.fill();
 
-    // 进度条填充
     const fillWidth = progressBarWidth * progress;
     if (fillWidth > 0) {
-      ctx.fillStyle = '#4CAF50';
-      this.roundRect(ctx, progressBarX, progressBarY, fillWidth, progressBarHeight, 6);
+      ctx.fillStyle = '#F97316';
+      this.roundRect(ctx, progressBarX, progressBarY, fillWidth, progressBarHeight, isMobile ? 5 : 6);
       ctx.fill();
     }
 
-    ctx.textAlign = 'right';
-
-    ctx.font = 'bold 24px Arial';
+    ctx.font = `bold ${isMobile ? 22 : 26}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
     
     if (timeLeft <= 5.0) {
-      ctx.fillStyle = '#FF0000';
+      ctx.fillStyle = '#EF4444';
     } else if (timeLeft <= 10.0) {
-      ctx.fillStyle = '#FFA500';
+      ctx.fillStyle = '#F97316';
     } else {
       ctx.fillStyle = '#FFFFFF';
     }
     
     ctx.textAlign = 'center';
-    ctx.fillText(`${timeLeft.toFixed(0)}s`, this.width / 2, 65);
-
-    this.headerButtons.forEach(button => {
-      const isHovered = this.isPointInButton(this.mouseX, this.mouseY, button);
-      const isClicked = this.clickedButton === button.id;
-      
-      ctx.fillStyle = isHovered ? button.hoverColor : button.color;
-      if (isClicked) {
-        ctx.globalAlpha = 0.7;
-      }
-      
-      this.roundRect(ctx, button.x, button.y, button.width, button.height, 8);
-      ctx.fill();
-      
-      ctx.globalAlpha = 1;
-      
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = '20px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(button.text, button.x + button.width / 2, button.y + button.height / 2);
-    });
+    ctx.fillText(`${timeLeft.toFixed(0)}s`, this.width / 2, isMobile ? 55 : 65);
   }
 
   renderInstructions(ctx) {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    const isMobile = this.width < 768;
+    
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
     ctx.fillRect(0, 0, this.width, this.height);
 
+    const modalWidth = isMobile ? Math.min(320, this.width - 32) : 400;
+    const modalHeight = isMobile ? 380 : 420;
+    const modalX = (this.width - modalWidth) / 2;
+    const modalY = (this.height - modalHeight) / 2;
+
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 28px Arial';
+    this.roundRect(ctx, modalX, modalY, modalWidth, modalHeight, isMobile ? 16 : 20);
+    ctx.fill();
+
+    ctx.fillStyle = '#0C4A6E';
+    ctx.font = `bold ${isMobile ? 24 : 28}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('游戏规则', this.width / 2, this.height / 4);
+    ctx.fillText('游戏规则', this.width / 2, modalY + 50);
 
-    ctx.font = '18px Arial';
+    ctx.font = `${isMobile ? 16 : 18}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.fillStyle = '#334155';
+    
     const instructions = [
-      '1. 按顺序点击数字，直到100为止',
-      '2. 点对加时5秒，点错减5秒',
-      '3. 倒计时归零则通关失败',
-      '',
-      '点击任意处返回'
+      { icon: '🔢', text: '按顺序点击数字，直到100为止' },
+      { icon: '⏱️', text: '点对加时5秒，点错减5秒' },
+      { icon: '⚠️', text: '倒计时归零则通关失败' }
     ];
 
-    let y = this.height / 3;
+    let y = modalY + 100;
     for (const instruction of instructions) {
-      ctx.fillText(instruction, this.width / 2, y);
-      y += 28;
+      ctx.textAlign = 'center';
+      ctx.fillText(instruction.icon, this.width / 2, y);
+      ctx.fillText(instruction.text, this.width / 2, y + 24);
+      y += isMobile ? 60 : 70;
     }
+
+    ctx.fillStyle = '#64748B';
+    ctx.font = `${isMobile ? 14 : 16}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.fillText('点击任意处返回', this.width / 2, modalY + modalHeight - 40);
   }
 
   renderButtons(ctx) {
-    const buttonLabels = {
-      'start': '',
-      'level': '关卡',
-      'instructions': '',
-      'reset': '重置',
-      'menu': '菜单',
-      'playAgain': '再玩',
-      'nextLevel': '下一关'
-    };
+    const isMobile = this.width < 768;
     
-    for (const button of this.buttons) {
+    for (let i = 0; i < this.buttons.length; i++) {
+      const button = this.buttons[i];
       const isHovered = this.hoveredButton === button.id;
       const isClicked = this.clickedButton === button.id;
       
       let fillColor = button.color;
+      let shadowBlur = 0;
+      let shadowColor = 'transparent';
+      let scale = 1;
+      let alpha = 1;
+      
+      const delay = i * 0.08;
+      alpha = Math.min(1, Math.max(0, (this.menuAnimation - delay) * 3));
+      
       if (isHovered) {
         fillColor = button.hoverColor;
+        shadowBlur = 20;
+        shadowColor = 'rgba(0, 0, 0, 0.2)';
+        scale = 1.02;
       }
       if (isClicked) {
-        fillColor = this.darkenColor(fillColor, 0.2);
+        fillColor = this.darkenColor(fillColor, 0.15);
+        scale = 0.98;
+        shadowBlur = 5;
+      }
+      
+      const centerX = button.x + button.width / 2;
+      const centerY = button.y + button.height / 2;
+      const scaledWidth = button.width * scale;
+      const scaledHeight = button.height * scale;
+      const scaledX = centerX - scaledWidth / 2;
+      const scaledY = centerY - scaledHeight / 2;
+      
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      
+      if (shadowBlur > 0) {
+        ctx.shadowColor = shadowColor;
+        ctx.shadowBlur = shadowBlur;
+        ctx.shadowOffsetY = 4;
       }
       
       ctx.fillStyle = fillColor;
-      this.roundRect(ctx, button.x, button.y, button.width, button.height, 15);
+      this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, isMobile ? 12 : 16);
       ctx.fill();
+      
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
 
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 28px Arial';
+      ctx.font = `bold ${isMobile ? 20 : 24}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(button.text, button.x + button.width / 2, button.y + button.height / 2);
+      ctx.fillText(button.text, centerX, centerY);
       
-      if (buttonLabels[button.id]) {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-        ctx.font = 'bold 12px Arial';
-        ctx.fillText(buttonLabels[button.id], button.x + button.width / 2, button.y + button.height + 12);
-      }
+      ctx.restore();
     }
   }
 
