@@ -68,7 +68,7 @@ export default class GameManager {
     
     this.timeLeft += this.timeBonus;
 
-    if (this.currentNumber > this.totalNumbers) {
+    if (this.currentNumber > 1) {
       this.handleGameComplete();
     }
     
