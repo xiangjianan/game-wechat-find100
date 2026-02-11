@@ -504,9 +504,9 @@ export default class UI {
 
   renderMenu(ctx) {
     const isMobile = this.width < 768;
-    
+
     this.renderMenuBackground(ctx);
-    
+
     this.particleOffset += 0.5;
     this.renderParticles(ctx);
 
@@ -516,14 +516,14 @@ export default class UI {
 
     ctx.save();
     ctx.globalAlpha = Math.min(1, this.menuAnimation * 1.5);
-    
+
     this.renderTitleWithRibbon(ctx, this.width / 2, titleY, titleSize);
 
     ctx.font = `${subtitleSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
     ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('挑战你的观察力与反应速度', this.width / 2, titleY + titleSize * 0.7);
+    ctx.fillText('找回消失的专注，从找到第一个1开始...', this.width / 2, titleY + titleSize * 0.7);
 
     this.renderFeatureCards(ctx, isMobile);
     
@@ -837,7 +837,7 @@ export default class UI {
     }
     
     ctx.textAlign = 'center';
-    ctx.fillText(`${timeLeft.toFixed(0)}s`, this.width / 2, isMobile ? 55 : 65);
+    ctx.fillText(`${timeLeft.toFixed(1)}s`, this.width / 2, isMobile ? 55 : 65);
   }
 
   renderInstructions(ctx) {
