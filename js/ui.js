@@ -871,74 +871,36 @@ export default class UI {
   }
 
   renderMenuBackground(ctx) {
-    const gradient = ctx.createLinearGradient(0, 0, 0, this.height);
-    gradient.addColorStop(0, '#0F172A');
-    gradient.addColorStop(0.5, '#1E1B4B');
-    gradient.addColorStop(1, '#312E81');
-    ctx.fillStyle = gradient;
+    // 使用纯色背景代替渐变，提高性能
+    ctx.fillStyle = '#1E1B4B';
     ctx.fillRect(0, 0, this.width, this.height);
 
+    // 简化星星渲染
     this.renderStars(ctx);
-    this.renderFloatingShapes(ctx);
   }
 
   renderStars(ctx) {
-    const time = Date.now() * 0.001;
+    // 简化的星星渲染，移除复杂计算
     const stars = [
-      { x: 0.1, y: 0.1, size: 2, phase: 0 },
-      { x: 0.85, y: 0.15, size: 3, phase: 1 },
-      { x: 0.2, y: 0.35, size: 2, phase: 2 },
-      { x: 0.9, y: 0.4, size: 2, phase: 0.5 },
-      { x: 0.05, y: 0.6, size: 2, phase: 1.5 },
-      { x: 0.95, y: 0.7, size: 3, phase: 2.5 },
-      { x: 0.15, y: 0.85, size: 2, phase: 3 },
-      { x: 0.8, y: 0.9, size: 2, phase: 0.8 },
+      { x: 0.1, y: 0.1, size: 2 },
+      { x: 0.85, y: 0.15, size: 3 },
+      { x: 0.2, y: 0.35, size: 2 },
+      { x: 0.9, y: 0.4, size: 2 },
+      { x: 0.05, y: 0.6, size: 2 },
+      { x: 0.95, y: 0.7, size: 3 },
+      { x: 0.15, y: 0.85, size: 2 },
+      { x: 0.8, y: 0.9, size: 2 },
     ];
 
+    ctx.fillStyle = 'rgba(255, 255, 200, 0.5)';
+    
     stars.forEach(star => {
-      const x = star.x * this.width;
-      const y = star.y * this.height;
-      const twinkle = 0.5 + 0.5 * Math.sin(time * 2 + star.phase);
+      const x = (star.x * this.width) | 0;
+      const y = (star.y * this.height) | 0;
       
       ctx.beginPath();
       ctx.arc(x, y, star.size, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 255, 200, ${0.3 + twinkle * 0.4})`;
       ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(x, y, star.size * 2, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 255, 200, ${0.1 * twinkle})`;
-      ctx.fill();
-    });
-
-    const crossStars = [
-      { x: 0.88, y: 0.28, size: 8 },
-      { x: 0.12, y: 0.55, size: 6 },
-    ];
-
-    crossStars.forEach(star => {
-      const x = star.x * this.width;
-      const y = star.y * this.height;
-      const twinkle = 0.5 + 0.5 * Math.sin(time * 3 + star.x * 10);
-      
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(time * 0.5);
-      
-      ctx.beginPath();
-      ctx.moveTo(0, -star.size);
-      ctx.lineTo(1, -1);
-      ctx.lineTo(star.size, 0);
-      ctx.lineTo(1, 1);
-      ctx.lineTo(0, star.size);
-      ctx.lineTo(-1, 1);
-      ctx.lineTo(-star.size, 0);
-      ctx.lineTo(-1, -1);
-      ctx.closePath();
-      ctx.fillStyle = `rgba(255, 220, 100, ${0.6 + twinkle * 0.3})`;
-      ctx.fill();
-      
-      ctx.restore();
     });
   }
 
@@ -1007,35 +969,42 @@ export default class UI {
     const totalWidth = cardWidth * 3 + cardSpacing * 2;
     const startX = (this.width - totalWidth) / 2;
     const cardY = isMobile ? this.height * 0.32 : this.height * 0.28;
+    const borderRadius = isMobile ? 12 : 16;
+
+    // 预设置字体，避免重复设置
+    const iconSize = isMobile ? 32 : 40;
+    const textSize = isMobile ? 13 : 15;
 
     features.forEach((feature, index) => {
       const x = startX + index * (cardWidth + cardSpacing);
       const delay = index * 0.1;
       const cardAlpha = Math.min(1, Math.max(0, (this.menuAnimation - delay) * 2));
       
+      if (cardAlpha <= 0) return; // 跳过不可见的卡片
+      
       ctx.save();
       ctx.globalAlpha = cardAlpha;
       
-      const cardGradient = ctx.createLinearGradient(x, cardY, x, cardY + cardHeight);
-      cardGradient.addColorStop(0, 'rgba(255, 255, 255, 0.15)');
-      cardGradient.addColorStop(1, 'rgba(255, 255, 255, 0.05)');
-      ctx.fillStyle = cardGradient;
-      
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-      ctx.lineWidth = 1.5;
-      
-      this.roundRect(ctx, x, cardY, cardWidth, cardHeight, isMobile ? 12 : 16);
+      // 简化背景：使用纯色代替渐变
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+      this.roundRect(ctx, x, cardY, cardWidth, cardHeight, borderRadius);
       ctx.fill();
+      
+      // 简化边框
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = 1;
+      this.roundRect(ctx, x, cardY, cardWidth, cardHeight, borderRadius);
       ctx.stroke();
       
-      const iconSize = isMobile ? 32 : 40;
+      // 图标
       ctx.font = `${iconSize}px Arial`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = feature.color;
       ctx.fillText(feature.icon, x + cardWidth / 2, cardY + cardHeight * 0.4);
       
-      ctx.font = `bold ${isMobile ? 13 : 15}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+      // 文字
+      ctx.font = `bold ${textSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
       ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
       ctx.fillText(feature.text, x + cardWidth / 2, cardY + cardHeight * 0.75);
       
@@ -1044,18 +1013,20 @@ export default class UI {
   }
 
   renderParticles(ctx) {
-    const particleCount = 20;
-    const time = Date.now() * 0.001;
+    // 减少粒子数量，简化计算
+    const particleCount = 12;
+    const time = Date.now() * 0.0005; // 降低时间精度
 
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+    
     for (let i = 0; i < particleCount; i++) {
-      const x = ((i * 137.5 + this.particleOffset) % this.width);
-      const y = ((i * 89.3 + Math.sin(time + i) * 50) % this.height);
-      const size = 2 + Math.sin(time * 2 + i) * 1;
-      const alpha = 0.1 + Math.sin(time + i * 0.5) * 0.05;
+      // 简化位置计算
+      const x = ((i * 137 + this.particleOffset) | 0) % this.width;
+      const y = ((i * 89 + ((time + i) * 30 | 0)) | 0) % this.height;
+      const size = 2;
 
       ctx.beginPath();
-      ctx.arc(x, y, Math.max(0.5, size), 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, alpha)})`;
+      ctx.arc(x, y, size, 0, Math.PI * 2);
       ctx.fill();
     }
   }
@@ -1113,130 +1084,79 @@ export default class UI {
       }
     ];
 
-    // 渲染header按钮
+    // 渲染header按钮 - 简化版本
+    ctx.font = `bold ${isMobile ? 20 : 24}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
     this.headerButtons.forEach(button => {
       const isHovered = this.isPointInButton(this.mouseX, this.mouseY, button);
       const isClicked = this.clickedButton === button.id;
       
       let scale = 1;
-      if (isHovered) scale = 1.08;
+      if (isHovered) scale = 1.05;
       if (isClicked) scale = 0.95;
       
-      const scaledSize = buttonSize * scale;
-      const scaledX = button.x + (buttonSize - scaledSize) / 2;
-      const scaledY = button.y + (buttonSize - scaledSize) / 2;
+      const scaledSize = (buttonSize * scale) | 0;
+      const scaledX = (button.x + (buttonSize - scaledSize) / 2) | 0;
+      const scaledY = (button.y + (buttonSize - scaledSize) / 2) | 0;
       
-      ctx.save();
-      
-      // 按钮阴影
-      if (isHovered) {
-        ctx.shadowColor = button.shadowColor;
-        ctx.shadowBlur = 15;
-        ctx.shadowOffsetY = 3;
-      }
-      
-      // 按钮背景渐变
-      const bgGradient = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledSize);
-      const colors = isHovered ? button.hoverGradientColors : button.gradientColors;
-      bgGradient.addColorStop(0, colors[0]);
-      bgGradient.addColorStop(1, colors[1]);
-      ctx.fillStyle = bgGradient;
-      
-      this.roundRect(ctx, scaledX, scaledY, scaledSize, scaledSize, buttonSize / 4);
+      // 简化按钮背景：使用纯色
+      ctx.fillStyle = isHovered ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.08)';
+      this.roundRect(ctx, scaledX, scaledY, scaledSize, scaledSize, (buttonSize / 4) | 0);
       ctx.fill();
       
-      ctx.shadowBlur = 0;
-      
-      // 按钮边框
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-      ctx.lineWidth = 1.5;
-      this.roundRect(ctx, scaledX, scaledY, scaledSize, scaledSize, buttonSize / 4);
+      // 简化边框
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.lineWidth = 1;
+      this.roundRect(ctx, scaledX, scaledY, scaledSize, scaledSize, (buttonSize / 4) | 0);
       ctx.stroke();
       
       // 按钮图标
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = `bold ${isMobile ? 20 : 24}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(button.text, scaledX + scaledSize / 2, scaledY + scaledSize / 2);
-      
-      ctx.restore();
+      ctx.fillText(button.text, scaledX + (scaledSize / 2) | 0, scaledY + (scaledSize / 2) | 0);
     });
 
-    // 中央区域 - 进度条和计时器
+    // 中央区域 - 进度条和计时器（简化版本）
     const centerX = this.width / 2;
     const progressBarWidth = isMobile ? 180 : 240;
     const progressBarHeight = isMobile ? 12 : 16;
     const progressBarY = isMobile ? 18 : 22;
     const progress = (currentNumber - 1) / totalNumbers;
+    const progressRadius = (progressBarHeight / 2) | 0;
 
-    // 进度条背景
+    // 进度条背景 - 简化
     ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-    this.roundRect(ctx, centerX - progressBarWidth / 2, progressBarY, progressBarWidth, progressBarHeight, progressBarHeight / 2);
+    this.roundRect(ctx, (centerX - progressBarWidth / 2) | 0, progressBarY, progressBarWidth, progressBarHeight, progressRadius);
     ctx.fill();
-    
-    // 进度条边框
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-    ctx.lineWidth = 1;
-    this.roundRect(ctx, centerX - progressBarWidth / 2, progressBarY, progressBarWidth, progressBarHeight, progressBarHeight / 2);
-    ctx.stroke();
 
-    // 进度条填充
-    const fillWidth = progressBarWidth * progress;
+    // 进度条填充 - 使用纯色代替渐变
+    const fillWidth = (progressBarWidth * progress) | 0;
     if (fillWidth > 0) {
-      const progressGradient = ctx.createLinearGradient(centerX - progressBarWidth / 2, progressBarY, centerX - progressBarWidth / 2 + fillWidth, progressBarY);
-      progressGradient.addColorStop(0, '#8B5CF6');
-      progressGradient.addColorStop(0.5, '#A78BFA');
-      progressGradient.addColorStop(1, '#C4B5FD');
-      ctx.fillStyle = progressGradient;
-      this.roundRect(ctx, centerX - progressBarWidth / 2, progressBarY, fillWidth, progressBarHeight, progressBarHeight / 2);
-      ctx.fill();
-      
-      // 进度条高光
-      const highlightGradient = ctx.createLinearGradient(centerX - progressBarWidth / 2, progressBarY, centerX - progressBarWidth / 2, progressBarY + progressBarHeight / 2);
-      highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
-      highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-      ctx.fillStyle = highlightGradient;
-      this.roundRect(ctx, centerX - progressBarWidth / 2, progressBarY, fillWidth, progressBarHeight / 2, progressBarHeight / 2);
+      ctx.fillStyle = '#8B5CF6';
+      this.roundRect(ctx, (centerX - progressBarWidth / 2) | 0, progressBarY, fillWidth, progressBarHeight, progressRadius);
       ctx.fill();
     }
 
-    // 计时器
+    // 计时器 - 简化渲染
     const timerY = isMobile ? 58 : 72;
-    
-    // 计时器背景
-    const timerPadding = isMobile ? 8 : 12;
     const timerFontSize = isMobile ? 24 : 32;
-    ctx.font = `bold ${timerFontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-    const timerText = `${timeLeft.toFixed(1)}s`;
-    const timerWidth = ctx.measureText(timerText).width + timerPadding * 2;
-    const timerHeight = timerFontSize + timerPadding;
-    const timerX = centerX - timerWidth / 2;
     
-    // 计时器颜色根据时间变化
+    // 简化计时器颜色逻辑
     let timerColor;
-    let timerGlowColor;
     if (timeLeft <= 5.0) {
       timerColor = '#EF4444';
-      timerGlowColor = 'rgba(239, 68, 68, 0.5)';
     } else if (timeLeft <= 10.0) {
       timerColor = '#F59E0B';
-      timerGlowColor = 'rgba(245, 158, 11, 0.4)';
     } else {
       timerColor = '#FFFFFF';
-      timerGlowColor = 'rgba(255, 255, 255, 0.2)';
     }
     
-    // 计时器发光效果
-    ctx.shadowColor = timerGlowColor;
-    ctx.shadowBlur = timeLeft <= 5.0 ? 20 : 10;
-    
+    ctx.font = `bold ${timerFontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
     ctx.fillStyle = timerColor;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(timerText, centerX, timerY);
-    
-    ctx.shadowBlur = 0;
+    ctx.fillText(`${timeLeft.toFixed(1)}s`, centerX, timerY);
     
     // 当前数字/总数显示
     const countY = isMobile ? 75 : 92;
@@ -1385,29 +1305,28 @@ export default class UI {
   renderButtons(ctx) {
     const isMobile = this.width < 768;
     
+    // 预定义颜色，避免每帧创建
+    const colors = {
+      start: ['#F97316', '#EA580C'],
+      startHover: ['#FB923C', '#F87171'],
+      instructions: ['#0EA5E9', '#3B82F6'],
+      instructionsHover: ['#38BDF8', '#60A5FA'],
+      rank: ['#A855F7', '#EC4899'],
+      rankHover: ['#C084FC', '#F472B6']
+    };
+    
     for (let i = 0; i < this.buttons.length; i++) {
       const button = this.buttons[i];
       const isHovered = this.hoveredButton === button.id;
       const isClicked = this.clickedButton === button.id;
       
-      let gradientColors = button.gradientColors;
-      let shadowBlur = 0;
-      let shadowColor = button.shadowColor || 'rgba(0, 0, 0, 0.3)';
       let scale = 1;
-      let alpha = 1;
       
       const delay = i * 0.08;
-      alpha = Math.min(1, Math.max(0, (this.menuAnimation - delay) * 3));
+      const alpha = Math.min(1, Math.max(0, (this.menuAnimation - delay) * 3));
       
-      if (isHovered) {
-        gradientColors = button.hoverGradientColors || gradientColors;
-        shadowBlur = 25;
-        scale = 1.03;
-      }
-      if (isClicked) {
-        scale = 0.97;
-        shadowBlur = 10;
-      }
+      if (isHovered) scale = 1.03;
+      if (isClicked) scale = 0.97;
       
       const centerX = button.x + button.width / 2;
       const centerY = button.y + button.height / 2;
@@ -1417,36 +1336,33 @@ export default class UI {
       const scaledY = centerY - scaledHeight / 2;
       const borderRadius = isMobile ? 28 : 32;
       
+      // 获取按钮颜色
+      let btnColors;
+      switch(button.id) {
+        case 'start': btnColors = isHovered ? colors.startHover : colors.start; break;
+        case 'instructions': btnColors = isHovered ? colors.instructionsHover : colors.instructions; break;
+        case 'rank': btnColors = isHovered ? colors.rankHover : colors.rank; break;
+        default: btnColors = colors.start;
+      }
+      
       ctx.save();
       ctx.globalAlpha = alpha;
       
-      if (shadowBlur > 0) {
-        ctx.shadowColor = shadowColor;
-        ctx.shadowBlur = shadowBlur;
-        ctx.shadowOffsetY = isClicked ? 2 : 6;
-      }
-      
-      const gradient = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight);
-      gradient.addColorStop(0, gradientColors[0]);
-      gradient.addColorStop(1, gradientColors[1]);
-      ctx.fillStyle = gradient;
-      
+      // 简化渲染：使用纯色代替渐变，移除阴影
+      ctx.fillStyle = btnColors[0];
       this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, borderRadius);
       ctx.fill();
       
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetY = 0;
+      // 简化高光效果
+      if (!isClicked) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight * 0.4, borderRadius);
+        ctx.fill();
+      }
       
-      const highlightGradient = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.5);
-      highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
-      highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-      ctx.fillStyle = highlightGradient;
-      this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight * 0.5, borderRadius);
-      ctx.fill();
-      
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-      ctx.lineWidth = 1.5;
+      // 边框
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.lineWidth = 1;
       this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, borderRadius);
       ctx.stroke();
 
