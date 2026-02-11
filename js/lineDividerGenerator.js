@@ -15,11 +15,15 @@ export default class LineDividerGenerator {
   }
 
   generatePolygons(count, difficulty = 'normal') {
+    // 根据屏幕宽度动态调整header高度
+    const isMobile = this.width < 768;
+    const headerHeight = isMobile ? 70 : 80;
+    
     const bounds = {
       x: 0,
-      y: 80,
+      y: headerHeight,
       width: this.width,
-      height: this.height - 80
+      height: this.height - headerHeight
     };
 
     // 根据目标数量动态调整最小面积和最小宽度
