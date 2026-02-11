@@ -1062,94 +1062,187 @@ export default class UI {
 
   renderGameUI(ctx, gameState, currentNumber, totalNumbers, timeLeft) {
     const isMobile = this.width < 768;
-    const headerHeight = isMobile ? 70 : 80;
+    const headerHeight = isMobile ? 80 : 100;
     
+    // 深色渐变背景，与菜单页保持一致
     const gradient = ctx.createLinearGradient(0, 0, 0, headerHeight);
-    gradient.addColorStop(0, '#0EA5E9');
-    gradient.addColorStop(1, '#38BDF8');
+    gradient.addColorStop(0, '#0F172A');
+    gradient.addColorStop(0.5, '#1E1B4B');
+    gradient.addColorStop(1, '#312E81');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, this.width, headerHeight);
+    
+    // 添加底部发光边框
+    const borderGradient = ctx.createLinearGradient(0, headerHeight - 2, this.width, headerHeight - 2);
+    borderGradient.addColorStop(0, 'rgba(139, 92, 246, 0)');
+    borderGradient.addColorStop(0.5, 'rgba(139, 92, 246, 0.5)');
+    borderGradient.addColorStop(1, 'rgba(139, 92, 246, 0)');
+    ctx.fillStyle = borderGradient;
+    ctx.fillRect(0, headerHeight - 2, this.width, 2);
 
-    const headerButtonSize = isMobile ? 50 : 60;
-    const headerButtonSpacing = isMobile ? 8 : 10;
-    const headerButtonY = isMobile ? 15 : 20;
-    const headerButtonStartX = isMobile ? 8 : 10;
+    // 左侧按钮组
+    const buttonSize = isMobile ? 44 : 52;
+    const buttonSpacing = isMobile ? 12 : 16;
+    const buttonY = (headerHeight - buttonSize) / 2;
+    const buttonStartX = isMobile ? 16 : 24;
 
     this.headerButtons = [
       {
         id: 'menu',
-        text: '返回',
-        x: headerButtonStartX,
-        y: headerButtonY,
-        width: headerButtonSize,
-        height: headerButtonSize - 20,
-        color: 'rgba(255, 255, 255, 0.2)',
-        hoverColor: 'rgba(255, 255, 255, 0.35)',
+        text: '←',
+        x: buttonStartX,
+        y: buttonY,
+        width: buttonSize,
+        height: buttonSize,
+        gradientColors: ['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)'],
+        hoverGradientColors: ['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.1)'],
+        shadowColor: 'rgba(255, 255, 255, 0.1)',
         action: () => this.onBackToMenu()
       },
       {
         id: 'reset',
-        text: '重试',
-        x: headerButtonStartX + headerButtonSize + headerButtonSpacing,
-        y: headerButtonY,
-        width: headerButtonSize,
-        height: headerButtonSize - 20,
-        color: 'rgba(255, 255, 255, 0.2)',
-        hoverColor: 'rgba(255, 255, 255, 0.35)',
+        text: '↻',
+        x: buttonStartX + buttonSize + buttonSpacing,
+        y: buttonY,
+        width: buttonSize,
+        height: buttonSize,
+        gradientColors: ['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)'],
+        hoverGradientColors: ['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.1)'],
+        shadowColor: 'rgba(255, 255, 255, 0.1)',
         action: () => this.onResetGame()
       }
     ];
 
+    // 渲染header按钮
     this.headerButtons.forEach(button => {
       const isHovered = this.isPointInButton(this.mouseX, this.mouseY, button);
       const isClicked = this.clickedButton === button.id;
       
-      ctx.fillStyle = isHovered ? button.hoverColor : button.color;
-      if (isClicked) {
-        ctx.globalAlpha = 0.7;
+      let scale = 1;
+      if (isHovered) scale = 1.08;
+      if (isClicked) scale = 0.95;
+      
+      const scaledSize = buttonSize * scale;
+      const scaledX = button.x + (buttonSize - scaledSize) / 2;
+      const scaledY = button.y + (buttonSize - scaledSize) / 2;
+      
+      ctx.save();
+      
+      // 按钮阴影
+      if (isHovered) {
+        ctx.shadowColor = button.shadowColor;
+        ctx.shadowBlur = 15;
+        ctx.shadowOffsetY = 3;
       }
       
-      this.roundRect(ctx, button.x, button.y, button.width, button.height, isMobile ? 6 : 8);
+      // 按钮背景渐变
+      const bgGradient = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledSize);
+      const colors = isHovered ? button.hoverGradientColors : button.gradientColors;
+      bgGradient.addColorStop(0, colors[0]);
+      bgGradient.addColorStop(1, colors[1]);
+      ctx.fillStyle = bgGradient;
+      
+      this.roundRect(ctx, scaledX, scaledY, scaledSize, scaledSize, buttonSize / 4);
       ctx.fill();
       
-      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
       
+      // 按钮边框
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = 1.5;
+      this.roundRect(ctx, scaledX, scaledY, scaledSize, scaledSize, buttonSize / 4);
+      ctx.stroke();
+      
+      // 按钮图标
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = `${isMobile ? 16 : 18}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+      ctx.font = `bold ${isMobile ? 20 : 24}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(button.text, button.x + button.width / 2, button.y + button.height / 2);
+      ctx.fillText(button.text, scaledX + scaledSize / 2, scaledY + scaledSize / 2);
+      
+      ctx.restore();
     });
 
-    const progressBarWidth = isMobile ? 160 : 200;
-    const progressBarHeight = isMobile ? 10 : 12;
-    const progressBarX = (this.width - progressBarWidth) / 2;
-    const progressBarY = isMobile ? 20 : 24;
+    // 中央区域 - 进度条和计时器
+    const centerX = this.width / 2;
+    const progressBarWidth = isMobile ? 180 : 240;
+    const progressBarHeight = isMobile ? 12 : 16;
+    const progressBarY = isMobile ? 18 : 22;
     const progress = (currentNumber - 1) / totalNumbers;
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-    this.roundRect(ctx, progressBarX, progressBarY, progressBarWidth, progressBarHeight, isMobile ? 5 : 6);
+    // 进度条背景
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    this.roundRect(ctx, centerX - progressBarWidth / 2, progressBarY, progressBarWidth, progressBarHeight, progressBarHeight / 2);
     ctx.fill();
+    
+    // 进度条边框
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.lineWidth = 1;
+    this.roundRect(ctx, centerX - progressBarWidth / 2, progressBarY, progressBarWidth, progressBarHeight, progressBarHeight / 2);
+    ctx.stroke();
 
+    // 进度条填充
     const fillWidth = progressBarWidth * progress;
     if (fillWidth > 0) {
-      ctx.fillStyle = '#F97316';
-      this.roundRect(ctx, progressBarX, progressBarY, fillWidth, progressBarHeight, isMobile ? 5 : 6);
+      const progressGradient = ctx.createLinearGradient(centerX - progressBarWidth / 2, progressBarY, centerX - progressBarWidth / 2 + fillWidth, progressBarY);
+      progressGradient.addColorStop(0, '#8B5CF6');
+      progressGradient.addColorStop(0.5, '#A78BFA');
+      progressGradient.addColorStop(1, '#C4B5FD');
+      ctx.fillStyle = progressGradient;
+      this.roundRect(ctx, centerX - progressBarWidth / 2, progressBarY, fillWidth, progressBarHeight, progressBarHeight / 2);
+      ctx.fill();
+      
+      // 进度条高光
+      const highlightGradient = ctx.createLinearGradient(centerX - progressBarWidth / 2, progressBarY, centerX - progressBarWidth / 2, progressBarY + progressBarHeight / 2);
+      highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
+      highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = highlightGradient;
+      this.roundRect(ctx, centerX - progressBarWidth / 2, progressBarY, fillWidth, progressBarHeight / 2, progressBarHeight / 2);
       ctx.fill();
     }
 
-    ctx.font = `bold ${isMobile ? 22 : 26}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    // 计时器
+    const timerY = isMobile ? 58 : 72;
     
+    // 计时器背景
+    const timerPadding = isMobile ? 8 : 12;
+    const timerFontSize = isMobile ? 24 : 32;
+    ctx.font = `bold ${timerFontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    const timerText = `${timeLeft.toFixed(1)}s`;
+    const timerWidth = ctx.measureText(timerText).width + timerPadding * 2;
+    const timerHeight = timerFontSize + timerPadding;
+    const timerX = centerX - timerWidth / 2;
+    
+    // 计时器颜色根据时间变化
+    let timerColor;
+    let timerGlowColor;
     if (timeLeft <= 5.0) {
-      ctx.fillStyle = '#EF4444';
+      timerColor = '#EF4444';
+      timerGlowColor = 'rgba(239, 68, 68, 0.5)';
     } else if (timeLeft <= 10.0) {
-      ctx.fillStyle = '#F97316';
+      timerColor = '#F59E0B';
+      timerGlowColor = 'rgba(245, 158, 11, 0.4)';
     } else {
-      ctx.fillStyle = '#FFFFFF';
+      timerColor = '#FFFFFF';
+      timerGlowColor = 'rgba(255, 255, 255, 0.2)';
     }
     
+    // 计时器发光效果
+    ctx.shadowColor = timerGlowColor;
+    ctx.shadowBlur = timeLeft <= 5.0 ? 20 : 10;
+    
+    ctx.fillStyle = timerColor;
     ctx.textAlign = 'center';
-    ctx.fillText(`${timeLeft.toFixed(1)}s`, this.width / 2, isMobile ? 55 : 65);
+    ctx.textBaseline = 'middle';
+    ctx.fillText(timerText, centerX, timerY);
+    
+    ctx.shadowBlur = 0;
+    
+    // 当前数字/总数显示
+    const countY = isMobile ? 75 : 92;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.font = `${isMobile ? 12 : 14}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.fillText(`${currentNumber - 1} / ${totalNumbers}`, centerX, countY);
   }
 
   renderInstructions(ctx) {
