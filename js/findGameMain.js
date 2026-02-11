@@ -285,8 +285,17 @@ export default class FindGameMain {
   }
 
   handleInput(x, y) {
+    // 优先处理弹框点击
     if (this.ui.showModal) {
-      this.ui.handleModalClick(x, y);
+      // 先尝试使用新的handleClick逻辑（包含弹框按钮检测）
+      if (this.ui.handleClick(x, y)) {
+        return;
+      }
+      // 如果handleClick没有处理，尝试旧的handleModalClick
+      if (this.ui.handleModalClick(x, y)) {
+        return;
+      }
+      // 点击了弹框背景，不处理
       return;
     }
 
@@ -336,15 +345,13 @@ export default class FindGameMain {
     
     if (this.ui.shouldAutoAdvance()) {
       this.ui.showModalDialog(
-        'levelComplete',
-        '🎉 恭喜过关！',
+        'gameComplete',
+        '恭喜通关！',
         `完成时间: ${time.toFixed(2)}秒`,
         [
           {
             id: 'nextLevel',
-            text: '进入下一关',
-            color: '#4CAF50',
-            hoverColor: '#45a049',
+            text: '下一关',
             action: () => {
               this.ui.hideModal();
               this.startNextLevel(2);
@@ -355,14 +362,22 @@ export default class FindGameMain {
     } else {
       this.ui.showModalDialog(
         'gameComplete',
-        '🎉 恭喜通关！',
+        '恭喜通关！',
         `完成时间: ${time.toFixed(2)}秒`,
         [
           {
+            id: 'nextLevel',
+            text: '下一关',
+            action: () => {
+              this.ui.hideModal();
+              const level = this.gameManager.currentLevel;
+              const count = this.ui.levelConfig[level].count;
+              this.startGame(count, level);
+            }
+          },
+          {
             id: 'playAgain',
             text: '再玩一次',
-            color: '#4CAF50',
-            hoverColor: '#45a049',
             action: () => {
               this.ui.hideModal();
               const level = this.gameManager.currentLevel;
@@ -372,9 +387,7 @@ export default class FindGameMain {
           },
           {
             id: 'menu',
-            text: '返回菜单',
-            color: '#9E9E9E',
-            hoverColor: '#757575',
+            text: '返回首页',
             action: () => {
               this.ui.hideModal();
               this.backToMenu();
@@ -389,14 +402,12 @@ export default class FindGameMain {
     this.soundManager.playError();
     this.ui.showModalDialog(
       'gameFailed',
-      '😢 游戏失败！',
+      '再接再厉！',
       `完成进度: ${this.gameManager.getProgress()}/${this.gameManager.getTotalProgress()}\n用时: ${this.gameManager.getCompletionTime().toFixed(2)}秒`,
       [
         {
-          id: 'restart',
-          text: '重新开始',
-          color: '#4CAF50',
-          hoverColor: '#45a049',
+          id: 'tryAgain',
+          text: '再试一次',
           action: () => {
             this.ui.hideModal();
             this.resetGame();
@@ -404,9 +415,7 @@ export default class FindGameMain {
         },
         {
           id: 'menu',
-          text: '返回主界面',
-          color: '#9E9E9E',
-          hoverColor: '#757575',
+          text: '返回首页',
           action: () => {
             this.ui.hideModal();
             this.backToMenu();

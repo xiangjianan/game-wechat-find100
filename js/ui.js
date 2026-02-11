@@ -130,6 +130,9 @@ export default class UI {
   initMenu() {
     this.showCompletion = false;
     this.showFailure = false;
+    this.showModal = false;
+    this.modalAnimation = 0;
+    this.modalTargetAnimation = 0;
     this.menuAnimation = 0;
     this.menuTargetAnimation = 1;
     
@@ -404,13 +407,13 @@ export default class UI {
   renderModal(ctx) {
     const isMobile = this.width < 768;
     const alpha = this.modalAnimation;
-    const scale = 0.8 + 0.2 * alpha;
+    const scale = 0.85 + 0.15 * alpha;
     
-    ctx.fillStyle = `rgba(0, 0, 0, ${0.6 * alpha})`;
+    ctx.fillStyle = `rgba(15, 23, 42, ${0.85 * alpha})`;
     ctx.fillRect(0, 0, this.width, this.height);
 
-    const modalWidth = isMobile ? Math.min(320, this.width - 32) : 400;
-    const modalHeight = isMobile ? 260 : 280;
+    const modalWidth = isMobile ? Math.min(340, this.width - 40) : 420;
+    const modalHeight = this.modalType === 'gameComplete' ? (isMobile ? 420 : 480) : (isMobile ? 380 : 420);
     const modalX = (this.width - modalWidth) / 2;
     const modalY = (this.height - modalHeight) / 2;
 
@@ -419,48 +422,385 @@ export default class UI {
     ctx.scale(scale, scale);
     ctx.translate(-this.width / 2, -this.height / 2);
 
-    ctx.fillStyle = '#FFFFFF';
-    this.roundRect(ctx, modalX, modalY, modalWidth, modalHeight, isMobile ? 16 : 20);
-    ctx.fill();
+    this.renderModalBackground(ctx, modalX, modalY, modalWidth, modalHeight, isMobile);
 
-    ctx.fillStyle = '#0C4A6E';
-    ctx.font = `bold ${isMobile ? 22 : 24}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(this.modalTitle, this.width / 2, modalY + 50);
-
-    ctx.fillStyle = '#475569';
-    ctx.font = `${isMobile ? 15 : 16}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-    
-    const messageLines = this.modalMessage.split('\n');
-    const lineHeight = isMobile ? 22 : 24;
-    const messageY = modalY + 100 - (messageLines.length - 1) * lineHeight / 2;
-    
-    for (let i = 0; i < messageLines.length; i++) {
-      ctx.fillText(messageLines[i], this.width / 2, messageY + i * lineHeight);
-    }
-
-    const buttonWidth = isMobile ? 100 : 120;
-    const buttonHeight = isMobile ? 40 : 45;
-    const buttonSpacing = isMobile ? 12 : 20;
-    const totalButtonWidth = buttonWidth * this.modalButtons.length + buttonSpacing * (this.modalButtons.length - 1);
-    const startX = (this.width - totalButtonWidth) / 2;
-    const buttonY = modalY + (isMobile ? 190 : 200);
-
-    for (let i = 0; i < this.modalButtons.length; i++) {
-      const button = this.modalButtons[i];
-      const bx = startX + i * (buttonWidth + buttonSpacing);
-      
-      ctx.fillStyle = button.color;
-      this.roundRect(ctx, bx, buttonY, buttonWidth, buttonHeight, isMobile ? 8 : 10);
-      ctx.fill();
-
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = `bold ${isMobile ? 14 : 15}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-      ctx.fillText(button.text, bx + buttonWidth / 2, buttonY + buttonHeight / 2);
+    if (this.modalType === 'gameComplete') {
+      this.renderCompletionContent(ctx, modalX, modalY, modalWidth, modalHeight, isMobile);
+    } else if (this.modalType === 'gameFailed') {
+      this.renderFailureContent(ctx, modalX, modalY, modalWidth, modalHeight, isMobile);
+    } else {
+      this.renderDefaultModalContent(ctx, modalX, modalY, modalWidth, modalHeight, isMobile);
     }
 
     ctx.restore();
+  }
+
+  renderModalBackground(ctx, x, y, width, height, isMobile) {
+    const borderRadius = isMobile ? 24 : 32;
+    
+    const bgGradient = ctx.createLinearGradient(x, y, x, y + height);
+    bgGradient.addColorStop(0, 'rgba(49, 46, 129, 0.95)');
+    bgGradient.addColorStop(0.5, 'rgba(30, 27, 75, 0.98)');
+    bgGradient.addColorStop(1, 'rgba(15, 23, 42, 0.95)');
+    
+    ctx.fillStyle = bgGradient;
+    this.roundRect(ctx, x, y, width, height, borderRadius);
+    ctx.fill();
+    
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.lineWidth = 2;
+    this.roundRect(ctx, x, y, width, height, borderRadius);
+    ctx.stroke();
+    
+    const innerGradient = ctx.createLinearGradient(x + 4, y + 4, x + 4, y + height - 8);
+    innerGradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
+    innerGradient.addColorStop(1, 'rgba(255, 255, 255, 0.02)');
+    ctx.fillStyle = innerGradient;
+    this.roundRect(ctx, x + 4, y + 4, width - 8, height - 8, borderRadius - 4);
+    ctx.fill();
+  }
+
+  renderCompletionContent(ctx, x, y, width, height, isMobile) {
+    const centerX = x + width / 2;
+    const time = Date.now() * 0.001;
+    
+    this.renderTrophy(ctx, centerX, y + (isMobile ? 50 : 60), isMobile ? 50 : 60, time);
+    
+    ctx.fillStyle = '#FBBF24';
+    ctx.font = `bold ${isMobile ? 28 : 36}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(251, 191, 36, 0.5)';
+    ctx.shadowBlur = 10;
+    ctx.fillText('恭喜通关！', centerX, y + (isMobile ? 110 : 130));
+    ctx.shadowBlur = 0;
+    
+    const messageLines = this.modalMessage.split('\n');
+    let timeValue = '';
+    let progressValue = '';
+    
+    messageLines.forEach(line => {
+      if (line.includes('完成时间')) {
+        timeValue = line.replace('完成时间:', '').trim();
+      }
+      if (line.includes('完成进度')) {
+        progressValue = line.replace('完成进度:', '').trim();
+      }
+    });
+    
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.font = `${isMobile ? 14 : 16}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.fillText('本次得分', centerX, y + (isMobile ? 145 : 170));
+    
+    ctx.fillStyle = '#FBBF24';
+    ctx.font = `bold ${isMobile ? 36 : 48}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.fillText(timeValue || '0.00秒', centerX, y + (isMobile ? 180 : 215));
+    
+    this.renderStars(ctx, centerX, y + (isMobile ? 215 : 260), isMobile ? 20 : 25, 5, time);
+    
+    this.renderModalButtons(ctx, x, y + height - (isMobile ? 140 : 160), width, isMobile);
+  }
+
+  renderFailureContent(ctx, x, y, width, height, isMobile) {
+    const centerX = x + width / 2;
+    const time = Date.now() * 0.001;
+    
+    this.renderRetryIcon(ctx, centerX, y + (isMobile ? 40 : 50), isMobile ? 35 : 45, time);
+    
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = `bold ${isMobile ? 26 : 32}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('再接再厉！', centerX, y + (isMobile ? 90 : 110));
+    
+    const messageLines = this.modalMessage.split('\n');
+    let progressText = '';
+    let timeText = '';
+    
+    messageLines.forEach(line => {
+      if (line.includes('完成进度')) {
+        progressText = line;
+      }
+      if (line.includes('用时')) {
+        timeText = line;
+      }
+    });
+    
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.font = `${isMobile ? 14 : 16}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    
+    let textY = y + (isMobile ? 125 : 150);
+    if (progressText) {
+      ctx.fillText(progressText, centerX, textY);
+      textY += isMobile ? 24 : 28;
+    }
+    if (timeText) {
+      ctx.fillText(timeText, centerX, textY);
+    }
+    
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.font = `${isMobile ? 15 : 17}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.fillText('别放弃，再试一次！', centerX, y + (isMobile ? 190 : 220));
+    
+    this.renderModalButtons(ctx, x, y + height - (isMobile ? 130 : 150), width, isMobile);
+  }
+
+  renderDefaultModalContent(ctx, x, y, width, height, isMobile) {
+    const centerX = x + width / 2;
+    
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = `bold ${isMobile ? 22 : 26}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(this.modalTitle, centerX, y + (isMobile ? 50 : 60));
+    
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.font = `${isMobile ? 15 : 17}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    
+    const messageLines = this.modalMessage.split('\n');
+    const lineHeight = isMobile ? 24 : 28;
+    const messageY = y + (isMobile ? 90 : 100);
+    
+    messageLines.forEach((line, index) => {
+      ctx.fillText(line, centerX, messageY + index * lineHeight);
+    });
+    
+    this.renderModalButtons(ctx, x, y + height - (isMobile ? 100 : 110), width, isMobile);
+  }
+
+  renderTrophy(ctx, x, y, size, time) {
+    const bounce = Math.sin(time * 3) * 3;
+    const trophyY = y + bounce;
+    
+    ctx.save();
+    
+    const cupWidth = size * 1.2;
+    const cupHeight = size * 0.9;
+    
+    const goldGradient = ctx.createLinearGradient(x - cupWidth/2, trophyY - cupHeight/2, x + cupWidth/2, trophyY + cupHeight/2);
+    goldGradient.addColorStop(0, '#FFD700');
+    goldGradient.addColorStop(0.3, '#FFA500');
+    goldGradient.addColorStop(0.7, '#FFD700');
+    goldGradient.addColorStop(1, '#B8860B');
+    
+    ctx.fillStyle = goldGradient;
+    ctx.beginPath();
+    ctx.moveTo(x - cupWidth/2, trophyY - cupHeight/3);
+    ctx.quadraticCurveTo(x - cupWidth/2, trophyY - cupHeight/2, x - cupWidth/3, trophyY - cupHeight/2);
+    ctx.lineTo(x + cupWidth/3, trophyY - cupHeight/2);
+    ctx.quadraticCurveTo(x + cupWidth/2, trophyY - cupHeight/2, x + cupWidth/2, trophyY - cupHeight/3);
+    ctx.quadraticCurveTo(x + cupWidth/2, trophyY + cupHeight/3, x + cupWidth/4, trophyY + cupHeight/3);
+    ctx.lineTo(x + cupWidth/5, trophyY + cupHeight/2);
+    ctx.lineTo(x - cupWidth/5, trophyY + cupHeight/2);
+    ctx.lineTo(x - cupWidth/4, trophyY + cupHeight/3);
+    ctx.quadraticCurveTo(x - cupWidth/2, trophyY + cupHeight/3, x - cupWidth/2, trophyY - cupHeight/3);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.strokeStyle = '#B8860B';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    ctx.fillStyle = '#8B4513';
+    ctx.fillRect(x - size/8, trophyY + cupHeight/2, size/4, size/6);
+    
+    ctx.fillStyle = goldGradient;
+    ctx.beginPath();
+    ctx.ellipse(x, trophyY + cupHeight/2 + size/6, size/6, size/10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    this.renderSparkles(ctx, x, trophyY, size, time);
+    
+    ctx.restore();
+  }
+
+  renderRetryIcon(ctx, x, y, size, time) {
+    const rotate = time * 2;
+    
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rotate);
+    
+    ctx.strokeStyle = '#60A5FA';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    
+    ctx.beginPath();
+    ctx.arc(0, 0, size * 0.6, -Math.PI/2, Math.PI * 1.2);
+    ctx.stroke();
+    
+    const arrowX = Math.cos(Math.PI * 1.2) * size * 0.6;
+    const arrowY = Math.sin(Math.PI * 1.2) * size * 0.6;
+    
+    ctx.beginPath();
+    ctx.moveTo(arrowX, arrowY);
+    ctx.lineTo(arrowX - 8, arrowY - 6);
+    ctx.lineTo(arrowX - 8, arrowY + 6);
+    ctx.closePath();
+    ctx.fillStyle = '#60A5FA';
+    ctx.fill();
+    
+    ctx.restore();
+  }
+
+  renderStars(ctx, x, y, starSize, count, time) {
+    const spacing = starSize * 1.8;
+    const startX = x - (count - 1) * spacing / 2;
+    
+    for (let i = 0; i < count; i++) {
+      const starX = startX + i * spacing;
+      const twinkle = 0.8 + 0.2 * Math.sin(time * 4 + i);
+      
+      ctx.save();
+      ctx.translate(starX, y);
+      ctx.scale(twinkle, twinkle);
+      
+      const starGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, starSize);
+      starGradient.addColorStop(0, '#FFD700');
+      starGradient.addColorStop(0.5, '#FFA500');
+      starGradient.addColorStop(1, '#FF8C00');
+      
+      ctx.fillStyle = starGradient;
+      this.drawStar(ctx, 0, 0, 5, starSize, starSize * 0.4);
+      ctx.fill();
+      
+      ctx.strokeStyle = '#B8860B';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      
+      ctx.restore();
+    }
+  }
+
+  drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
+    let rot = Math.PI / 2 * 3;
+    let x = cx;
+    let y = cy;
+    let step = Math.PI / spikes;
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - outerRadius);
+    for (let i = 0; i < spikes; i++) {
+      x = cx + Math.cos(rot) * outerRadius;
+      y = cy + Math.sin(rot) * outerRadius;
+      ctx.lineTo(x, y);
+      rot += step;
+
+      x = cx + Math.cos(rot) * innerRadius;
+      y = cy + Math.sin(rot) * innerRadius;
+      ctx.lineTo(x, y);
+      rot += step;
+    }
+    ctx.lineTo(cx, cy - outerRadius);
+    ctx.closePath();
+  }
+
+  renderSparkles(ctx, x, y, size, time) {
+    const sparkles = [
+      { angle: 0, distance: size * 1.3, size: 4 },
+      { angle: Math.PI / 3, distance: size * 1.2, size: 3 },
+      { angle: Math.PI * 2 / 3, distance: size * 1.4, size: 5 },
+      { angle: Math.PI, distance: size * 1.2, size: 3 },
+      { angle: Math.PI * 4 / 3, distance: size * 1.3, size: 4 },
+      { angle: Math.PI * 5 / 3, distance: size * 1.1, size: 3 },
+    ];
+    
+    sparkles.forEach((sparkle, index) => {
+      const twinkle = 0.5 + 0.5 * Math.sin(time * 3 + index);
+      const sx = x + Math.cos(sparkle.angle + time * 0.5) * sparkle.distance;
+      const sy = y + Math.sin(sparkle.angle + time * 0.5) * sparkle.distance * 0.3;
+      
+      ctx.fillStyle = `rgba(255, 215, 0, ${twinkle})`;
+      ctx.beginPath();
+      ctx.arc(sx, sy, sparkle.size * twinkle, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  renderModalButtons(ctx, x, y, width, isMobile) {
+    const buttonWidth = isMobile ? 200 : 240;
+    const buttonHeight = isMobile ? 44 : 52;
+    const buttonSpacing = isMobile ? 12 : 16;
+    const centerX = x + width / 2;
+    
+    this.modalButtons.forEach((button, index) => {
+      const buttonY = y + index * (buttonHeight + buttonSpacing);
+      const buttonX = centerX - buttonWidth / 2;
+      
+      // 存储按钮位置信息用于点击检测（使用原始坐标，不计算缩放）
+      // 点击检测时会根据当前的变换矩阵进行反向计算
+      button.x = buttonX;
+      button.y = buttonY;
+      button.width = buttonWidth;
+      button.height = buttonHeight;
+      
+      const isHovered = this.hoveredButton === button.id;
+      const isClicked = this.clickedButton === button.id;
+      
+      let scale = 1;
+      if (isHovered) scale = 1.03;
+      if (isClicked) scale = 0.97;
+      
+      const scaledWidth = buttonWidth * scale;
+      const scaledHeight = buttonHeight * scale;
+      const scaledX = centerX - scaledWidth / 2;
+      const scaledY = buttonY + (buttonHeight - scaledHeight) / 2;
+      
+      ctx.save();
+      
+      let gradientColors;
+      let shadowColor;
+      
+      if (button.id === 'nextLevel' || button.id === 'restart') {
+        gradientColors = ['#22C55E', '#16A34A'];
+        shadowColor = 'rgba(34, 197, 94, 0.4)';
+      } else if (button.id === 'playAgain' || button.id === 'tryAgain') {
+        gradientColors = ['#F97316', '#EA580C'];
+        shadowColor = 'rgba(249, 115, 22, 0.4)';
+      } else {
+        gradientColors = ['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)'];
+        shadowColor = 'rgba(255, 255, 255, 0.1)';
+      }
+      
+      if (isHovered) {
+        ctx.shadowColor = shadowColor;
+        ctx.shadowBlur = 20;
+        ctx.shadowOffsetY = 4;
+      }
+      
+      const gradient = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight);
+      gradient.addColorStop(0, gradientColors[0]);
+      gradient.addColorStop(1, gradientColors[1]);
+      ctx.fillStyle = gradient;
+      
+      this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, buttonHeight / 2);
+      ctx.fill();
+      
+      ctx.shadowBlur = 0;
+      
+      if (button.id !== 'menu') {
+        const highlightGradient = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.5);
+        highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
+        highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.fillStyle = highlightGradient;
+        this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight * 0.5, buttonHeight / 2);
+        ctx.fill();
+      }
+      
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.lineWidth = 1.5;
+      this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, buttonHeight / 2);
+      ctx.stroke();
+      
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = `bold ${isMobile ? 16 : 18}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(button.text, centerX, scaledY + scaledHeight / 2);
+      
+      ctx.restore();
+    });
   }
 
   render(ctx, gameState, currentNumber, totalNumbers, timeLeft = 5.0, deltaTime = 0.016) {
@@ -973,7 +1313,7 @@ export default class UI {
   }
 
   handleClick(x, y) {
-    console.log('handleClick called:', { x, y, showInstructions: this.showInstructions, showModal: this.showModal });
+    console.log('handleClick called:', { x, y, showInstructions: this.showInstructions, showModal: this.showModal, modalButtons: this.modalButtons.length });
     
     if (this.showInstructions) {
       this.showInstructions = false;
@@ -981,10 +1321,32 @@ export default class UI {
       return true;
     }
     
-    const allButtons = [...this.buttons];
-    if (this.showModal) {
-      allButtons.push(...this.modalButtons);
+    // 优先检查弹框按钮
+    if (this.showModal && this.modalButtons.length > 0) {
+      console.log('Checking modal buttons:', this.modalButtons.map(b => ({ id: b.id, x: b.x, y: b.y, w: b.width, h: b.height })));
+      for (const button of this.modalButtons) {
+        if (button.x !== undefined && this.isPointInButton(x, y, button)) {
+          console.log('Modal button clicked:', button.id);
+          this.clickedButton = button.id;
+          this.clickAnimation = 1;
+          if (this.onPlayClickSound) {
+            this.onPlayClickSound();
+          }
+          setTimeout(() => {
+            this.clickedButton = null;
+            this.clickAnimation = 0;
+            if (button.action) {
+              console.log('Executing modal button action:', button.id);
+              button.action();
+            }
+          }, 150);
+          return true;
+        }
+      }
+      console.log('No modal button clicked at:', { x, y });
     }
+    
+    const allButtons = [...this.buttons];
     
     if (this.headerButtons) {
       allButtons.push(...this.headerButtons);
@@ -1017,36 +1379,64 @@ export default class UI {
     if (!this.showModal) return false;
     if (this.modalTargetAnimation === 0) return false;
     
-    const modalWidth = Math.min(400, this.width - 40);
-    const modalHeight = 280;
-    const modalX = (this.width - modalWidth) / 2;
-    const modalY = (this.height - modalHeight) / 2;
+    // 计算当前的动画缩放值（与renderModal中的一致）
+    const alpha = this.modalAnimation;
+    const scale = 0.85 + 0.15 * alpha;
     
-    const buttonWidth = 120;
-    const buttonHeight = 45;
-    const buttonSpacing = 20;
-    const totalButtonWidth = buttonWidth * this.modalButtons.length + buttonSpacing * (this.modalButtons.length - 1);
-    const startX = (this.width - totalButtonWidth) / 2;
-    const buttonY = modalY + 200;
+    // 将屏幕坐标转换为弹框内部坐标（反向应用缩放变换）
+    const localX = (x - this.width / 2) / scale + this.width / 2;
+    const localY = (y - this.height / 2) / scale + this.height / 2;
     
+    // 使用渲染时存储的按钮位置信息
     for (let i = 0; i < this.modalButtons.length; i++) {
       const button = this.modalButtons[i];
-      const bx = startX + i * (buttonWidth + buttonSpacing);
-      
-      if (x >= bx && x <= bx + buttonWidth && y >= buttonY && y <= buttonY + buttonHeight) {
-        if (this.onPlayClickSound) {
-          this.onPlayClickSound();
-        }
-        this.clickedButton = button.id;
-        this.clickAnimation = 1;
-        setTimeout(() => {
-          this.clickedButton = null;
-          this.clickAnimation = 0;
-          if (button.action) {
-            button.action();
+      // 如果按钮位置已存储（新逻辑），使用存储的位置
+      if (button.x !== undefined && button.y !== undefined) {
+        if (localX >= button.x && localX <= button.x + button.width &&
+            localY >= button.y && localY <= button.y + button.height) {
+          if (this.onPlayClickSound) {
+            this.onPlayClickSound();
           }
-        }, 150);
-        return true;
+          this.clickedButton = button.id;
+          this.clickAnimation = 1;
+          setTimeout(() => {
+            this.clickedButton = null;
+            this.clickAnimation = 0;
+            if (button.action) {
+              button.action();
+            }
+          }, 150);
+          return true;
+        }
+      } else {
+        // 兼容旧逻辑：如果按钮位置未存储，使用固定位置计算
+        const modalWidth = Math.min(400, this.width - 40);
+        const modalHeight = 280;
+        const modalX = (this.width - modalWidth) / 2;
+        const modalY = (this.height - modalHeight) / 2;
+        const buttonWidth = 120;
+        const buttonHeight = 45;
+        const buttonSpacing = 20;
+        const totalButtonWidth = buttonWidth * this.modalButtons.length + buttonSpacing * (this.modalButtons.length - 1);
+        const startX = (this.width - totalButtonWidth) / 2;
+        const buttonY = modalY + 200;
+        const bx = startX + i * (buttonWidth + buttonSpacing);
+        
+        if (localX >= bx && localX <= bx + buttonWidth && localY >= buttonY && localY <= buttonY + buttonHeight) {
+          if (this.onPlayClickSound) {
+            this.onPlayClickSound();
+          }
+          this.clickedButton = button.id;
+          this.clickAnimation = 1;
+          setTimeout(() => {
+            this.clickedButton = null;
+            this.clickAnimation = 0;
+            if (button.action) {
+              button.action();
+            }
+          }, 150);
+          return true;
+        }
       }
     }
     return false;
