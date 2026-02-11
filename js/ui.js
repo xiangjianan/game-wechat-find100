@@ -1136,7 +1136,7 @@ export default class UI {
 
     // 计时器 - 保持原有位置不变
     const centerX = this.width / 2;
-    const timerY = contentStartY + (contentHeight) / 2 + 18;
+    const timerY = contentStartY + (contentHeight) / 2 + 5;
     const timerFontSize = isMobile ? 24 : 32;
     
     // 简化计时器颜色逻辑
@@ -1154,12 +1154,6 @@ export default class UI {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(`${timeLeft.toFixed(1)}s`, centerX, timerY);
-    
-    // 当前数字/总数显示 - 保持原有位置
-    const countY = timerY + (isMobile ? 22 : 26);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.font = `${isMobile ? 12 : 14}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-    ctx.fillText(`${currentNumber - 1} / ${totalNumbers}`, centerX, countY);
   }
 
   renderFooter(ctx, footerHeight, bottomSafeArea, isMobile, currentNumber, totalNumbers) {

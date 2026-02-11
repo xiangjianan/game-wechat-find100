@@ -19,16 +19,14 @@ export default class LineDividerGenerator {
     const isMobile = this.width < 768;
     // Header高度 - 保持原有高度（包含计时器）
     const headerHeight = isMobile ? 110 : 130;
-    // Footer高度 - 只放置进度条（较窄）
+    // Footer高度 - 只放置进度条（较窄），已经包含底部安全区域
     const footerHeight = isMobile ? 50 : 60;
-    // 底部安全区域 - 处理屏幕圆角和底部手势条
-    const bottomSafeArea = isMobile ? 34 : 40;
     
     const bounds = {
       x: 0,
       y: headerHeight,
       width: this.width,
-      height: this.height - headerHeight - footerHeight - bottomSafeArea
+      height: this.height - headerHeight - footerHeight
     };
 
     // 根据目标数量动态调整最小面积和最小宽度
