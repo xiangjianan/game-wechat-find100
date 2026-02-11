@@ -6,6 +6,8 @@ export default class Polygon {
     this.originalColor = color;
     this.isClicked = false;
     this.isHighlighted = false;
+    this.isError = false;
+    this.errorAlpha = 0;
     this.scale = 1;
     this.targetScale = 1;
     this.shakeOffset = { x: 0, y: 0 };
@@ -59,6 +61,8 @@ export default class Polygon {
 
   shake() {
     this.shakeTime = 10;
+    this.isError = true;
+    this.errorAlpha = 0.8;
   }
 
   update() {
@@ -71,6 +75,15 @@ export default class Polygon {
     } else {
       this.shakeOffset.x = 0;
       this.shakeOffset.y = 0;
+    }
+
+    // 更新错误状态
+    if (this.isError) {
+      this.errorAlpha -= 0.05;
+      if (this.errorAlpha <= 0) {
+        this.errorAlpha = 0;
+        this.isError = false;
+      }
     }
   }
 
@@ -96,6 +109,12 @@ export default class Polygon {
       ctx.fillStyle = this.isHighlighted ? '#FFD700' : '#FFFFFF';
     }
     ctx.fill();
+
+    // 错误状态显示红色覆盖
+    if (this.isError) {
+      ctx.fillStyle = `rgba(255, 68, 68, ${this.errorAlpha})`;
+      ctx.fill();
+    }
 
     ctx.strokeStyle = '#333333';
     ctx.lineWidth = 2;

@@ -275,8 +275,6 @@ export default class FindGameMain {
     
     this.gameManager.onError = (center) => {
       this.soundManager.playError();
-      this.ui.triggerFlash();
-      this.ui.triggerShake();
       this.ui.showFloatingText(center.x, center.y, '-5秒', '#FF4444');
     };
     
