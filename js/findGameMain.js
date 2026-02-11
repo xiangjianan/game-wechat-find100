@@ -430,8 +430,38 @@ export default class FindGameMain {
     this.ui.updateModalAnimation(0.016);
   }
 
+  renderGameBackground(ctx) {
+    // 柔和的中性色调背景 - 浅灰蓝色调，减少视觉疲劳
+    const gradient = ctx.createLinearGradient(0, 0, 0, SCREEN_HEIGHT);
+    gradient.addColorStop(0, '#F8FAFC');  // 极浅的灰蓝色
+    gradient.addColorStop(0.5, '#F1F5F9');  // 浅灰蓝色
+    gradient.addColorStop(1, '#E2E8F0');  // 柔和的灰蓝色
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    
+    // 添加 subtle 的网格纹理，增加视觉层次但不干扰
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.08)';
+    ctx.lineWidth = 1;
+    const gridSize = 40;
+    
+    for (let x = 0; x < SCREEN_WIDTH; x += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, SCREEN_HEIGHT);
+      ctx.stroke();
+    }
+    
+    for (let y = 0; y < SCREEN_HEIGHT; y += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(SCREEN_WIDTH, y);
+      ctx.stroke();
+    }
+  }
+
   render(deltaTime = 0.016) {
-    ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    // 渲染柔和的中性色调背景
+    this.renderGameBackground(ctx);
 
     if (this.gameManager.gameState === 'playing' || this.gameManager.gameState === 'completed' || this.gameManager.gameState === 'failed') {
       this.gameManager.render(ctx);
