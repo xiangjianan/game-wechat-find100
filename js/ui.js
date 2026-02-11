@@ -1037,7 +1037,18 @@ export default class UI {
     // iPhone X+ 顶部安全区域约44px，加上header内容需要约60-70px
     const headerHeight = isMobile ? 110 : 130;
     const topSafeArea = isMobile ? 44 : 0; // iPhone顶部安全区域
+    // Footer高度 - 只放置进度条
+    const footerHeight = isMobile ? 50 : 60;
+    const bottomSafeArea = isMobile ? 34 : 0; // iPhone底部安全区域
     
+    // 渲染Header（保持原有高度和计时器位置）
+    this.renderHeader(ctx, headerHeight, topSafeArea, isMobile, timeLeft, currentNumber, totalNumbers);
+    
+    // 渲染Footer（只包含进度条）
+    this.renderFooter(ctx, footerHeight, bottomSafeArea, isMobile, currentNumber, totalNumbers);
+  }
+
+  renderHeader(ctx, headerHeight, topSafeArea, isMobile, timeLeft, currentNumber, totalNumbers) {
     // 深色渐变背景，与菜单页保持一致
     const gradient = ctx.createLinearGradient(0, 0, 0, headerHeight);
     gradient.addColorStop(0, '#0F172A');
@@ -1123,29 +1134,8 @@ export default class UI {
       ctx.fillText(button.text, scaledX + (scaledSize / 2) | 0, scaledY + (scaledSize / 2) | 0);
     });
 
-    // 中央区域 - 进度条和计时器（简化版本）
+    // 计时器 - 保持原有位置不变
     const centerX = this.width / 2;
-    const progressBarWidth = isMobile ? 180 : 240;
-    const progressBarHeight = isMobile ? 12 : 16;
-    // 调整进度条位置，考虑顶部安全区域
-    const progressBarY = contentStartY + (contentHeight - progressBarHeight) / 2 - 15;
-    const progress = (currentNumber - 1) / totalNumbers;
-    const progressRadius = (progressBarHeight / 2) | 0;
-
-    // 进度条背景 - 简化
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-    this.roundRect(ctx, (centerX - progressBarWidth / 2) | 0, progressBarY, progressBarWidth, progressBarHeight, progressRadius);
-    ctx.fill();
-
-    // 进度条填充 - 使用纯色代替渐变
-    const fillWidth = (progressBarWidth * progress) | 0;
-    if (fillWidth > 0) {
-      ctx.fillStyle = '#8B5CF6';
-      this.roundRect(ctx, (centerX - progressBarWidth / 2) | 0, progressBarY, fillWidth, progressBarHeight, progressRadius);
-      ctx.fill();
-    }
-
-    // 计时器 - 调整位置
     const timerY = contentStartY + (contentHeight) / 2 + 18;
     const timerFontSize = isMobile ? 24 : 32;
     
@@ -1165,11 +1155,56 @@ export default class UI {
     ctx.textBaseline = 'middle';
     ctx.fillText(`${timeLeft.toFixed(1)}s`, centerX, timerY);
     
-    // 当前数字/总数显示 - 调整位置
+    // 当前数字/总数显示 - 保持原有位置
     const countY = timerY + (isMobile ? 22 : 26);
     ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
     ctx.font = `${isMobile ? 12 : 14}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
     ctx.fillText(`${currentNumber - 1} / ${totalNumbers}`, centerX, countY);
+  }
+
+  renderFooter(ctx, footerHeight, bottomSafeArea, isMobile, currentNumber, totalNumbers) {
+    const footerY = this.height - footerHeight;
+    const centerX = this.width / 2;
+    
+    // 深色渐变背景 - 与header一致（从下到上的渐变）
+    const gradient = ctx.createLinearGradient(0, footerY, 0, this.height);
+    gradient.addColorStop(0, '#312E81');
+    gradient.addColorStop(0.5, '#1E1B4B');
+    gradient.addColorStop(1, '#0F172A');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, footerY, this.width, footerHeight);
+    
+    // 添加顶部发光边框 - 与header底部边框一致
+    const borderGradient = ctx.createLinearGradient(0, footerY, this.width, footerY);
+    borderGradient.addColorStop(0, 'rgba(139, 92, 246, 0)');
+    borderGradient.addColorStop(0.5, 'rgba(139, 92, 246, 0.5)');
+    borderGradient.addColorStop(1, 'rgba(139, 92, 246, 0)');
+    ctx.fillStyle = borderGradient;
+    ctx.fillRect(0, footerY, this.width, 2);
+    
+    // 内容区域（排除底部安全区域）
+    const contentHeight = footerHeight - bottomSafeArea;
+    const contentStartY = footerY;
+    
+    // 进度条 - 移到footer
+    const progressBarWidth = isMobile ? 200 : 280;
+    const progressBarHeight = isMobile ? 12 : 14;
+    const progressBarY = contentStartY + (contentHeight - progressBarHeight) / 2;
+    const progress = (currentNumber - 1) / totalNumbers;
+    const progressRadius = (progressBarHeight / 2) | 0;
+
+    // 进度条背景
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    this.roundRect(ctx, (centerX - progressBarWidth / 2) | 0, progressBarY, progressBarWidth, progressBarHeight, progressRadius);
+    ctx.fill();
+
+    // 进度条填充
+    const fillWidth = (progressBarWidth * progress) | 0;
+    if (fillWidth > 0) {
+      ctx.fillStyle = '#8B5CF6';
+      this.roundRect(ctx, (centerX - progressBarWidth / 2) | 0, progressBarY, fillWidth, progressBarHeight, progressRadius);
+      ctx.fill();
+    }
   }
 
   renderInstructions(ctx) {
