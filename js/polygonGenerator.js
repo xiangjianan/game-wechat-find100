@@ -1,11 +1,11 @@
 import Polygon from './polygon';
-import VoronoiGenerator from './voronoiGenerator';
+import LineDividerGenerator from './lineDividerGenerator';
 
 export default class PolygonGenerator {
   constructor(width, height) {
     this.width = width;
     this.height = height;
-    this.voronoiGenerator = new VoronoiGenerator(width, height);
+    this.lineDividerGenerator = new LineDividerGenerator(width, height);
     this.colors = [
       '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
       '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
@@ -16,7 +16,7 @@ export default class PolygonGenerator {
   generatePolygons(count, difficulty = 'normal') {
     const polygons = [];
     
-    const polygonData = this.voronoiGenerator.generatePolygons(count, difficulty);
+    const polygonData = this.lineDividerGenerator.generatePolygons(count, difficulty);
     
     for (let i = 0; i < polygonData.length; i++) {
       const data = polygonData[i];

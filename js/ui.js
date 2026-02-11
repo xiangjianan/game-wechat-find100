@@ -134,11 +134,11 @@ export default class UI {
     this.menuTargetAnimation = 1;
     
     const isMobile = this.width < 768;
-    const buttonWidth = isMobile ? 240 : 280;
-    const buttonHeight = isMobile ? 64 : 72;
+    const buttonWidth = isMobile ? 220 : 260;
+    const buttonHeight = isMobile ? 56 : 64;
     const buttonSpacing = isMobile ? 16 : 20;
     const centerX = this.width / 2;
-    const startY = this.height / 2 + 20;
+    const startY = this.height * 0.55;
     
     this.buttons = [
       {
@@ -148,8 +148,9 @@ export default class UI {
         y: startY,
         width: buttonWidth,
         height: buttonHeight,
-        color: '#F97316',
-        hoverColor: '#EA580C',
+        gradientColors: ['#F97316', '#EF4444'],
+        hoverGradientColors: ['#FB923C', '#F87171'],
+        shadowColor: 'rgba(249, 115, 22, 0.5)',
         action: () => this.onStartGame()
       },
       {
@@ -159,8 +160,9 @@ export default class UI {
         y: startY + buttonHeight + buttonSpacing,
         width: buttonWidth,
         height: buttonHeight,
-        color: '#0EA5E9',
-        hoverColor: '#0284C7',
+        gradientColors: ['#0EA5E9', '#3B82F6'],
+        hoverGradientColors: ['#38BDF8', '#60A5FA'],
+        shadowColor: 'rgba(14, 165, 233, 0.5)',
         action: () => this.onShowInstructions()
       },
       {
@@ -170,8 +172,9 @@ export default class UI {
         y: startY + (buttonHeight + buttonSpacing) * 2,
         width: buttonWidth,
         height: buttonHeight,
-        color: '#38BDF8',
-        hoverColor: '#0EA5E9',
+        gradientColors: ['#A855F7', '#EC4899'],
+        hoverGradientColors: ['#C084FC', '#F472B6'],
+        shadowColor: 'rgba(168, 85, 247, 0.5)',
         action: () => this.onOpenRank()
       }
     ];
@@ -502,56 +505,230 @@ export default class UI {
   renderMenu(ctx) {
     const isMobile = this.width < 768;
     
-    const gradient = ctx.createLinearGradient(0, 0, this.width, this.height);
-    gradient.addColorStop(0, '#0EA5E9');
-    gradient.addColorStop(1, '#38BDF8');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, this.width, this.height);
-
+    this.renderMenuBackground(ctx);
+    
     this.particleOffset += 0.5;
     this.renderParticles(ctx);
 
-    const titleY = isMobile ? this.height * 0.25 : this.height * 0.22;
-    const titleSize = isMobile ? 48 : 64;
-    const subtitleSize = isMobile ? 16 : 18;
+    const titleY = isMobile ? this.height * 0.18 : this.height * 0.15;
+    const titleSize = isMobile ? 56 : 72;
+    const subtitleSize = isMobile ? 14 : 16;
 
     ctx.save();
     ctx.globalAlpha = Math.min(1, this.menuAnimation * 1.5);
     
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = `bold ${titleSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('数一数', this.width / 2, titleY);
+    this.renderTitleWithRibbon(ctx, this.width / 2, titleY, titleSize);
 
     ctx.font = `${subtitleSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-    ctx.fillText('挑战你的观察力与反应速度', this.width / 2, titleY + 40);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('挑战你的观察力与反应速度', this.width / 2, titleY + titleSize * 0.7);
 
-    const features = [
-      { icon: '⚡', text: '快速反应' },
-      { icon: '🎯', text: '精准点击' },
-      { icon: '🏆', text: '挑战极限' }
-    ];
-
-    const featureY = isMobile ? this.height * 0.38 : this.height * 0.35;
-    const featureSpacing = isMobile ? 100 : 140;
-    const featureStartX = this.width / 2 - featureSpacing;
-
-    ctx.font = `${isMobile ? 14 : 16}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-
-    features.forEach((feature, index) => {
-      const x = featureStartX + index * featureSpacing;
-      const delay = index * 0.1;
-      const featureAlpha = Math.min(1, Math.max(0, (this.menuAnimation - delay) * 2));
-      ctx.globalAlpha = featureAlpha;
-      ctx.textAlign = 'center';
-      ctx.fillText(feature.icon, x, featureY);
-      ctx.fillText(feature.text, x, featureY + 24);
-    });
+    this.renderFeatureCards(ctx, isMobile);
     
     ctx.restore();
+  }
+
+  renderMenuBackground(ctx) {
+    const gradient = ctx.createLinearGradient(0, 0, 0, this.height);
+    gradient.addColorStop(0, '#0F172A');
+    gradient.addColorStop(0.5, '#1E1B4B');
+    gradient.addColorStop(1, '#312E81');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    this.renderStars(ctx);
+    this.renderFloatingShapes(ctx);
+  }
+
+  renderStars(ctx) {
+    const time = Date.now() * 0.001;
+    const stars = [
+      { x: 0.1, y: 0.1, size: 2, phase: 0 },
+      { x: 0.85, y: 0.15, size: 3, phase: 1 },
+      { x: 0.2, y: 0.35, size: 2, phase: 2 },
+      { x: 0.9, y: 0.4, size: 2, phase: 0.5 },
+      { x: 0.05, y: 0.6, size: 2, phase: 1.5 },
+      { x: 0.95, y: 0.7, size: 3, phase: 2.5 },
+      { x: 0.15, y: 0.85, size: 2, phase: 3 },
+      { x: 0.8, y: 0.9, size: 2, phase: 0.8 },
+    ];
+
+    stars.forEach(star => {
+      const x = star.x * this.width;
+      const y = star.y * this.height;
+      const twinkle = 0.5 + 0.5 * Math.sin(time * 2 + star.phase);
+      
+      ctx.beginPath();
+      ctx.arc(x, y, star.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 255, 200, ${0.3 + twinkle * 0.4})`;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(x, y, star.size * 2, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 255, 200, ${0.1 * twinkle})`;
+      ctx.fill();
+    });
+
+    const crossStars = [
+      { x: 0.88, y: 0.28, size: 8 },
+      { x: 0.12, y: 0.55, size: 6 },
+    ];
+
+    crossStars.forEach(star => {
+      const x = star.x * this.width;
+      const y = star.y * this.height;
+      const twinkle = 0.5 + 0.5 * Math.sin(time * 3 + star.x * 10);
+      
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(time * 0.5);
+      
+      ctx.beginPath();
+      ctx.moveTo(0, -star.size);
+      ctx.lineTo(1, -1);
+      ctx.lineTo(star.size, 0);
+      ctx.lineTo(1, 1);
+      ctx.lineTo(0, star.size);
+      ctx.lineTo(-1, 1);
+      ctx.lineTo(-star.size, 0);
+      ctx.lineTo(-1, -1);
+      ctx.closePath();
+      ctx.fillStyle = `rgba(255, 220, 100, ${0.6 + twinkle * 0.3})`;
+      ctx.fill();
+      
+      ctx.restore();
+    });
+  }
+
+  renderFloatingShapes(ctx) {
+    const time = Date.now() * 0.001;
+    
+    const shapes = [
+      { x: 0.05, y: 0.08, size: 30, color: 'rgba(139, 92, 246, 0.3)', type: 'circle' },
+      { x: 0.92, y: 0.12, size: 40, color: 'rgba(59, 130, 246, 0.25)', type: 'circle' },
+      { x: 0.08, y: 0.75, size: 50, color: 'rgba(236, 72, 153, 0.2)', type: 'circle' },
+      { x: 0.9, y: 0.82, size: 35, color: 'rgba(34, 211, 238, 0.25)', type: 'triangle' },
+    ];
+
+    shapes.forEach((shape, index) => {
+      const x = shape.x * this.width;
+      const y = shape.y * this.height + Math.sin(time + index) * 10;
+      
+      ctx.save();
+      ctx.translate(x, y);
+      
+      if (shape.type === 'circle') {
+        ctx.beginPath();
+        ctx.arc(0, 0, shape.size, 0, Math.PI * 2);
+        ctx.fillStyle = shape.color;
+        ctx.fill();
+      } else if (shape.type === 'triangle') {
+        ctx.beginPath();
+        ctx.moveTo(0, -shape.size);
+        ctx.lineTo(shape.size * 0.866, shape.size * 0.5);
+        ctx.lineTo(-shape.size * 0.866, shape.size * 0.5);
+        ctx.closePath();
+        ctx.fillStyle = shape.color;
+        ctx.fill();
+      }
+      
+      ctx.restore();
+    });
+  }
+
+  renderTitleWithRibbon(ctx, x, y, size) {
+    const title = '数一数';
+    
+    ctx.save();
+    
+    ctx.font = `bold ${size}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    const textMetrics = ctx.measureText(title);
+    const textWidth = textMetrics.width;
+    const ribbonWidth = textWidth + size * 1.2;
+    const ribbonHeight = size * 0.5;
+    
+    const ribbonY = y + size * 0.1;
+    
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    this.roundRect(ctx, x - ribbonWidth / 2, ribbonY - ribbonHeight / 2, ribbonWidth, ribbonHeight, 4);
+    ctx.fill();
+    
+    const tailSize = size * 0.25;
+    ctx.beginPath();
+    ctx.moveTo(x - ribbonWidth / 2, ribbonY - ribbonHeight / 2);
+    ctx.lineTo(x - ribbonWidth / 2 - tailSize, ribbonY - ribbonHeight / 2 - tailSize * 0.5);
+    ctx.lineTo(x - ribbonWidth / 2 - tailSize, ribbonY + ribbonHeight / 2 + tailSize * 0.5);
+    ctx.lineTo(x - ribbonWidth / 2, ribbonY + ribbonHeight / 2);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.moveTo(x + ribbonWidth / 2, ribbonY - ribbonHeight / 2);
+    ctx.lineTo(x + ribbonWidth / 2 + tailSize, ribbonY - ribbonHeight / 2 - tailSize * 0.5);
+    ctx.lineTo(x + ribbonWidth / 2 + tailSize, ribbonY + ribbonHeight / 2 + tailSize * 0.5);
+    ctx.lineTo(x + ribbonWidth / 2, ribbonY + ribbonHeight / 2);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.fillStyle = '#1E1B4B';
+    ctx.font = `bold ${size}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.fillText(title, x, y);
+    
+    ctx.restore();
+  }
+
+  renderFeatureCards(ctx, isMobile) {
+    const features = [
+      { icon: '⚡', text: '快速反应', color: '#FBBF24' },
+      { icon: '🎯', text: '精准点击', color: '#F472B6' },
+      { icon: '🏆', text: '挑战极限', color: '#60A5FA' }
+    ];
+
+    const cardWidth = isMobile ? 85 : 110;
+    const cardHeight = isMobile ? 100 : 130;
+    const cardSpacing = isMobile ? 12 : 20;
+    const totalWidth = cardWidth * 3 + cardSpacing * 2;
+    const startX = (this.width - totalWidth) / 2;
+    const cardY = isMobile ? this.height * 0.32 : this.height * 0.28;
+
+    features.forEach((feature, index) => {
+      const x = startX + index * (cardWidth + cardSpacing);
+      const delay = index * 0.1;
+      const cardAlpha = Math.min(1, Math.max(0, (this.menuAnimation - delay) * 2));
+      
+      ctx.save();
+      ctx.globalAlpha = cardAlpha;
+      
+      const cardGradient = ctx.createLinearGradient(x, cardY, x, cardY + cardHeight);
+      cardGradient.addColorStop(0, 'rgba(255, 255, 255, 0.15)');
+      cardGradient.addColorStop(1, 'rgba(255, 255, 255, 0.05)');
+      ctx.fillStyle = cardGradient;
+      
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.lineWidth = 1.5;
+      
+      this.roundRect(ctx, x, cardY, cardWidth, cardHeight, isMobile ? 12 : 16);
+      ctx.fill();
+      ctx.stroke();
+      
+      const iconSize = isMobile ? 32 : 40;
+      ctx.font = `${iconSize}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = feature.color;
+      ctx.fillText(feature.icon, x + cardWidth / 2, cardY + cardHeight * 0.4);
+      
+      ctx.font = `bold ${isMobile ? 13 : 15}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      ctx.fillText(feature.text, x + cardWidth / 2, cardY + cardHeight * 0.75);
+      
+      ctx.restore();
+    });
   }
 
   renderParticles(ctx) {
@@ -714,9 +891,9 @@ export default class UI {
       const isHovered = this.hoveredButton === button.id;
       const isClicked = this.clickedButton === button.id;
       
-      let fillColor = button.color;
+      let gradientColors = button.gradientColors;
       let shadowBlur = 0;
-      let shadowColor = 'transparent';
+      let shadowColor = button.shadowColor || 'rgba(0, 0, 0, 0.3)';
       let scale = 1;
       let alpha = 1;
       
@@ -724,15 +901,13 @@ export default class UI {
       alpha = Math.min(1, Math.max(0, (this.menuAnimation - delay) * 3));
       
       if (isHovered) {
-        fillColor = button.hoverColor;
-        shadowBlur = 20;
-        shadowColor = 'rgba(0, 0, 0, 0.2)';
-        scale = 1.02;
+        gradientColors = button.hoverGradientColors || gradientColors;
+        shadowBlur = 25;
+        scale = 1.03;
       }
       if (isClicked) {
-        fillColor = this.darkenColor(fillColor, 0.15);
-        scale = 0.98;
-        shadowBlur = 5;
+        scale = 0.97;
+        shadowBlur = 10;
       }
       
       const centerX = button.x + button.width / 2;
@@ -741,6 +916,7 @@ export default class UI {
       const scaledHeight = button.height * scale;
       const scaledX = centerX - scaledWidth / 2;
       const scaledY = centerY - scaledHeight / 2;
+      const borderRadius = isMobile ? 28 : 32;
       
       ctx.save();
       ctx.globalAlpha = alpha;
@@ -748,16 +924,32 @@ export default class UI {
       if (shadowBlur > 0) {
         ctx.shadowColor = shadowColor;
         ctx.shadowBlur = shadowBlur;
-        ctx.shadowOffsetY = 4;
+        ctx.shadowOffsetY = isClicked ? 2 : 6;
       }
       
-      ctx.fillStyle = fillColor;
-      this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, isMobile ? 12 : 16);
+      const gradient = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight);
+      gradient.addColorStop(0, gradientColors[0]);
+      gradient.addColorStop(1, gradientColors[1]);
+      ctx.fillStyle = gradient;
+      
+      this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, borderRadius);
       ctx.fill();
       
       ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
       ctx.shadowOffsetY = 0;
+      
+      const highlightGradient = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.5);
+      highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
+      highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = highlightGradient;
+      this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight * 0.5, borderRadius);
+      ctx.fill();
+      
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.lineWidth = 1.5;
+      this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, borderRadius);
+      ctx.stroke();
 
       ctx.fillStyle = '#FFFFFF';
       ctx.font = `bold ${isMobile ? 20 : 24}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
