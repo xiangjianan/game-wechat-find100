@@ -365,7 +365,9 @@ export default class FindGameMain {
             hoverColor: '#45a049',
             action: () => {
               this.ui.hideModal();
-              this.ui.initCompletion(time);
+              const level = this.gameManager.currentLevel;
+              const count = this.ui.levelConfig[level].count;
+              this.startGame(count, level);
             }
           },
           {

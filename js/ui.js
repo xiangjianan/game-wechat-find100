@@ -130,6 +130,8 @@ export default class UI {
   }
 
   initMenu() {
+    this.showCompletion = false;
+    this.showFailure = false;
     const buttonWidth = 280;
     const buttonHeight = 80;
     const buttonSpacing = 30;
@@ -177,6 +179,8 @@ export default class UI {
   }
 
   initGame() {
+    this.showCompletion = false;
+    this.showFailure = false;
     this.buttons = [];
     console.log('Game buttons initialized:', this.buttons);
   }
@@ -459,12 +463,6 @@ export default class UI {
       return;
     }
 
-    if (this.showCompletion) {
-      this.renderCompletion(ctx);
-      this.renderEffects(ctx);
-      return;
-    }
-
     if (gameState === 'menu') {
       this.renderMenu(ctx);
     } else if (gameState === 'playing' || gameState === 'completed') {
@@ -645,34 +643,6 @@ export default class UI {
     for (const instruction of instructions) {
       ctx.fillText(instruction, this.width / 2, y);
       y += 28;
-    }
-  }
-
-  renderCompletion(ctx) {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    ctx.fillRect(0, 0, this.width, this.height);
-
-    if (this.showFailure) {
-      ctx.fillStyle = '#FF6B6B';
-      ctx.font = 'bold 40px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('😢 游戏失败！', this.width / 2, this.height / 3);
-
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = '20px Arial';
-      ctx.fillText(`完成进度: ${this.failureProgress}/${this.failureTotal}`, this.width / 2, this.height / 2 - 20);
-      ctx.fillText(`用时: ${this.failureTime.toFixed(2)}秒`, this.width / 2, this.height / 2 + 20);
-    } else {
-      ctx.fillStyle = '#4CAF50';
-      ctx.font = 'bold 40px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('🎉 恭喜通关！', this.width / 2, this.height / 3);
-
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = '24px Arial';
-      ctx.fillText(`完成时间: ${this.completionTime.toFixed(2)}秒`, this.width / 2, this.height / 2);
     }
   }
 
