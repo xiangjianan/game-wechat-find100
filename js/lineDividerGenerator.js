@@ -10,6 +10,8 @@ export default class LineDividerGenerator {
     ];
     // 最小面积：确保能容纳数字（约20x20像素）
     this.minArea = 400;
+    // 最小宽度：确保能容纳文字（约30像素）
+    this.minWidth = 30;
   }
 
   generatePolygons(count, difficulty = 'normal') {
@@ -19,6 +21,11 @@ export default class LineDividerGenerator {
       width: this.width,
       height: this.height - 80
     };
+
+    // 根据目标数量动态调整最小面积和最小宽度
+    const totalArea = bounds.width * bounds.height;
+    const dynamicMinArea = Math.max(this.minArea, totalArea / count * 0.3); // 至少是平均面积的30%
+    const dynamicMinWidth = Math.max(this.minWidth, Math.min(bounds.width, bounds.height) / Math.sqrt(count) * 0.4);
 
     // 初始状态：一个矩形
     let polygons = [{
@@ -30,42 +37,94 @@ export default class LineDividerGenerator {
       ]
     }];
 
-    // 生成直线来分割多边形，直到达到目标数量
+    // 使用递归分割方法
     let attempts = 0;
-    const maxAttempts = 1000;
+    const maxAttempts = 5000;
 
     while (polygons.length < count && attempts < maxAttempts) {
-      // 生成一条随机直线
-      const line = this.generateRandomLine(bounds);
-      
-      // 尝试用这条直线分割所有多边形
-      const newPolygons = [];
-      let didSplit = false;
-
-      for (const poly of polygons) {
-        const splitResult = this.splitPolygon(poly, line);
-        
-        if (splitResult.length === 2) {
-          // 成功分割
-          newPolygons.push(...splitResult);
-          didSplit = true;
-        } else {
-          // 未分割，保留原多边形
-          newPolygons.push(poly);
+      // 找到面积最大的多边形
+      let maxArea = 0;
+      let maxIndex = 0;
+      for (let i = 0; i < polygons.length; i++) {
+        const area = this.calculatePolygonArea(polygons[i].vertices);
+        if (area > maxArea) {
+          maxArea = area;
+          maxIndex = i;
         }
       }
 
-      // 检查所有多边形是否满足最小面积要求
-      const allValid = newPolygons.every(p => this.calculatePolygonArea(p.vertices) >= this.minArea);
+      // 如果最大的多边形面积太小，无法继续分割
+      if (maxArea < dynamicMinArea * 2) {
+        break;
+      }
 
-      if (didSplit && allValid) {
-        polygons = newPolygons;
+      // 生成一条随机直线
+      const line = this.generateRandomLine(bounds);
+      
+      // 尝试分割最大的多边形
+      const polyToSplit = polygons[maxIndex];
+      const splitResult = this.splitPolygon(polyToSplit, line);
+      
+      if (splitResult.length === 2) {
+        // 检查分割后的两个多边形是否满足要求
+        const area1 = this.calculatePolygonArea(splitResult[0].vertices);
+        const area2 = this.calculatePolygonArea(splitResult[1].vertices);
+        const width1 = this.calculateMinWidth(splitResult[0].vertices);
+        const width2 = this.calculateMinWidth(splitResult[1].vertices);
+
+        if (area1 >= dynamicMinArea && area2 >= dynamicMinArea &&
+            width1 >= dynamicMinWidth && width2 >= dynamicMinWidth) {
+          // 成功分割，替换原多边形
+          polygons.splice(maxIndex, 1, ...splitResult);
+        }
       }
 
       attempts++;
     }
 
-    // 如果生成的多边形数量不足，移除一些小面积的多边形
+    // 如果生成的多边形数量不足，尝试降低要求继续分割
+    if (polygons.length < count) {
+      const relaxedMinArea = dynamicMinArea * 0.6;
+      const relaxedMinWidth = dynamicMinWidth * 0.7;
+      
+      attempts = 0;
+      while (polygons.length < count && attempts < maxAttempts) {
+        // 找到面积最大的多边形
+        let maxArea = 0;
+        let maxIndex = 0;
+        for (let i = 0; i < polygons.length; i++) {
+          const area = this.calculatePolygonArea(polygons[i].vertices);
+          if (area > maxArea) {
+            maxArea = area;
+            maxIndex = i;
+          }
+        }
+
+        if (maxArea < relaxedMinArea * 2) {
+          break;
+        }
+
+        const line = this.generateRandomLine(bounds);
+        const polyToSplit = polygons[maxIndex];
+        const splitResult = this.splitPolygon(polyToSplit, line);
+        
+        if (splitResult.length === 2) {
+          const area1 = this.calculatePolygonArea(splitResult[0].vertices);
+          const area2 = this.calculatePolygonArea(splitResult[1].vertices);
+          const width1 = this.calculateMinWidth(splitResult[0].vertices);
+          const width2 = this.calculateMinWidth(splitResult[1].vertices);
+
+          if (area1 >= relaxedMinArea && area2 >= relaxedMinArea &&
+              width1 >= relaxedMinWidth && width2 >= relaxedMinWidth) {
+            polygons.splice(maxIndex, 1, ...splitResult);
+          }
+        }
+
+        attempts++;
+      }
+    }
+
+    // 如果生成的多边形数量超过目标，移除一些小面积的多边形
     if (polygons.length > count) {
       polygons.sort((a, b) => this.calculatePolygonArea(b.vertices) - this.calculatePolygonArea(a.vertices));
       polygons = polygons.slice(0, count);
@@ -88,46 +147,38 @@ export default class LineDividerGenerator {
     return result;
   }
 
-  // 生成一条随机直线（水平、垂直或斜线）
+  // 生成一条随机直线（具有随机旋转角度）
   generateRandomLine(bounds) {
-    const type = Math.floor(Math.random() * 3); // 0: 水平, 1: 垂直, 2: 斜线
-
-    if (type === 0) {
-      // 水平线
-      const y = bounds.y + Math.random() * bounds.height;
-      return {
-        type: 'horizontal',
-        y: y,
-        x1: bounds.x,
-        x2: bounds.x + bounds.width
-      };
-    } else if (type === 1) {
-      // 垂直线
-      const x = bounds.x + Math.random() * bounds.width;
-      return {
-        type: 'vertical',
-        x: x,
-        y1: bounds.y,
-        y2: bounds.y + bounds.height
-      };
-    } else {
-      // 斜线
-      const angle = Math.random() * Math.PI; // 0 到 180 度
-      const centerX = bounds.x + bounds.width / 2;
-      const centerY = bounds.y + bounds.height / 2;
-      
-      // 计算斜线与边界的交点
-      const dx = Math.cos(angle) * Math.max(bounds.width, bounds.height);
-      const dy = Math.sin(angle) * Math.max(bounds.width, bounds.height);
-      
-      return {
-        type: 'diagonal',
-        x1: centerX - dx,
-        y1: centerY - dy,
-        x2: centerX + dx,
-        y2: centerY + dy
-      };
-    }
+    // 随机角度：0 到 360 度（0 到 2π 弧度）
+    const angle = Math.random() * Math.PI * 2;
+    
+    // 计算直线的方向向量
+    const dx = Math.cos(angle);
+    const dy = Math.sin(angle);
+    
+    // 随机选择直线的位置：在边界范围内随机选择一个点
+    // 使用参数 t 来确定直线在垂直于方向向量方向上的位置
+    const t = Math.random() * (bounds.width + bounds.height);
+    
+    // 计算直线上的一个参考点
+    // 使用垂直于方向向量的向量来确定位置
+    const perpX = -dy;
+    const perpY = dx;
+    
+    // 计算直线的基准点（在边界范围内）
+    const baseX = bounds.x + bounds.width / 2 + perpX * (t - (bounds.width + bounds.height) / 2);
+    const baseY = bounds.y + bounds.height / 2 + perpY * (t - (bounds.width + bounds.height) / 2);
+    
+    // 计算直线与边界的交点，确保直线足够长
+    const length = Math.max(bounds.width, bounds.height) * 2;
+    
+    return {
+      type: 'diagonal',
+      x1: baseX - dx * length / 2,
+      y1: baseY - dy * length / 2,
+      x2: baseX + dx * length / 2,
+      y2: baseY + dy * length / 2
+    };
   }
 
   // 用直线分割多边形
@@ -176,52 +227,26 @@ export default class LineDividerGenerator {
 
   // 获取点相对于直线的位置（正数在上方，负数在下方，0在直线上）
   getPointSide(point, line) {
-    if (line.type === 'horizontal') {
-      return point.y - line.y;
-    } else if (line.type === 'vertical') {
-      return point.x - line.x;
-    } else {
-      // 斜线：使用叉积计算
-      const v1 = { x: line.x2 - line.x1, y: line.y2 - line.y1 };
-      const v2 = { x: point.x - line.x1, y: point.y - line.y1 };
-      return v1.x * v2.y - v1.y * v2.x;
-    }
+    // 使用叉积计算点相对于直线的位置
+    const v1 = { x: line.x2 - line.x1, y: line.y2 - line.y1 };
+    const v2 = { x: point.x - line.x1, y: point.y - line.y1 };
+    return v1.x * v2.y - v1.y * v2.x;
   }
 
   // 计算线段与直线的交点
   getLineIntersection(p1, p2, line) {
-    if (line.type === 'horizontal') {
-      // 水平线与线段的交点
-      const t = (line.y - p1.y) / (p2.y - p1.y);
-      if (t >= 0 && t <= 1) {
-        return {
-          x: p1.x + t * (p2.x - p1.x),
-          y: line.y
-        };
-      }
-    } else if (line.type === 'vertical') {
-      // 垂直线与线段的交点
-      const t = (line.x - p1.x) / (p2.x - p1.x);
-      if (t >= 0 && t <= 1) {
-        return {
-          x: line.x,
-          y: p1.y + t * (p2.y - p1.y)
-        };
-      }
-    } else {
-      // 斜线与线段的交点
-      const intersection = this.getLineLineIntersection(
-        p1.x, p1.y, p2.x, p2.y,
-        line.x1, line.y1, line.x2, line.y2
-      );
-      if (intersection) {
-        // 检查交点是否在线段上
-        const t1 = p2.x !== p1.x
-          ? (intersection.x - p1.x) / (p2.x - p1.x)
-          : (intersection.y - p1.y) / (p2.y - p1.y);
-        if (t1 >= 0 && t1 <= 1) {
-          return intersection;
-        }
+    // 斜线与线段的交点
+    const intersection = this.getLineLineIntersection(
+      p1.x, p1.y, p2.x, p2.y,
+      line.x1, line.y1, line.x2, line.y2
+    );
+    if (intersection) {
+      // 检查交点是否在线段上
+      const t1 = p2.x !== p1.x
+        ? (intersection.x - p1.x) / (p2.x - p1.x)
+        : (intersection.y - p1.y) / (p2.y - p1.y);
+      if (t1 >= 0 && t1 <= 1) {
+        return intersection;
       }
     }
     return null;
@@ -251,6 +276,40 @@ export default class LineDividerGenerator {
       area -= vertices[j].x * vertices[i].y;
     }
     return Math.abs(area / 2);
+  }
+
+  // 计算多边形的最小宽度（确保能容纳文字）
+  calculateMinWidth(vertices) {
+    let minWidth = Infinity;
+    const n = vertices.length;
+
+    // 计算所有顶点之间的最小距离
+    for (let i = 0; i < n; i++) {
+      for (let j = i + 1; j < n; j++) {
+        const dx = vertices[i].x - vertices[j].x;
+        const dy = vertices[i].y - vertices[j].y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < minWidth) {
+          minWidth = distance;
+        }
+      }
+    }
+
+    // 计算多边形的最小外接矩形宽度
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
+    for (const v of vertices) {
+      if (v.x < minX) minX = v.x;
+      if (v.x > maxX) maxX = v.x;
+      if (v.y < minY) minY = v.y;
+      if (v.y > maxY) maxY = v.y;
+    }
+    const rectWidth = maxX - minX;
+    const rectHeight = maxY - minY;
+    const minRectDim = Math.min(rectWidth, rectHeight);
+
+    // 返回顶点间最小距离和最小矩形尺寸中的较小值
+    return Math.min(minWidth, minRectDim);
   }
 
   // 计算多边形中心
