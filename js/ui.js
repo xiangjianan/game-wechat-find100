@@ -145,40 +145,13 @@ export default class UI {
     const buttonHeight = isMobile ? 56 : 64;
     const buttonSpacing = isMobile ? 16 : 20;
     const centerX = this.width / 2;
-    const startY = this.height * 0.55;
+    const startY = this.height * 0.45;
     
-    // 模式选择按钮样式
-    const modeButtonWidth = isMobile ? 160 : 200;
-    const modeButtonHeight = isMobile ? 44 : 52;
-    const modeButtonSpacing = isMobile ? 12 : 16;
-    const modeButtonsStartY = this.height * 0.35;
+    // 模式切换按钮样式 - 与开始游戏按钮保持一致
+    const modeButtonWidth = buttonWidth;
+    const modeButtonHeight = buttonHeight;
     
     this.buttons = [
-      // 模式选择按钮组
-      {
-        id: 'modeTimed',
-        text: '⏱️ 限时模式',
-        x: centerX - modeButtonWidth - modeButtonSpacing / 2,
-        y: modeButtonsStartY,
-        width: modeButtonWidth,
-        height: modeButtonHeight,
-        gradientColors: this.gameMode === 'timed' ? ['#F97316', '#EA580C'] : ['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.1)'],
-        hoverGradientColors: ['#FB923C', '#F87171'],
-        shadowColor: this.gameMode === 'timed' ? 'rgba(249, 115, 22, 0.5)' : 'rgba(255, 255, 255, 0.1)',
-        action: () => this.onSelectMode('timed')
-      },
-      {
-        id: 'modeUntimed',
-        text: '♾️ 自由模式',
-        x: centerX + modeButtonSpacing / 2,
-        y: modeButtonsStartY,
-        width: modeButtonWidth,
-        height: modeButtonHeight,
-        gradientColors: this.gameMode === 'untimed' ? ['#10B981', '#059669'] : ['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.1)'],
-        hoverGradientColors: ['#34D399', '#10B981'],
-        shadowColor: this.gameMode === 'untimed' ? 'rgba(16, 185, 129, 0.5)' : 'rgba(255, 255, 255, 0.1)',
-        action: () => this.onSelectMode('untimed')
-      },
       // 游戏主按钮
       {
         id: 'start',
@@ -192,11 +165,24 @@ export default class UI {
         shadowColor: 'rgba(249, 115, 22, 0.5)',
         action: () => this.onStartGame()
       },
+      // 模式切换按钮 - 位于开始游戏按钮正下方
+      {
+        id: 'toggleMode',
+        text: this.gameMode === 'timed' ? '⏱️ 限时模式' : '♾️ 自由模式',
+        x: centerX - modeButtonWidth / 2,
+        y: startY + buttonHeight + buttonSpacing,
+        width: modeButtonWidth,
+        height: modeButtonHeight,
+        gradientColors: this.gameMode === 'timed' ? ['#F97316', '#EA580C'] : ['#10B981', '#059669'],
+        hoverGradientColors: this.gameMode === 'timed' ? ['#FB923C', '#F87171'] : ['#34D399', '#10B981'],
+        shadowColor: this.gameMode === 'timed' ? 'rgba(249, 115, 22, 0.5)' : 'rgba(16, 185, 129, 0.5)',
+        action: () => this.onToggleMode()
+      },
       {
         id: 'instructions',
         text: '游戏规则',
         x: centerX - buttonWidth / 2,
-        y: startY + buttonHeight + buttonSpacing,
+        y: startY + (buttonHeight + buttonSpacing) * 2,
         width: buttonWidth,
         height: buttonHeight,
         gradientColors: ['#0EA5E9', '#3B82F6'],
@@ -208,7 +194,7 @@ export default class UI {
         id: 'rank',
         text: '排行榜',
         x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 2,
+        y: startY + (buttonHeight + buttonSpacing) * 3,
         width: buttonWidth,
         height: buttonHeight,
         gradientColors: ['#A855F7', '#EC4899'],
@@ -403,6 +389,12 @@ export default class UI {
     if (this.onModeChange) {
       this.onModeChange(mode);
     }
+  }
+
+  onToggleMode() {
+    // 在两种模式之间切换
+    const newMode = this.gameMode === 'timed' ? 'untimed' : 'timed';
+    this.onSelectMode(newMode);
   }
 
   setGameMode(mode) {
@@ -1413,10 +1405,8 @@ export default class UI {
       instructionsHover: ['#38BDF8', '#60A5FA'],
       rank: ['#A855F7', '#EC4899'],
       rankHover: ['#C084FC', '#F472B6'],
-      modeTimed: this.gameMode === 'timed' ? ['#F97316', '#EA580C'] : ['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.1)'],
-      modeTimedHover: ['#FB923C', '#F87171'],
-      modeUntimed: this.gameMode === 'untimed' ? ['#10B981', '#059669'] : ['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.1)'],
-      modeUntimedHover: ['#34D399', '#10B981']
+      toggleMode: this.gameMode === 'timed' ? ['#F97316', '#EA580C'] : ['#10B981', '#059669'],
+      toggleModeHover: this.gameMode === 'timed' ? ['#FB923C', '#F87171'] : ['#34D399', '#10B981']
     };
     
     for (let i = 0; i < this.buttons.length; i++) {
@@ -1446,8 +1436,7 @@ export default class UI {
         case 'start': btnColors = isHovered ? colors.startHover : colors.start; break;
         case 'instructions': btnColors = isHovered ? colors.instructionsHover : colors.instructions; break;
         case 'rank': btnColors = isHovered ? colors.rankHover : colors.rank; break;
-        case 'modeTimed': btnColors = isHovered ? colors.modeTimedHover : colors.modeTimed; break;
-        case 'modeUntimed': btnColors = isHovered ? colors.modeUntimedHover : colors.modeUntimed; break;
+        case 'toggleMode': btnColors = isHovered ? colors.toggleModeHover : colors.toggleMode; break;
         default: btnColors = colors.start;
       }
       
