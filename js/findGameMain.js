@@ -358,6 +358,10 @@ export default class FindGameMain {
       this.gameManager.render(ctx);
     }
 
+    if (this.rankManager.isRankOpen()) {
+      this.rankManager.render(ctx, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    }
+
     this.ui.render(
       ctx,
       this.gameManager.gameState,
@@ -366,10 +370,6 @@ export default class FindGameMain {
       this.gameManager.getTimeLeft(),
       deltaTime
     );
-
-    if (this.rankManager.isRankOpen()) {
-      this.rankManager.render(ctx, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    }
   }
 
   loop() {

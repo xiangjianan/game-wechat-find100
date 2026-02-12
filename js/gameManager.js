@@ -137,7 +137,11 @@ export default class GameManager {
 
   render(ctx) {
     for (const polygon of this.polygons) {
-      polygon.render(ctx);
+      polygon.renderShape(ctx);
+    }
+    
+    for (const polygon of this.polygons) {
+      polygon.renderText(ctx);
     }
   }
 

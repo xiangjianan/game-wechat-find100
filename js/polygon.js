@@ -105,7 +105,16 @@ export default class Polygon {
     }
   }
 
-  render(ctx) {
+  getTransform() {
+    const center = this.getCenter();
+    return {
+      x: center.x + this.shakeOffset.x,
+      y: center.y + this.shakeOffset.y,
+      scale: this.scale
+    };
+  }
+
+  renderShape(ctx) {
     const scheme = getColorScheme();
     const stateColors = Polygon.STATE_COLORS;
     
@@ -146,6 +155,20 @@ export default class Polygon {
     ctx.lineJoin = 'miter';
     ctx.stroke();
 
+    ctx.restore();
+  }
+
+  renderText(ctx) {
+    const scheme = getColorScheme();
+    const stateColors = Polygon.STATE_COLORS;
+    
+    ctx.save();
+    
+    const center = this.getCenter();
+    ctx.translate(center.x + this.shakeOffset.x, center.y + this.shakeOffset.y);
+    ctx.scale(this.scale, this.scale);
+    ctx.translate(-center.x, -center.y);
+
     const baseFontSize = Math.max(16, Math.min(28, Math.sqrt(this.getArea()) / 3.2));
     const digitCount = this.number.toString().length;
     const digitMultiplier = digitCount === 1 ? 1.0 : digitCount === 2 ? 0.8 : 0.65;
@@ -163,5 +186,10 @@ export default class Polygon {
     ctx.fillText(this.number.toString(), center.x, center.y);
 
     ctx.restore();
+  }
+
+  render(ctx) {
+    this.renderShape(ctx);
+    this.renderText(ctx);
   }
 }
