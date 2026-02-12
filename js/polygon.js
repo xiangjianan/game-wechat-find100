@@ -182,7 +182,7 @@ export default class Polygon {
     
     if (!this.isClicked) {
       ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-      const shadowOffset = 2;
+      const shadowOffset = 1;
       ctx.fillText(text, center.x - shadowOffset, center.y - shadowOffset);
       ctx.fillText(text, center.x + shadowOffset, center.y - shadowOffset);
       ctx.fillText(text, center.x - shadowOffset, center.y + shadowOffset);
