@@ -1316,6 +1316,9 @@ export default class UI {
     if (!this.instructionsData) {
       this.instructionsData = instructions;
     }
+    
+    // 渲染规则内容
+    this.renderInstructionsContent(ctx, instructions, modalX, modalY, modalHeight, isMobile);
   }
 
   getInstructionsData() {
@@ -1332,7 +1335,9 @@ export default class UI {
         { icon: '✨', text: '享受轻松的游戏体验', color: '#F87171' }
       ];
     }
+  }
 
+  renderInstructionsContent(ctx, instructions, modalX, modalY, modalHeight, isMobile) {
     const contentStartY = modalY + (isMobile ? 110 : 130);
     const lineHeight = isMobile ? 70 : 80;
 
