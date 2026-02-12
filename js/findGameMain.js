@@ -3,6 +3,7 @@ import GameManager from './gameManager';
 import UI from './ui';
 import SoundManager from './soundManager';
 import RankManager from './rankManager';
+import { getColorScheme } from './constants/colors';
 
 let canvas;
 let ctx;
@@ -319,26 +320,31 @@ export default class FindGameMain {
   }
 
   renderGameBackground(ctx) {
-    ctx.fillStyle = '#F1F5F9';
+    const scheme = getColorScheme();
+    
+    ctx.fillStyle = scheme.background;
     ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.06)';
+    ctx.strokeStyle = scheme.border;
     ctx.lineWidth = 1;
-    const gridSize = 40;
+    ctx.globalAlpha = 0.03;
+    const gridSize = 50;
     
-    for (let x = 0; x < SCREEN_WIDTH; x += gridSize * 2) {
+    for (let x = 0; x < SCREEN_WIDTH; x += gridSize) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
       ctx.lineTo(x, SCREEN_HEIGHT);
       ctx.stroke();
     }
     
-    for (let y = 0; y < SCREEN_HEIGHT; y += gridSize * 2) {
+    for (let y = 0; y < SCREEN_HEIGHT; y += gridSize) {
       ctx.beginPath();
       ctx.moveTo(0, y);
       ctx.lineTo(SCREEN_WIDTH, y);
       ctx.stroke();
     }
+    
+    ctx.globalAlpha = 1;
   }
 
   render(deltaTime = 0.016) {

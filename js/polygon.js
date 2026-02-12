@@ -1,8 +1,22 @@
-import { COLORS } from './constants/colors';
+import { COLORS, getColorScheme, BRUTALISM_STYLES } from './constants/colors';
 
 export default class Polygon {
-  static NUMBER_COLORS = COLORS.NUMBER_COLORS;
-  static STATE_COLORS = COLORS.STATE_COLORS;
+  static get NUMBER_COLORS() {
+    return getColorScheme().numberColors;
+  }
+  
+  static get STATE_COLORS() {
+    const scheme = getColorScheme();
+    return {
+      default: scheme.cardBg,
+      clicked: scheme.buttonSuccess,
+      highlighted: scheme.accent,
+      error: scheme.danger,
+      border: scheme.border,
+      textClicked: scheme.textLight,
+      textDefault: scheme.text
+    };
+  }
 
   constructor(vertices, number, color) {
     this.vertices = vertices;
@@ -56,7 +70,7 @@ export default class Polygon {
 
   highlight() {
     this.isHighlighted = true;
-    this.targetScale = 1.1;
+    this.targetScale = 1.08;
   }
 
   resetHighlight() {
@@ -92,12 +106,25 @@ export default class Polygon {
   }
 
   render(ctx) {
+    const scheme = getColorScheme();
+    const stateColors = Polygon.STATE_COLORS;
+    
     ctx.save();
     
     const center = this.getCenter();
     ctx.translate(center.x + this.shakeOffset.x, center.y + this.shakeOffset.y);
     ctx.scale(this.scale, this.scale);
     ctx.translate(-center.x, -center.y);
+
+    const shadowOffset = 5;
+    ctx.beginPath();
+    ctx.moveTo(this.vertices[0].x + shadowOffset, this.vertices[0].y + shadowOffset);
+    for (let i = 1; i < this.vertices.length; i++) {
+      ctx.lineTo(this.vertices[i].x + shadowOffset, this.vertices[i].y + shadowOffset);
+    }
+    ctx.closePath();
+    ctx.fillStyle = scheme.shadow;
+    ctx.fill();
 
     ctx.beginPath();
     ctx.moveTo(this.vertices[0].x, this.vertices[0].y);
@@ -106,11 +133,16 @@ export default class Polygon {
     }
     ctx.closePath();
 
+    let fillColor;
     if (this.isClicked) {
-      ctx.fillStyle = Polygon.STATE_COLORS.clicked;
+      fillColor = stateColors.clicked;
+    } else if (this.isHighlighted) {
+      fillColor = stateColors.highlighted;
     } else {
-      ctx.fillStyle = this.isHighlighted ? Polygon.STATE_COLORS.highlighted : Polygon.STATE_COLORS.default;
+      fillColor = scheme.cardBg;
     }
+    
+    ctx.fillStyle = fillColor;
     ctx.fill();
 
     if (this.isError) {
@@ -118,23 +150,23 @@ export default class Polygon {
       ctx.fill();
     }
 
-    ctx.strokeStyle = Polygon.STATE_COLORS.border;
-    ctx.lineWidth = 1.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+    ctx.strokeStyle = scheme.border;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'square';
+    ctx.lineJoin = 'miter';
     ctx.stroke();
 
-    const baseFontSize = Math.max(14, Math.min(26, Math.sqrt(this.getArea()) / 3.5));
+    const baseFontSize = Math.max(16, Math.min(28, Math.sqrt(this.getArea()) / 3.2));
     const digitCount = this.number.toString().length;
     const digitMultiplier = digitCount === 1 ? 1.0 : digitCount === 2 ? 0.85 : 0.7;
     const fontSize = baseFontSize * digitMultiplier;
-    ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.font = `bold ${fontSize}px "Arial Black", Arial, sans-serif`;
     
     if (this.isClicked) {
-      ctx.fillStyle = Polygon.STATE_COLORS.textClicked;
+      ctx.fillStyle = stateColors.textClicked;
     } else {
-      const colorIndex = (this.number - 1) % Polygon.NUMBER_COLORS.length;
-      ctx.fillStyle = Polygon.NUMBER_COLORS[colorIndex];
+      const colorIndex = (this.number - 1) % scheme.numberColors.length;
+      ctx.fillStyle = scheme.numberColors[colorIndex];
     }
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
