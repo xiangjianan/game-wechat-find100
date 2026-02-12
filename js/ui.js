@@ -168,7 +168,7 @@ export default class UI {
       // 模式切换按钮 - 位于开始游戏按钮正下方
       {
         id: 'toggleMode',
-        text: this.gameMode === 'timed' ? '⏱️ 限时模式' : '♾️ 自由模式',
+        text: this.gameMode === 'timed' ? '限时模式' : '自由模式',
         x: centerX - modeButtonWidth / 2,
         y: startY + buttonHeight + buttonSpacing,
         width: modeButtonWidth,
@@ -1325,13 +1325,13 @@ export default class UI {
     if (this.gameMode === 'timed') {
       return [
         { icon: '🔢', text: '按顺序点击数字，直到100为止', color: '#60A5FA' },
-        { icon: '⏱️', text: '点对加时5秒，点错减5秒', color: '#34D399' },
-        { icon: '⚠️', text: '倒计时归零则通关失败', color: '#F87171' }
+        { icon: '⏰', text: '点对加时5秒，点错减5秒', color: '#34D399' },
+        { icon: '❌', text: '倒计时归零则通关失败', color: '#F87171' }
       ];
     } else {
       return [
         { icon: '🔢', text: '按顺序点击数字，直到100为止', color: '#60A5FA' },
-        { icon: '♾️', text: '无时间限制，自由探索', color: '#34D399' },
+        { icon: '🔁', text: '无时间限制，自由探索', color: '#34D399' },
         { icon: '✨', text: '享受轻松的游戏体验', color: '#F87171' }
       ];
     }
