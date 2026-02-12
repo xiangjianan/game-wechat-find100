@@ -955,7 +955,7 @@ export default class UI {
   }
 
   renderTitleWithRibbon(ctx, x, y, size) {
-    const title = '数一数';
+    const title = '数一数噻';
     
     ctx.save();
     
