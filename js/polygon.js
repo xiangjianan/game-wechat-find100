@@ -175,15 +175,27 @@ export default class Polygon {
     const fontSize = baseFontSize * digitMultiplier;
     ctx.font = `bold ${fontSize}px Arial, sans-serif`;
     
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    const text = this.number.toString();
+    
+    if (!this.isClicked) {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      const shadowOffset = 2;
+      ctx.fillText(text, center.x - shadowOffset, center.y - shadowOffset);
+      ctx.fillText(text, center.x + shadowOffset, center.y - shadowOffset);
+      ctx.fillText(text, center.x - shadowOffset, center.y + shadowOffset);
+      ctx.fillText(text, center.x + shadowOffset, center.y + shadowOffset);
+    }
+    
     if (this.isClicked) {
       ctx.fillStyle = stateColors.textClicked;
     } else {
       const colorIndex = (this.number - 1) % scheme.numberColors.length;
       ctx.fillStyle = scheme.numberColors[colorIndex];
     }
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(this.number.toString(), center.x, center.y);
+    ctx.fillText(text, center.x, center.y);
 
     ctx.restore();
   }
