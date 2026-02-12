@@ -1,4 +1,4 @@
-import { COLORS, COLOR_SCHEMES, setColorScheme, getColorScheme, getAllColorSchemes, BRUTALISM_STYLES } from './constants/colors';
+import { COLORS, getColorScheme, BRUTALISM_STYLES } from './constants/colors';
 
 export default class UI {
   constructor(width, height) {
@@ -48,9 +48,6 @@ export default class UI {
     this.showModeSelector = false;
     this.instructionsData = null;
     this.headerButtons = null;
-    
-    this.currentColorScheme = getColorScheme();
-    this.showColorSchemeSelector = false;
   }
 
   getScheme() {
@@ -249,21 +246,10 @@ export default class UI {
         action: () => this.onToggleMode()
       },
       {
-        id: 'colorScheme',
-        text: `主题: ${this.getScheme().name}`,
-        x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 2,
-        width: buttonWidth,
-        height: buttonHeight,
-        color: this.getScheme().buttonSecondary,
-        hoverColor: this.lightenColor(this.getScheme().buttonSecondary, 0.15),
-        action: () => this.onCycleColorScheme()
-      },
-      {
         id: 'instructions',
         text: '游戏规则',
         x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 3,
+        y: startY + (buttonHeight + buttonSpacing) * 2,
         width: buttonWidth,
         height: buttonHeight,
         color: this.getScheme().accent,
@@ -274,7 +260,7 @@ export default class UI {
         id: 'rank',
         text: '排行榜',
         x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 4,
+        y: startY + (buttonHeight + buttonSpacing) * 3,
         width: buttonWidth,
         height: buttonHeight,
         color: this.getScheme().danger,
@@ -290,18 +276,6 @@ export default class UI {
     const g = Math.min(255, parseInt(hex.substr(2, 2), 16) + Math.floor(255 * amount));
     const b = Math.min(255, parseInt(hex.substr(4, 2), 16) + Math.floor(255 * amount));
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-  }
-
-  onCycleColorScheme() {
-    const schemes = getAllColorSchemes();
-    const currentIndex = schemes.findIndex(s => s.id === this.getScheme().id);
-    const nextIndex = (currentIndex + 1) % schemes.length;
-    setColorScheme(schemes[nextIndex].id);
-    this.currentColorScheme = schemes[nextIndex];
-    this.initMenu();
-    if (this.onColorSchemeChange) {
-      this.onColorSchemeChange(schemes[nextIndex].id);
-    }
   }
 
   initGame() {
