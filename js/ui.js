@@ -861,7 +861,7 @@ export default class UI {
     ctx.fillStyle = scheme.text;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('找回消失的专注，从找到第一个1开始...', this.width / 2, sloganY);
+    ctx.fillText('找回消失的专注，从找到第一个 1 开始...', this.width / 2, sloganY);
     
     ctx.restore();
   }
@@ -1123,7 +1123,7 @@ export default class UI {
     const scheme = this.getScheme();
     return {
       common: {
-        text: '按顺序点击数字，直到100为止'
+        text: '从数字 1 开始，按顺序点击屏幕上的所有图形'
       },
       timed: {
         title: '限时模式',
