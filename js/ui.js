@@ -822,20 +822,21 @@ export default class UI {
     
     this.renderBrutalismPattern(ctx);
 
-    const titleY = isMobile ? this.height * 0.16 : this.height * 0.13;
-    const titleSize = isMobile ? 52 : 68;
-    const subtitleSize = isMobile ? 14 : 16;
+    const titleY = isMobile ? this.height * 0.18 : this.height * 0.15;
+    const titleSize = isMobile ? 64 : 84;
+    const subtitleSize = isMobile ? 15 : 18;
 
     ctx.save();
     ctx.globalAlpha = Math.min(1, this.menuAnimation * 1.5);
 
     this.renderBrutalismTitle(ctx, this.width / 2, titleY, titleSize);
 
+    const sloganY = titleY + (isMobile ? 85 : 105);
     ctx.font = `bold ${subtitleSize}px Arial, sans-serif`;
     ctx.fillStyle = scheme.text;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('找回消失的专注，从找到第一个1开始...', this.width / 2, titleY + titleSize * 0.85);
+    ctx.fillText('找回消失的专注，从找到第一个1开始...', this.width / 2, sloganY);
     
     ctx.restore();
   }
@@ -876,16 +877,24 @@ export default class UI {
     ctx.textBaseline = 'middle';
     
     const textWidth = ctx.measureText(title).width;
-    const padding = 20;
-    const boxWidth = textWidth + padding * 2;
-    const boxHeight = size * 1.3;
+    const paddingX = 40;
+    const paddingY = 25;
+    const boxWidth = textWidth + paddingX * 2;
+    const boxHeight = size + paddingY * 2;
     const boxX = x - boxWidth / 2;
     const boxY = y - boxHeight / 2;
     
-    this.drawBrutalismRect(ctx, boxX, boxY, boxWidth, boxHeight, scheme.buttonPrimary, {
-      shadowOffset: 8,
-      borderWidth: 5
-    });
+    ctx.fillStyle = scheme.shadow;
+    ctx.fillRect(boxX + 12, boxY + 12, boxWidth, boxHeight);
+    
+    ctx.fillStyle = scheme.buttonPrimary;
+    ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+    
+    ctx.fillStyle = scheme.border;
+    ctx.fillRect(boxX, boxY, boxWidth, 6);
+    ctx.fillRect(boxX, boxY + boxHeight - 6, boxWidth, 6);
+    ctx.fillRect(boxX, boxY, 6, boxHeight);
+    ctx.fillRect(boxX + boxWidth - 6, boxY, 6, boxHeight);
     
     ctx.fillStyle = scheme.textLight;
     ctx.fillText(title, x, y);
