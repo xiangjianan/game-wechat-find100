@@ -836,8 +836,6 @@ export default class UI {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('找回消失的专注，从找到第一个1开始...', this.width / 2, titleY + titleSize * 0.85);
-
-    this.renderFeatureCards(ctx, isMobile);
     
     ctx.restore();
   }
@@ -893,54 +891,6 @@ export default class UI {
     ctx.fillText(title, x, y);
     
     ctx.restore();
-  }
-
-  renderFeatureCards(ctx, isMobile) {
-    const scheme = this.getScheme();
-    const features = [
-      { icon: '⚡', text: '快速反应' },
-      { icon: '🎯', text: '精准点击' },
-      { icon: '🏆', text: '挑战极限' }
-    ];
-
-    const cardWidth = isMobile ? 90 : 120;
-    const cardHeight = isMobile ? 90 : 110;
-    const cardSpacing = isMobile ? 14 : 20;
-    const totalWidth = cardWidth * 3 + cardSpacing * 2;
-    const startX = (this.width - totalWidth) / 2;
-    const cardY = isMobile ? this.height * 0.30 : this.height * 0.26;
-
-    const iconSize = isMobile ? 28 : 36;
-    const textSize = isMobile ? 13 : 15;
-
-    features.forEach((feature, index) => {
-      const x = startX + index * (cardWidth + cardSpacing);
-      const delay = index * 0.1;
-      const cardAlpha = Math.min(1, Math.max(0, (this.menuAnimation - delay) * 2));
-      
-      if (cardAlpha <= 0) return;
-      
-      ctx.save();
-      ctx.globalAlpha = cardAlpha;
-      
-      const colors = [scheme.buttonPrimary, scheme.buttonSecondary, scheme.buttonSuccess];
-      this.drawBrutalismRect(ctx, x, cardY, cardWidth, cardHeight, colors[index], {
-        shadowOffset: 6,
-        borderWidth: 4
-      });
-      
-      ctx.font = `${iconSize}px Arial`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = scheme.textLight;
-      ctx.fillText(feature.icon, x + cardWidth / 2, cardY + cardHeight * 0.38);
-      
-      ctx.font = `bold ${textSize}px Arial, sans-serif`;
-      ctx.fillStyle = scheme.textLight;
-      ctx.fillText(feature.text, x + cardWidth / 2, cardY + cardHeight * 0.72);
-      
-      ctx.restore();
-    });
   }
 
   renderGameUI(ctx, gameState, currentNumber, totalNumbers, timeLeft) {
