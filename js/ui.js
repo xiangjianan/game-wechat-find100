@@ -42,9 +42,10 @@ export default class UI {
     this.menuTargetAnimation = 1;
     this.particleOffset = 0;
     
-    // 游戏模式: 'timed' (限时模式) 或 'untimed' (无计时器模式)
     this.gameMode = 'timed';
     this.showModeSelector = false;
+    this.instructionsData = null;
+    this.headerButtons = null;
   }
 
   roundRect(ctx, x, y, width, height, radius) {
@@ -79,7 +80,6 @@ export default class UI {
   }
 
   updateEffects(deltaTime) {
-    // 更新浮动文字
     for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
       const ft = this.floatingTexts[i];
       ft.life -= deltaTime * 1.5;
@@ -91,7 +91,6 @@ export default class UI {
       }
     }
 
-    // 更新屏幕红闪
     if (this.flashAlpha > 0) {
       this.flashAlpha -= deltaTime * 3;
       if (this.flashAlpha < 0) {
@@ -99,7 +98,6 @@ export default class UI {
       }
     }
 
-    // 更新震动
     if (this.shakeTime > 0) {
       this.shakeOffset.x = (Math.random() - 0.5) * 20;
       this.shakeOffset.y = (Math.random() - 0.5) * 20;
@@ -112,13 +110,11 @@ export default class UI {
   }
 
   renderEffects(ctx) {
-    // 渲染屏幕红闪
     if (this.flashAlpha > 0) {
       ctx.fillStyle = `rgba(255, 0, 0, ${this.flashAlpha})`;
       ctx.fillRect(0, 0, this.width, this.height);
     }
 
-    // 渲染浮动文字
     for (const ft of this.floatingTexts) {
       ctx.save();
       ctx.globalAlpha = ft.alpha;
@@ -147,12 +143,10 @@ export default class UI {
     const centerX = this.width / 2;
     const startY = this.height * 0.45;
     
-    // 模式切换按钮样式 - 与开始游戏按钮保持一致
     const modeButtonWidth = buttonWidth;
     const modeButtonHeight = buttonHeight;
     
     this.buttons = [
-      // 游戏主按钮
       {
         id: 'start',
         text: '开始游戏',
@@ -165,7 +159,6 @@ export default class UI {
         shadowColor: 'rgba(249, 115, 22, 0.5)',
         action: () => this.onStartGame()
       },
-      // 模式切换按钮 - 位于开始游戏按钮正下方
       {
         id: 'toggleMode',
         text: this.gameMode === 'timed' ? '限时模式' : '自由模式',
@@ -209,7 +202,6 @@ export default class UI {
     this.showCompletion = false;
     this.showFailure = false;
     this.buttons = [];
-    console.log('Game buttons initialized:', this.buttons);
   }
 
   initCompletion(time) {
@@ -312,22 +304,62 @@ export default class UI {
   }
 
   handleClick(x, y) {
-    // 如果排行榜打开，不处理点击（由排行榜管理器处理）
     if (this.showRank) {
       return false;
     }
 
-    for (const button of this.buttons) {
-      if (x >= button.x && x <= button.x + button.width &&
-          y >= button.y && y <= button.y + button.height) {
-        button.action();
-        return true;
+    if (this.showInstructions) {
+      this.showInstructions = false;
+      this.hoveredButton = null;
+      this.clickedButton = null;
+      return true;
+    }
+    
+    if (this.showModal && this.modalButtons.length > 0) {
+      const alpha = this.modalAnimation;
+      const scale = 0.85 + 0.15 * alpha;
+      const localX = (x - this.width / 2) / scale + this.width / 2;
+      const localY = (y - this.height / 2) / scale + this.height / 2;
+      
+      for (const button of this.modalButtons) {
+        if (button.x !== undefined && 
+            localX >= button.x && localX <= button.x + button.width &&
+            localY >= button.y && localY <= button.y + button.height) {
+          this.clickedButton = button.id;
+          this.clickAnimation = 1;
+          if (this.onPlayClickSound) {
+            this.onPlayClickSound();
+          }
+          setTimeout(() => {
+            this.clickedButton = null;
+            this.clickAnimation = 0;
+            if (button.action) {
+              button.action();
+            }
+          }, 150);
+          return true;
+        }
       }
     }
     
-    if (this.showInstructions) {
-      this.showInstructions = false;
-      return true;
+    const allButtons = [...this.buttons];
+    if (this.headerButtons) {
+      allButtons.push(...this.headerButtons);
+    }
+    
+    for (const button of allButtons) {
+      if (this.isPointInButton(x, y, button)) {
+        this.clickedButton = button.id;
+        this.clickAnimation = 1;
+        setTimeout(() => {
+          this.clickedButton = null;
+          this.clickAnimation = 0;
+          if (button.action) {
+            button.action();
+          }
+        }, 150);
+        return true;
+      }
     }
     
     return false;
@@ -384,22 +416,21 @@ export default class UI {
 
   onSelectMode(mode) {
     this.gameMode = mode;
-    this.instructionsData = null; // 清除缓存的规则数据
-    this.initMenu(); // 重新初始化菜单以更新按钮状态
+    this.instructionsData = null;
+    this.initMenu();
     if (this.onModeChange) {
       this.onModeChange(mode);
     }
   }
 
   onToggleMode() {
-    // 在两种模式之间切换
     const newMode = this.gameMode === 'timed' ? 'untimed' : 'timed';
     this.onSelectMode(newMode);
   }
 
   setGameMode(mode) {
     this.gameMode = mode;
-    this.instructionsData = null; // 清除缓存的规则数据
+    this.instructionsData = null;
   }
 
   getGameMode() {
@@ -524,14 +555,10 @@ export default class UI {
     
     const messageLines = this.modalMessage.split('\n');
     let timeValue = '';
-    let progressValue = '';
     
     messageLines.forEach(line => {
       if (line.includes('完成时间')) {
         timeValue = line.replace('完成时间:', '').trim();
-      }
-      if (line.includes('完成进度')) {
-        progressValue = line.replace('完成进度:', '').trim();
       }
     });
     
@@ -775,8 +802,6 @@ export default class UI {
       const buttonY = y + index * (buttonHeight + buttonSpacing);
       const buttonX = centerX - buttonWidth / 2;
       
-      // 存储按钮位置信息用于点击检测（使用原始坐标，不计算缩放）
-      // 点击检测时会根据当前的变换矩阵进行反向计算
       button.x = buttonX;
       button.y = buttonY;
       button.width = buttonWidth;
@@ -853,7 +878,6 @@ export default class UI {
   }
 
   render(ctx, gameState, currentNumber, totalNumbers, timeLeft = 5.0, deltaTime = 0.016) {
-    // 重置所有可能残留的 canvas 状态，避免性能问题
     ctx.shadowBlur = 0;
     ctx.shadowColor = 'transparent';
     ctx.shadowOffsetX = 0;
@@ -868,7 +892,6 @@ export default class UI {
       return;
     }
 
-    // 当不在菜单页时，清理按钮悬停状态，避免残留
     if (gameState !== 'menu') {
       this.hoveredButton = null;
     }
@@ -931,16 +954,13 @@ export default class UI {
   }
 
   renderMenuBackground(ctx) {
-    // 使用纯色背景代替渐变，提高性能
     ctx.fillStyle = '#1E1B4B';
     ctx.fillRect(0, 0, this.width, this.height);
 
-    // 简化星星渲染
     this.renderStars(ctx);
   }
 
   renderStars(ctx) {
-    // 简化的星星渲染，移除复杂计算
     const stars = [
       { x: 0.1, y: 0.1, size: 2 },
       { x: 0.85, y: 0.15, size: 3 },
@@ -964,42 +984,6 @@ export default class UI {
     });
   }
 
-  renderFloatingShapes(ctx) {
-    const time = Date.now() * 0.001;
-    
-    const shapes = [
-      { x: 0.05, y: 0.08, size: 30, color: 'rgba(139, 92, 246, 0.3)', type: 'circle' },
-      { x: 0.92, y: 0.12, size: 40, color: 'rgba(59, 130, 246, 0.25)', type: 'circle' },
-      { x: 0.08, y: 0.75, size: 50, color: 'rgba(236, 72, 153, 0.2)', type: 'circle' },
-      { x: 0.9, y: 0.82, size: 35, color: 'rgba(34, 211, 238, 0.25)', type: 'triangle' },
-    ];
-
-    shapes.forEach((shape, index) => {
-      const x = shape.x * this.width;
-      const y = shape.y * this.height + Math.sin(time + index) * 10;
-      
-      ctx.save();
-      ctx.translate(x, y);
-      
-      if (shape.type === 'circle') {
-        ctx.beginPath();
-        ctx.arc(0, 0, shape.size, 0, Math.PI * 2);
-        ctx.fillStyle = shape.color;
-        ctx.fill();
-      } else if (shape.type === 'triangle') {
-        ctx.beginPath();
-        ctx.moveTo(0, -shape.size);
-        ctx.lineTo(shape.size * 0.866, shape.size * 0.5);
-        ctx.lineTo(-shape.size * 0.866, shape.size * 0.5);
-        ctx.closePath();
-        ctx.fillStyle = shape.color;
-        ctx.fill();
-      }
-      
-      ctx.restore();
-    });
-  }
-
   renderTitleWithRibbon(ctx, x, y, size) {
     const title = '数一数噻';
     
@@ -1009,7 +993,6 @@ export default class UI {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
-    // 白色文字
     ctx.fillStyle = '#FFFFFF';
     ctx.fillText(title, x, y);
     
@@ -1031,7 +1014,6 @@ export default class UI {
     const cardY = isMobile ? this.height * 0.32 : this.height * 0.28;
     const borderRadius = isMobile ? 12 : 16;
 
-    // 预设置字体，避免重复设置
     const iconSize = isMobile ? 32 : 40;
     const textSize = isMobile ? 13 : 15;
 
@@ -1040,30 +1022,26 @@ export default class UI {
       const delay = index * 0.1;
       const cardAlpha = Math.min(1, Math.max(0, (this.menuAnimation - delay) * 2));
       
-      if (cardAlpha <= 0) return; // 跳过不可见的卡片
+      if (cardAlpha <= 0) return;
       
       ctx.save();
       ctx.globalAlpha = cardAlpha;
       
-      // 简化背景：使用纯色代替渐变
       ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
       this.roundRect(ctx, x, cardY, cardWidth, cardHeight, borderRadius);
       ctx.fill();
       
-      // 简化边框
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
       ctx.lineWidth = 1;
       this.roundRect(ctx, x, cardY, cardWidth, cardHeight, borderRadius);
       ctx.stroke();
       
-      // 图标
       ctx.font = `${iconSize}px Arial`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = feature.color;
       ctx.fillText(feature.icon, x + cardWidth / 2, cardY + cardHeight * 0.4);
       
-      // 文字
       ctx.font = `bold ${textSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
       ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
       ctx.fillText(feature.text, x + cardWidth / 2, cardY + cardHeight * 0.75);
@@ -1073,14 +1051,12 @@ export default class UI {
   }
 
   renderParticles(ctx) {
-    // 减少粒子数量，简化计算
     const particleCount = 12;
-    const time = Date.now() * 0.0005; // 降低时间精度
+    const time = Date.now() * 0.0005;
 
     ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
     
     for (let i = 0; i < particleCount; i++) {
-      // 简化位置计算
       const x = ((i * 137 + this.particleOffset) | 0) % this.width;
       const y = ((i * 89 + ((time + i) * 30 | 0)) | 0) % this.height;
       const size = 2;
@@ -1093,23 +1069,17 @@ export default class UI {
 
   renderGameUI(ctx, gameState, currentNumber, totalNumbers, timeLeft) {
     const isMobile = this.width < 768;
-    // 增加header高度，确保与小程序关闭按钮保持安全距离
-    // iPhone X+ 顶部安全区域约44px，加上header内容需要约60-70px
     const headerHeight = isMobile ? 110 : 130;
-    const topSafeArea = isMobile ? 44 : 0; // iPhone顶部安全区域
-    // Footer高度 - 只放置进度条
+    const topSafeArea = isMobile ? 44 : 0;
     const footerHeight = isMobile ? 50 : 60;
-    const bottomSafeArea = isMobile ? 34 : 0; // iPhone底部安全区域
+    const bottomSafeArea = isMobile ? 34 : 0;
     
-    // 渲染Header（保持原有高度和计时器位置）
     this.renderHeader(ctx, headerHeight, topSafeArea, isMobile, timeLeft, currentNumber, totalNumbers);
     
-    // 渲染Footer（只包含进度条）
     this.renderFooter(ctx, footerHeight, bottomSafeArea, isMobile, currentNumber, totalNumbers);
   }
 
   renderHeader(ctx, headerHeight, topSafeArea, isMobile, timeLeft, currentNumber, totalNumbers) {
-    // 深色渐变背景，与菜单页保持一致
     const gradient = ctx.createLinearGradient(0, 0, 0, headerHeight);
     gradient.addColorStop(0, '#0F172A');
     gradient.addColorStop(0.5, '#1E1B4B');
@@ -1117,7 +1087,6 @@ export default class UI {
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, this.width, headerHeight);
     
-    // 添加底部发光边框
     const borderGradient = ctx.createLinearGradient(0, headerHeight - 2, this.width, headerHeight - 2);
     borderGradient.addColorStop(0, 'rgba(139, 92, 246, 0)');
     borderGradient.addColorStop(0.5, 'rgba(139, 92, 246, 0.5)');
@@ -1125,10 +1094,8 @@ export default class UI {
     ctx.fillStyle = borderGradient;
     ctx.fillRect(0, headerHeight - 2, this.width, 2);
 
-    // 左侧按钮组 - 调整位置，考虑顶部安全区域
     const buttonSize = isMobile ? 44 : 52;
     const buttonSpacing = isMobile ? 12 : 16;
-    // 按钮垂直居中于header内容区域（排除顶部安全区域）
     const contentStartY = topSafeArea;
     const contentHeight = headerHeight - topSafeArea;
     const buttonY = contentStartY + (contentHeight - buttonSize) / 2;
@@ -1161,7 +1128,6 @@ export default class UI {
       }
     ];
 
-    // 渲染header按钮 - 简化版本
     ctx.font = `bold ${isMobile ? 20 : 24}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -1178,29 +1144,24 @@ export default class UI {
       const scaledX = (button.x + (buttonSize - scaledSize) / 2) | 0;
       const scaledY = (button.y + (buttonSize - scaledSize) / 2) | 0;
       
-      // 简化按钮背景：使用纯色
       ctx.fillStyle = isHovered ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.08)';
       this.roundRect(ctx, scaledX, scaledY, scaledSize, scaledSize, (buttonSize / 4) | 0);
       ctx.fill();
       
-      // 简化边框
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
       ctx.lineWidth = 1;
       this.roundRect(ctx, scaledX, scaledY, scaledSize, scaledSize, (buttonSize / 4) | 0);
       ctx.stroke();
       
-      // 按钮图标
       ctx.fillStyle = '#FFFFFF';
       ctx.fillText(button.text, scaledX + (scaledSize / 2) | 0, scaledY + (scaledSize / 2) | 0);
     });
 
-    // 只在限时模式下显示计时器
     if (this.gameMode === 'timed') {
       const centerX = this.width / 2;
       const timerY = buttonY + buttonSize / 2;
       const timerFontSize = isMobile ? 24 : 32;
       
-      // 简化计时器颜色逻辑
       let timerColor;
       if (timeLeft <= 5.0) {
         timerColor = '#EF4444';
@@ -1222,7 +1183,6 @@ export default class UI {
     const footerY = this.height - footerHeight;
     const centerX = this.width / 2;
     
-    // 深色渐变背景 - 与header一致（从下到上的渐变）
     const gradient = ctx.createLinearGradient(0, footerY, 0, this.height);
     gradient.addColorStop(0, '#312E81');
     gradient.addColorStop(0.5, '#1E1B4B');
@@ -1230,7 +1190,6 @@ export default class UI {
     ctx.fillStyle = gradient;
     ctx.fillRect(0, footerY, this.width, footerHeight);
     
-    // 添加顶部发光边框 - 与header底部边框一致
     const borderGradient = ctx.createLinearGradient(0, footerY, this.width, footerY);
     borderGradient.addColorStop(0, 'rgba(139, 92, 246, 0)');
     borderGradient.addColorStop(0.5, 'rgba(139, 92, 246, 0.5)');
@@ -1238,19 +1197,16 @@ export default class UI {
     ctx.fillStyle = borderGradient;
     ctx.fillRect(0, footerY, this.width, 2);
     
-    // 进度条在footer中垂直居中
     const progressBarWidth = isMobile ? 200 : 280;
     const progressBarHeight = isMobile ? 12 : 14;
     const progressBarY = footerY + (footerHeight - progressBarHeight) / 2;
     const progress = (currentNumber - 1) / totalNumbers;
     const progressRadius = (progressBarHeight / 2) | 0;
 
-    // 进度条背景
     ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
     this.roundRect(ctx, (centerX - progressBarWidth / 2) | 0, progressBarY, progressBarWidth, progressBarHeight, progressRadius);
     ctx.fill();
 
-    // 进度条填充
     const fillWidth = (progressBarWidth * progress) | 0;
     if (fillWidth > 0) {
       ctx.fillStyle = '#8B5CF6';
@@ -1262,23 +1218,19 @@ export default class UI {
   renderInstructions(ctx) {
     const isMobile = this.width < 768;
 
-    // 半透明深色背景遮罩
     ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
     ctx.fillRect(0, 0, this.width, this.height);
 
-    // 弹框尺寸优化 - 更合理的比例
     const modalWidth = isMobile ? Math.min(340, this.width - 40) : 460;
     const modalHeight = isMobile ? 420 : 480;
     const modalX = (this.width - modalWidth) / 2;
     const modalY = (this.height - modalHeight) / 2;
     const borderRadius = isMobile ? 24 : 32;
 
-    // 绘制弹框阴影
     ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
     ctx.shadowBlur = 40;
     ctx.shadowOffsetY = 10;
 
-    // 弹框背景 - 使用纯色代替渐变，提高性能
     ctx.fillStyle = 'rgba(30, 27, 75, 0.98)';
     this.roundRect(ctx, modalX, modalY, modalWidth, modalHeight, borderRadius);
     ctx.fill();
@@ -1287,13 +1239,11 @@ export default class UI {
     ctx.shadowOffsetY = 0;
     ctx.shadowColor = 'transparent';
 
-    // 边框效果
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
     ctx.lineWidth = 2;
     this.roundRect(ctx, modalX, modalY, modalWidth, modalHeight, borderRadius);
     ctx.stroke();
 
-    // 标题样式优化
     const titleY = modalY + (isMobile ? 50 : 60);
     ctx.fillStyle = '#FBBF24';
     ctx.font = `bold ${isMobile ? 26 : 32}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
@@ -1301,7 +1251,6 @@ export default class UI {
     ctx.textBaseline = 'middle';
     ctx.fillText('游戏规则', this.width / 2, titleY);
 
-    // 标题装饰线
     const titleWidth = ctx.measureText('游戏规则').width;
     ctx.strokeStyle = 'rgba(251, 191, 36, 0.5)';
     ctx.lineWidth = 2;
@@ -1310,14 +1259,11 @@ export default class UI {
     ctx.lineTo(this.width / 2 + titleWidth / 2 + 20, titleY + 20);
     ctx.stroke();
 
-    // 规则内容样式优化 - 根据当前游戏模式显示不同的规则
     const instructions = this.instructionsData || this.getInstructionsData();
-    // 缓存数据，避免重复创建
     if (!this.instructionsData) {
       this.instructionsData = instructions;
     }
     
-    // 渲染规则内容
     this.renderInstructionsContent(ctx, instructions, modalX, modalY, modalHeight, isMobile);
   }
 
@@ -1341,19 +1287,16 @@ export default class UI {
     const contentStartY = modalY + (isMobile ? 110 : 130);
     const lineHeight = isMobile ? 70 : 80;
 
-    // 预设置字体，避免重复设置
     ctx.textBaseline = 'middle';
 
     for (let i = 0; i < instructions.length; i++) {
       const instruction = instructions[i];
       const y = contentStartY + i * lineHeight;
 
-      // 图标背景圆形
       const iconSize = isMobile ? 44 : 52;
       const iconX = modalX + (isMobile ? 30 : 40);
       const iconY = y;
 
-      // 图标圆形背景
       ctx.beginPath();
       ctx.arc(iconX + iconSize / 2, iconY, iconSize / 2, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
@@ -1362,37 +1305,31 @@ export default class UI {
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // 图标
       ctx.font = `${isMobile ? 22 : 26}px Arial`;
       ctx.fillStyle = instruction.color;
       ctx.textAlign = 'center';
       ctx.fillText(instruction.icon, iconX + iconSize / 2, iconY);
 
-      // 规则文字
       ctx.font = `${isMobile ? 15 : 17}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
       ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
       ctx.textAlign = 'left';
       ctx.fillText(instruction.text, iconX + iconSize + (isMobile ? 15 : 20), y);
     }
 
-    // 底部提示按钮样式
     const buttonWidth = isMobile ? 160 : 200;
     const buttonHeight = isMobile ? 44 : 52;
     const buttonX = (this.width - buttonWidth) / 2;
     const buttonY = modalY + modalHeight - (isMobile ? 80 : 90);
 
-    // 按钮背景 - 使用纯色代替渐变
     ctx.fillStyle = 'rgba(139, 92, 246, 0.8)';
     this.roundRect(ctx, buttonX, buttonY, buttonWidth, buttonHeight, (buttonHeight / 2) | 0);
     ctx.fill();
 
-    // 按钮边框
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
     ctx.lineWidth = 1.5;
     this.roundRect(ctx, buttonX, buttonY, buttonWidth, buttonHeight, (buttonHeight / 2) | 0);
     ctx.stroke();
 
-    // 按钮文字
     ctx.fillStyle = '#FFFFFF';
     ctx.font = `bold ${isMobile ? 15 : 17}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
     ctx.textAlign = 'center';
@@ -1402,7 +1339,6 @@ export default class UI {
   renderButtons(ctx) {
     const isMobile = this.width < 768;
     
-    // 预定义颜色，避免每帧创建
     const colors = {
       start: ['#F97316', '#EA580C'],
       startHover: ['#FB923C', '#F87171'],
@@ -1435,7 +1371,6 @@ export default class UI {
       const scaledY = centerY - scaledHeight / 2;
       const borderRadius = isMobile ? 28 : 32;
       
-      // 获取按钮颜色
       let btnColors;
       switch(button.id) {
         case 'start': btnColors = isHovered ? colors.startHover : colors.start; break;
@@ -1448,19 +1383,16 @@ export default class UI {
       ctx.save();
       ctx.globalAlpha = alpha;
       
-      // 简化渲染：使用纯色代替渐变，移除阴影
       ctx.fillStyle = btnColors[0];
       this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, borderRadius);
       ctx.fill();
       
-      // 简化高光效果
       if (!isClicked) {
         ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
         this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight * 0.4, borderRadius);
         ctx.fill();
       }
       
-      // 边框
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
       ctx.lineWidth = 1;
       this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, borderRadius);
@@ -1513,148 +1445,5 @@ export default class UI {
   isPointInButton(x, y, button) {
     return x >= button.x && x <= button.x + button.width &&
            y >= button.y && y <= button.y + button.height;
-  }
-
-  handleClick(x, y) {
-    console.log('handleClick called:', { x, y, showInstructions: this.showInstructions, showModal: this.showModal, modalButtons: this.modalButtons.length });
-    
-    if (this.showInstructions) {
-      this.showInstructions = false;
-      // 清理可能残留的悬停状态，避免性能问题
-      this.hoveredButton = null;
-      this.clickedButton = null;
-      console.log('Instructions closed');
-      return true;
-    }
-    
-    // 优先检查弹框按钮
-    if (this.showModal && this.modalButtons.length > 0) {
-      // 计算当前的动画缩放值（与renderModal中的一致）
-      const alpha = this.modalAnimation;
-      const scale = 0.85 + 0.15 * alpha;
-      
-      // 将屏幕坐标转换为弹框内部坐标（反向应用缩放变换）
-      const localX = (x - this.width / 2) / scale + this.width / 2;
-      const localY = (y - this.height / 2) / scale + this.height / 2;
-      
-      console.log('Checking modal buttons:', this.modalButtons.map(b => ({ id: b.id, x: b.x, y: b.y, w: b.width, h: b.height })), 'local coords:', { localX, localY });
-      for (const button of this.modalButtons) {
-        if (button.x !== undefined && 
-            localX >= button.x && localX <= button.x + button.width &&
-            localY >= button.y && localY <= button.y + button.height) {
-          console.log('Modal button clicked:', button.id);
-          this.clickedButton = button.id;
-          this.clickAnimation = 1;
-          if (this.onPlayClickSound) {
-            this.onPlayClickSound();
-          }
-          setTimeout(() => {
-            this.clickedButton = null;
-            this.clickAnimation = 0;
-            if (button.action) {
-              console.log('Executing modal button action:', button.id);
-              button.action();
-            }
-          }, 150);
-          return true;
-        }
-      }
-      console.log('No modal button clicked at:', { x, y, localX, localY });
-    }
-    
-    const allButtons = [...this.buttons];
-    
-    if (this.headerButtons) {
-      allButtons.push(...this.headerButtons);
-    }
-    
-    console.log('Checking buttons:', allButtons.length);
-    
-    for (const button of allButtons) {
-      if (this.isPointInButton(x, y, button)) {
-        console.log('Button clicked:', button.id);
-        this.clickedButton = button.id;
-        this.clickAnimation = 1;
-        setTimeout(() => {
-          this.clickedButton = null;
-          this.clickAnimation = 0;
-          if (button.action) {
-            console.log('Executing button action:', button.id);
-            button.action();
-          }
-        }, 150);
-        return true;
-      }
-    }
-    
-    console.log('No button clicked');
-    return false;
-  }
-
-  handleModalClick(x, y) {
-    if (!this.showModal) return false;
-    if (this.modalTargetAnimation === 0) return false;
-    
-    // 计算当前的动画缩放值（与renderModal中的一致）
-    const alpha = this.modalAnimation;
-    const scale = 0.85 + 0.15 * alpha;
-    
-    // 将屏幕坐标转换为弹框内部坐标（反向应用缩放变换）
-    const localX = (x - this.width / 2) / scale + this.width / 2;
-    const localY = (y - this.height / 2) / scale + this.height / 2;
-    
-    // 使用渲染时存储的按钮位置信息
-    for (let i = 0; i < this.modalButtons.length; i++) {
-      const button = this.modalButtons[i];
-      // 如果按钮位置已存储（新逻辑），使用存储的位置
-      if (button.x !== undefined && button.y !== undefined) {
-        if (localX >= button.x && localX <= button.x + button.width &&
-            localY >= button.y && localY <= button.y + button.height) {
-          if (this.onPlayClickSound) {
-            this.onPlayClickSound();
-          }
-          this.clickedButton = button.id;
-          this.clickAnimation = 1;
-          setTimeout(() => {
-            this.clickedButton = null;
-            this.clickAnimation = 0;
-            if (button.action) {
-              button.action();
-            }
-          }, 150);
-          return true;
-        }
-      } else {
-        // 兼容旧逻辑：如果按钮位置未存储，使用固定位置计算
-        const modalWidth = Math.min(400, this.width - 40);
-        const modalHeight = 280;
-        const modalX = (this.width - modalWidth) / 2;
-        const modalY = (this.height - modalHeight) / 2;
-        const buttonWidth = 120;
-        const buttonHeight = 45;
-        const buttonSpacing = 20;
-        const totalButtonWidth = buttonWidth * this.modalButtons.length + buttonSpacing * (this.modalButtons.length - 1);
-        const startX = (this.width - totalButtonWidth) / 2;
-        const buttonY = modalY + 200;
-        const bx = startX + i * (buttonWidth + buttonSpacing);
-        
-        if (localX >= bx && localX <= bx + buttonWidth && localY >= buttonY && localY <= buttonY + buttonHeight) {
-          if (this.onPlayClickSound) {
-            this.onPlayClickSound();
-          }
-          this.clickedButton = button.id;
-          this.clickAnimation = 1;
-          setTimeout(() => {
-            this.clickedButton = null;
-            this.clickAnimation = 0;
-            if (button.action) {
-              button.action();
-            }
-          }, 150);
-          return true;
-        }
-      }
-    }
-    return false;
   }
 }

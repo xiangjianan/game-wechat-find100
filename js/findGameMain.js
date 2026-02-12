@@ -13,7 +13,6 @@ export default class FindGameMain {
     ctx = getContext();
     
     if (!canvas || !ctx) {
-      console.error('Canvas or context not available');
       return;
     }
     
@@ -27,7 +26,6 @@ export default class FindGameMain {
     this.rankManager.init();
     this.loadGameProgress();
     
-    // 加载保存的游戏模式
     const savedMode = this.loadGameMode();
     this.ui.setGameMode(savedMode);
     this.gameManager.setGameMode(savedMode);
@@ -40,14 +38,9 @@ export default class FindGameMain {
   }
 
   setupEventListeners() {
-    console.log('Setting up event listeners');
-    
     const handleTouchStart = (res) => {
       try {
-        if (!res.touches || res.touches.length === 0) {
-          console.warn('No touch data available');
-          return;
-        }
+        if (!res.touches || res.touches.length === 0) return;
         
         const touch = res.touches[0];
         const x = touch.clientX;
@@ -55,96 +48,36 @@ export default class FindGameMain {
         
         this.ui.updateMousePosition(x, y);
         this.handleInput(x, y);
-        
-        console.log('Touch start handled:', { x, y });
       } catch (error) {
-        console.error('Error handling touch start:', error);
+        // 静默处理错误
       }
     };
     
     const handleTouchMove = (res) => {
       try {
-        if (!res.touches || res.touches.length === 0) {
-          return;
-        }
+        if (!res.touches || res.touches.length === 0) return;
         
         const touch = res.touches[0];
         const x = touch.clientX;
         const y = touch.clientY;
         this.ui.updateMousePosition(x, y);
       } catch (error) {
-        console.error('Error handling touch move:', error);
-      }
-    };
-    
-    const handleTouchEnd = (res) => {
-      try {
-        console.log('Touch end handled');
-      } catch (error) {
-        console.error('Error handling touch end:', error);
-      }
-    };
-    
-    const handleTouchCancel = (res) => {
-      try {
-        console.log('Touch cancel handled');
-      } catch (error) {
-        console.error('Error handling touch cancel:', error);
+        // 静默处理错误
       }
     };
     
     if (typeof wx !== 'undefined' && typeof wx.onTouchStart === 'function') {
-      try {
-        wx.onTouchStart(handleTouchStart);
-        console.log('wx.onTouchStart listener added');
-      } catch (error) {
-        console.error('Failed to add wx.onTouchStart listener:', error);
-      }
-      
-      try {
-        wx.onTouchMove(handleTouchMove);
-        console.log('wx.onTouchMove listener added');
-      } catch (error) {
-        console.error('Failed to add wx.onTouchMove listener:', error);
-      }
-      
-      try {
-        wx.onTouchEnd(handleTouchEnd);
-        console.log('wx.onTouchEnd listener added');
-      } catch (error) {
-        console.error('Failed to add wx.onTouchEnd listener:', error);
-      }
-      
-      try {
-        wx.onTouchCancel(handleTouchCancel);
-        console.log('wx.onTouchCancel listener added');
-      } catch (error) {
-        console.error('Failed to add wx.onTouchCancel listener:', error);
-      }
+      wx.onTouchStart(handleTouchStart);
+      wx.onTouchMove(handleTouchMove);
     } else {
-      console.log('wx API not available, using canvas event listeners');
-      
-      if (!canvas) {
-        console.error('Canvas not available');
-        return;
-      }
-      
-      if (typeof canvas.addEventListener !== 'function') {
-        console.error('Canvas does not have addEventListener method');
-        console.error('Canvas type:', typeof canvas);
-        console.error('Canvas object:', canvas);
-        return;
-      }
+      if (!canvas || typeof canvas.addEventListener !== 'function') return;
       
       const handleTouch = (e) => {
         try {
           e.preventDefault();
           e.stopPropagation();
           
-          if (!e.touches || e.touches.length === 0) {
-            console.warn('No touch data available');
-            return;
-          }
+          if (!e.touches || e.touches.length === 0) return;
           
           const touch = e.touches[0];
           const rect = canvas.getBoundingClientRect();
@@ -153,10 +86,8 @@ export default class FindGameMain {
           
           this.ui.updateMousePosition(x, y);
           this.handleInput(x, y);
-          
-          console.log('Touch event handled:', { x, y, type: e.type });
         } catch (error) {
-          console.error('Error handling touch event:', error);
+          // 静默处理错误
         }
       };
       
@@ -171,74 +102,24 @@ export default class FindGameMain {
           if (e.type === 'click') {
             this.handleInput(x, y);
           }
-          
-          console.log('Mouse event handled:', { x, y, type: e.type });
         } catch (error) {
-          console.error('Error handling mouse event:', error);
+          // 静默处理错误
         }
       };
       
-      try {
-        canvas.addEventListener('touchstart', handleTouch, { passive: false });
-        console.log('canvas touchstart listener added');
-      } catch (error) {
-        console.error('Failed to add canvas touchstart listener:', error);
-      }
-      
-      try {
-        canvas.addEventListener('touchmove', (e) => {
-          try {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            if (!e.touches || e.touches.length === 0) {
-              return;
-            }
-            
-            const touch = e.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
-            this.ui.updateMousePosition(x, y);
-          } catch (error) {
-            console.error('Error handling touchmove:', error);
-          }
-        }, { passive: false });
-        console.log('canvas touchmove listener added');
-      } catch (error) {
-        console.error('Failed to add canvas touchmove listener:', error);
-      }
-      
-      try {
-        canvas.addEventListener('touchend', (e) => {
-          try {
-            e.preventDefault();
-            e.stopPropagation();
-          } catch (error) {
-            console.error('Error handling touchend:', error);
-          }
-        }, { passive: false });
-        console.log('canvas touchend listener added');
-      } catch (error) {
-        console.error('Failed to add canvas touchend listener:', error);
-      }
-      
-      try {
-        canvas.addEventListener('mousemove', handleMouse);
-        console.log('canvas mousemove listener added');
-      } catch (error) {
-        console.error('Failed to add canvas mousemove listener:', error);
-      }
-      
-      try {
-        canvas.addEventListener('click', handleMouse);
-        console.log('canvas click listener added');
-      } catch (error) {
-        console.error('Failed to add canvas click listener:', error);
-      }
+      canvas.addEventListener('touchstart', handleTouch, { passive: false });
+      canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.touches && e.touches.length > 0) {
+          const touch = e.touches[0];
+          const rect = canvas.getBoundingClientRect();
+          this.ui.updateMousePosition(touch.clientX - rect.left, touch.clientY - rect.top);
+        }
+      }, { passive: false });
+      canvas.addEventListener('mousemove', handleMouse);
+      canvas.addEventListener('click', handleMouse);
     }
-    
-    console.log('Event listeners setup complete');
   }
 
   setupUICallbacks() {
@@ -284,7 +165,6 @@ export default class FindGameMain {
     
     this.gameManager.onError = (center) => {
       this.soundManager.playError();
-      // 只在限时模式下显示时间提示
       if (this.gameManager.isTimedMode()) {
         this.ui.showFloatingText(center.x, center.y, '-5秒', '#FF4444');
       } else {
@@ -294,7 +174,6 @@ export default class FindGameMain {
     
     this.gameManager.onCorrectClick = (center) => {
       this.soundManager.playClick();
-      // 只在限时模式下显示时间提示
       if (this.gameManager.isTimedMode()) {
         this.ui.showFloatingText(center.x, center.y, '+5秒', '#44FF44');
       } else {
@@ -304,29 +183,17 @@ export default class FindGameMain {
   }
 
   handleInput(x, y) {
-    // 优先处理弹框点击
     if (this.ui.showModal) {
-      // 先尝试使用新的handleClick逻辑（包含弹框按钮检测）
-      if (this.ui.handleClick(x, y)) {
-        return;
-      }
-      // 如果handleClick没有处理，尝试旧的handleModalClick
-      if (this.ui.handleModalClick(x, y)) {
-        return;
-      }
-      // 点击了弹框背景，不处理
+      if (this.ui.handleClick(x, y)) return;
       return;
     }
 
-    // 处理排行榜点击
     if (this.rankManager.isRankOpen()) {
       this.rankManager.handleClick(x, y, SCREEN_WIDTH, SCREEN_HEIGHT);
       return;
     }
 
-    if (this.ui.handleClick(x, y)) {
-      return;
-    }
+    if (this.ui.handleClick(x, y)) return;
 
     if (this.gameManager.gameState === 'playing') {
       this.gameManager.handleClick(x, y);
@@ -335,7 +202,6 @@ export default class FindGameMain {
 
   startGame(count, level, gameMode = null) {
     this.ui.currentLevel = level;
-    // 如果没有指定游戏模式，使用当前UI中的模式
     const mode = gameMode || this.ui.getGameMode();
     this.gameManager.initGame(count, level, mode);
     this.ui.initGame();
@@ -363,7 +229,6 @@ export default class FindGameMain {
     this.soundManager.playComplete();
     this.saveGameProgress(time);
     
-    // 上传分数到排行榜
     this.rankManager.uploadScore(time, this.gameManager.currentLevel);
     
     if (this.ui.shouldAutoAdvance()) {
@@ -454,16 +319,13 @@ export default class FindGameMain {
   }
 
   renderGameBackground(ctx) {
-    // 使用纯色背景代替渐变，提高性能
     ctx.fillStyle = '#F1F5F9';
     ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     
-    // 简化网格纹理 - 每2个格子绘制一次
     ctx.strokeStyle = 'rgba(148, 163, 184, 0.06)';
     ctx.lineWidth = 1;
     const gridSize = 40;
     
-    // 只绘制主要网格线，减少绘制次数
     for (let x = 0; x < SCREEN_WIDTH; x += gridSize * 2) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
@@ -480,7 +342,6 @@ export default class FindGameMain {
   }
 
   render(deltaTime = 0.016) {
-    // 渲染柔和的中性色调背景
     this.renderGameBackground(ctx);
 
     if (this.gameManager.gameState === 'playing' || this.gameManager.gameState === 'completed' || this.gameManager.gameState === 'failed') {
@@ -496,7 +357,6 @@ export default class FindGameMain {
       deltaTime
     );
 
-    // 渲染排行榜
     if (this.rankManager.isRankOpen()) {
       this.rankManager.render(ctx, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     }
@@ -517,10 +377,7 @@ export default class FindGameMain {
   }
 
   saveGameProgress(time) {
-    if (typeof wx === 'undefined' || !wx.setStorageSync) {
-      console.log('wx API not available, skipping save');
-      return;
-    }
+    if (typeof wx === 'undefined' || !wx.setStorageSync) return;
     
     try {
       const progress = {
@@ -538,57 +395,44 @@ export default class FindGameMain {
         wx.setStorageSync('gameProgress', savedProgress);
       }
     } catch (e) {
-      console.log('Save game progress failed:', e);
+      // 静默处理错误
     }
   }
 
   loadGameProgress() {
-    if (typeof wx === 'undefined' || !wx.getStorageSync) {
-      console.log('wx API not available, skipping load');
-      return;
-    }
+    if (typeof wx === 'undefined' || !wx.getStorageSync) return;
     
     try {
       const savedProgress = wx.getStorageSync('gameProgress');
-      if (savedProgress) {
-        console.log('Loaded game progress:', savedProgress);
-      }
+      // 加载进度但不打印日志
     } catch (e) {
-      console.log('Load game progress failed:', e);
+      // 静默处理错误
     }
   }
 
   saveGameMode(mode) {
-    if (typeof wx === 'undefined' || !wx.setStorageSync) {
-      console.log('wx API not available, skipping mode save');
-      return;
-    }
+    if (typeof wx === 'undefined' || !wx.setStorageSync) return;
     
     try {
       wx.setStorageSync('gameMode', mode);
-      console.log('Game mode saved:', mode);
     } catch (e) {
-      console.log('Save game mode failed:', e);
+      // 静默处理错误
     }
   }
 
   loadGameMode() {
-    if (typeof wx === 'undefined' || !wx.getStorageSync) {
-      console.log('wx API not available, skipping mode load');
-      return 'timed';
-    }
+    if (typeof wx === 'undefined' || !wx.getStorageSync) return 'timed';
     
     try {
       const savedMode = wx.getStorageSync('gameMode');
       if (savedMode && (savedMode === 'timed' || savedMode === 'untimed')) {
-        console.log('Game mode loaded:', savedMode);
         return savedMode;
       }
     } catch (e) {
-      console.log('Load game mode failed:', e);
+      // 静默处理错误
     }
     
-    return 'timed'; // 默认返回限时模式
+    return 'timed';
   }
 
   openRank() {
@@ -611,7 +455,7 @@ export default class FindGameMain {
         return savedProgress[key] ? savedProgress[key].bestTime : null;
       }
     } catch (e) {
-      console.log('Get best time failed:', e);
+      // 静默处理错误
     }
     return null;
   }

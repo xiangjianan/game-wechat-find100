@@ -6,9 +6,7 @@ if (typeof wx !== 'undefined' && typeof wx.createCanvas === 'function') {
   try {
     GameGlobal.canvas = wx.createCanvas();
     canvas = GameGlobal.canvas;
-    console.log('Canvas created using wx.createCanvas');
   } catch (e) {
-    console.error('Failed to create wx canvas:', e);
     canvas = document.createElement('canvas');
     canvas.id = 'gameCanvas';
     document.body.appendChild(canvas);
@@ -19,7 +17,6 @@ if (typeof wx !== 'undefined' && typeof wx.createCanvas === 'function') {
   canvas.id = 'gameCanvas';
   document.body.appendChild(canvas);
   GameGlobal.canvas = canvas;
-  console.log('Canvas created using document.createElement');
 }
 
 const windowInfo = (typeof wx !== 'undefined' && typeof wx.getWindowInfo === 'function') 
@@ -34,8 +31,6 @@ if (typeof window !== 'undefined' && typeof window.devicePixelRatio !== 'undefin
   const systemInfo = wx.getSystemInfoSync();
   devicePixelRatio = systemInfo.pixelRatio || 1;
 }
-
-console.log('Device pixel ratio:', devicePixelRatio);
 
 const logicalWidth = windowInfo.screenWidth;
 const logicalHeight = windowInfo.screenHeight;
@@ -56,11 +51,10 @@ if (typeof canvas.style !== 'undefined') {
   canvas.style.zIndex = '9999';
   canvas.style.imageRendering = 'optimizeQuality';
   canvas.style.imageRendering = '-webkit-optimize-contrast';
-  console.log('Canvas styles applied');
 }
 
 ctx = canvas.getContext('2d', {
-  antialias: true,        // 开启抗锯齿
+  antialias: true,
   alpha: false,
   desynchronized: false
 });
@@ -69,7 +63,6 @@ if (ctx) {
   ctx.scale(devicePixelRatio, devicePixelRatio);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
-  console.log('Canvas context configured for high quality rendering');
 }
 
 export const SCREEN_WIDTH = logicalWidth;

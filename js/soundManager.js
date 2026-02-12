@@ -9,44 +9,34 @@ export default class SoundManager {
   }
 
   init() {
-    console.log('SoundManager init: Using generated audio only');
     this.useGeneratedAudio = true;
     
-    if (typeof wx === 'undefined' || !wx.createInnerAudioContext) {
-      console.log('wx API not available, using generated audio');
-      return;
-    }
+    if (typeof wx === 'undefined' || !wx.createInnerAudioContext) return;
     
     try {
       this.sounds.click = wx.createInnerAudioContext();
       this.sounds.click.src = 'audio/click.mp3';
       this.sounds.click.onError(() => {
-        console.log('Click audio load failed, using generated audio');
         this.useGeneratedAudio = true;
       });
       
       this.sounds.error = wx.createInnerAudioContext();
       this.sounds.error.src = 'audio/error.mp3';
       this.sounds.error.onError(() => {
-        console.log('Error audio load failed, using generated audio');
         this.useGeneratedAudio = true;
       });
       
       this.sounds.complete = wx.createInnerAudioContext();
       this.sounds.complete.src = 'audio/complete.mp3';
       this.sounds.complete.onError(() => {
-        console.log('Complete audio load failed, using generated audio');
         this.useGeneratedAudio = true;
       });
       
       this.sounds.bg = wx.createInnerAudioContext();
       this.sounds.bg.src = 'audio/bgm.mp3';
       this.sounds.bg.loop = true;
-      this.sounds.bg.onError(() => {
-        console.log('BGM audio load failed, skipping background music');
-      });
+      this.sounds.bg.onError(() => {});
     } catch (e) {
-      console.log('Sound initialization failed, using generated audio:', e);
       this.useGeneratedAudio = true;
     }
   }
@@ -57,9 +47,7 @@ export default class SoundManager {
     if (this.useGeneratedAudio) {
       try {
         AudioGenerator.generateClickSound();
-      } catch (e) {
-        console.log('Generate click sound failed:', e);
-      }
+      } catch (e) {}
       return;
     }
     
@@ -67,9 +55,7 @@ export default class SoundManager {
     try {
       this.sounds.click.stop();
       this.sounds.click.play();
-    } catch (e) {
-      console.log('Play click sound failed:', e);
-    }
+    } catch (e) {}
   }
 
   playError() {
@@ -78,9 +64,7 @@ export default class SoundManager {
     if (this.useGeneratedAudio) {
       try {
         AudioGenerator.generateErrorSound();
-      } catch (e) {
-        console.log('Generate error sound failed:', e);
-      }
+      } catch (e) {}
       return;
     }
     
@@ -88,9 +72,7 @@ export default class SoundManager {
     try {
       this.sounds.error.stop();
       this.sounds.error.play();
-    } catch (e) {
-      console.log('Play error sound failed:', e);
-    }
+    } catch (e) {}
   }
 
   playComplete() {
@@ -99,9 +81,7 @@ export default class SoundManager {
     if (this.useGeneratedAudio) {
       try {
         AudioGenerator.generateCompleteSound();
-      } catch (e) {
-        console.log('Generate complete sound failed:', e);
-      }
+      } catch (e) {}
       return;
     }
     
@@ -109,27 +89,21 @@ export default class SoundManager {
     try {
       this.sounds.complete.stop();
       this.sounds.complete.play();
-    } catch (e) {
-      console.log('Play complete sound failed:', e);
-    }
+    } catch (e) {}
   }
 
   playBackground() {
     if (!this.enabled || !this.sounds.bg) return;
     try {
       this.sounds.bg.play();
-    } catch (e) {
-      console.log('Play background music failed:', e);
-    }
+    } catch (e) {}
   }
 
   stopBackground() {
     if (!this.sounds.bg) return;
     try {
       this.sounds.bg.stop();
-    } catch (e) {
-      console.log('Stop background music failed:', e);
-    }
+    } catch (e) {}
   }
 
   setEnabled(enabled) {
@@ -153,9 +127,7 @@ export default class SoundManager {
       if (this.sounds[key]) {
         try {
           this.sounds[key].destroy();
-        } catch (e) {
-          console.log('Destroy sound failed:', e);
-        }
+        } catch (e) {}
       }
     }
     this.sounds = {};

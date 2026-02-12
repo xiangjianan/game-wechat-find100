@@ -9,15 +9,8 @@ export class AudioGenerator {
   }
 
   static getAudioContext() {
-    if (this.isWxEnvironment()) {
-      console.log('AudioGenerator: WeChat mini-game environment detected, using wx API');
-      return null;
-    }
-    
-    if (!this.isBrowserEnvironment()) {
-      console.log('AudioGenerator: Browser environment not detected, AudioContext not available');
-      return null;
-    }
+    if (this.isWxEnvironment()) return null;
+    if (!this.isBrowserEnvironment()) return null;
     
     if (!this.audioContext) {
       try {
@@ -25,163 +18,94 @@ export class AudioGenerator {
         this.audioContext = new AudioContextClass();
         
         if (this.audioContext.state === 'suspended') {
-          this.audioContext.resume().catch(e => {
-            console.error('Failed to resume AudioContext:', e);
-          });
+          this.audioContext.resume().catch(() => {});
         }
-        
-        console.log('AudioGenerator: AudioContext created successfully');
       } catch (e) {
-        console.error('Failed to create AudioContext:', e);
         return null;
       }
     }
     return this.audioContext;
   }
 
+  static playWxSound(src) {
+    try {
+      const audio = wx.createInnerAudioContext();
+      audio.src = src;
+      audio.volume = 0.5;
+      audio.play();
+    } catch (e) {
+      // 静默处理错误
+    }
+  }
+
+  static createTone(audioContext, frequency, type, duration, delay = 0) {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    if (!oscillator || !gainNode) return;
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = frequency;
+    oscillator.type = type;
+    
+    const startTime = audioContext.currentTime + delay;
+    gainNode.gain.setValueAtTime(0.3, startTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+    
+    oscillator.start(startTime);
+    oscillator.stop(startTime + duration);
+  }
+
   static generateClickSound() {
     if (this.isWxEnvironment()) {
-      try {
-        const audio = wx.createInnerAudioContext();
-        audio.src = 'audio/click.mp3';
-        audio.volume = 0.5;
-        audio.play();
-        console.log('AudioGenerator: Click sound played using wx API');
-      } catch (e) {
-        console.error('Failed to play click sound using wx API:', e);
-      }
+      this.playWxSound('audio/click.mp3');
       return;
     }
     
     const audioContext = this.getAudioContext();
-    if (!audioContext || !audioContext.destination) {
-      console.log('AudioGenerator: AudioContext not available, skipping click sound');
-      return;
-    }
+    if (!audioContext || !audioContext.destination) return;
     
     try {
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      if (!oscillator || !gainNode) {
-        console.error('Failed to create audio nodes');
-        return;
-      }
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator.frequency.value = 800;
-      oscillator.type = 'sine';
-      
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-      
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.1);
-      
-      console.log('AudioGenerator: Click sound generated');
+      this.createTone(audioContext, 800, 'sine', 0.1);
     } catch (e) {
-      console.error('Failed to generate click sound:', e);
+      // 静默处理错误
     }
   }
 
   static generateErrorSound() {
     if (this.isWxEnvironment()) {
-      try {
-        const audio = wx.createInnerAudioContext();
-        audio.src = 'audio/error.mp3';
-        audio.volume = 0.5;
-        audio.play();
-        console.log('AudioGenerator: Error sound played using wx API');
-      } catch (e) {
-        console.error('Failed to play error sound using wx API:', e);
-      }
+      this.playWxSound('audio/error.mp3');
       return;
     }
     
     const audioContext = this.getAudioContext();
-    if (!audioContext || !audioContext.destination) {
-      console.log('AudioGenerator: AudioContext not available, skipping error sound');
-      return;
-    }
+    if (!audioContext || !audioContext.destination) return;
     
     try {
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      if (!oscillator || !gainNode) {
-        console.error('Failed to create audio nodes');
-        return;
-      }
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator.frequency.value = 200;
-      oscillator.type = 'sawtooth';
-      
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-      
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.3);
-      
-      console.log('AudioGenerator: Error sound generated');
+      this.createTone(audioContext, 200, 'sawtooth', 0.3);
     } catch (e) {
-      console.error('Failed to generate error sound:', e);
+      // 静默处理错误
     }
   }
 
   static generateCompleteSound() {
     if (this.isWxEnvironment()) {
-      try {
-        const audio = wx.createInnerAudioContext();
-        audio.src = 'audio/complete.mp3';
-        audio.volume = 0.5;
-        audio.play();
-        console.log('AudioGenerator: Complete sound played using wx API');
-      } catch (e) {
-        console.error('Failed to play complete sound using wx API:', e);
-      }
+      this.playWxSound('audio/complete.mp3');
       return;
     }
     
     const audioContext = this.getAudioContext();
-    if (!audioContext || !audioContext.destination) {
-      console.log('AudioGenerator: AudioContext not available, skipping complete sound');
-      return;
-    }
+    if (!audioContext || !audioContext.destination) return;
     
     try {
       const notes = [523.25, 659.25, 783.99, 1046.50];
-      
       notes.forEach((frequency, index) => {
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        if (!oscillator || !gainNode) {
-          console.error('Failed to create audio nodes');
-          return;
-        }
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.value = frequency;
-        oscillator.type = 'sine';
-        
-        const startTime = audioContext.currentTime + index * 0.15;
-        gainNode.gain.setValueAtTime(0.3, startTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
-        
-        oscillator.start(startTime);
-        oscillator.stop(startTime + 0.2);
+        this.createTone(audioContext, frequency, 'sine', 0.2, index * 0.15);
       });
-      
-      console.log('AudioGenerator: Complete sound generated');
     } catch (e) {
-      console.error('Failed to generate complete sound:', e);
+      // 静默处理错误
     }
   }
 }

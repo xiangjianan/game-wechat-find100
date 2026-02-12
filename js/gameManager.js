@@ -1,10 +1,10 @@
-import PolygonGenerator from './polygonGenerator';
+import LineDividerGenerator from './lineDividerGenerator';
 
 export default class GameManager {
   constructor(width, height) {
     this.width = width;
     this.height = height;
-    this.generator = new PolygonGenerator(width, height);
+    this.generator = new LineDividerGenerator(width, height);
     this.polygons = [];
     this.currentNumber = 1;
     this.totalNumbers = 0;
@@ -23,8 +23,6 @@ export default class GameManager {
     this.timerInterval = null;
     this.clickCount = 0;
     this.errorCount = 0;
-    
-    // 游戏模式: 'timed' (限时模式) 或 'untimed' (无计时器模式)
     this.gameMode = 'timed';
   }
 
@@ -41,7 +39,6 @@ export default class GameManager {
     this.clickCount = 0;
     this.errorCount = 0;
     
-    // 只在限时模式下启动计时器
     if (this.gameMode === 'timed') {
       this.startTimer();
     }
@@ -73,7 +70,6 @@ export default class GameManager {
     this.currentNumber++;
     this.clickCount++;
     
-    // 只在限时模式下增加时间
     if (this.gameMode === 'timed') {
       this.timeLeft += this.timeBonus;
     }
@@ -93,7 +89,6 @@ export default class GameManager {
     this.errorCount++;
     this.clickCount++;
     
-    // 只在限时模式下减少时间
     if (this.gameMode === 'timed') {
       this.timeLeft -= this.timeBonus;
       if (this.timeLeft < 0) {
