@@ -116,16 +116,6 @@ export default class Polygon {
     ctx.scale(this.scale, this.scale);
     ctx.translate(-center.x, -center.y);
 
-    const shadowOffset = 5;
-    ctx.beginPath();
-    ctx.moveTo(this.vertices[0].x + shadowOffset, this.vertices[0].y + shadowOffset);
-    for (let i = 1; i < this.vertices.length; i++) {
-      ctx.lineTo(this.vertices[i].x + shadowOffset, this.vertices[i].y + shadowOffset);
-    }
-    ctx.closePath();
-    ctx.fillStyle = scheme.shadow;
-    ctx.fill();
-
     ctx.beginPath();
     ctx.moveTo(this.vertices[0].x, this.vertices[0].y);
     for (let i = 1; i < this.vertices.length; i++) {
@@ -151,16 +141,16 @@ export default class Polygon {
     }
 
     ctx.strokeStyle = scheme.border;
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2;
     ctx.lineCap = 'square';
     ctx.lineJoin = 'miter';
     ctx.stroke();
 
     const baseFontSize = Math.max(16, Math.min(28, Math.sqrt(this.getArea()) / 3.2));
     const digitCount = this.number.toString().length;
-    const digitMultiplier = digitCount === 1 ? 1.0 : digitCount === 2 ? 0.85 : 0.7;
+    const digitMultiplier = digitCount === 1 ? 1.0 : digitCount === 2 ? 0.8 : 0.65;
     const fontSize = baseFontSize * digitMultiplier;
-    ctx.font = `bold ${fontSize}px "Arial Black", Arial, sans-serif`;
+    ctx.font = `bold ${fontSize}px Arial, sans-serif`;
     
     if (this.isClicked) {
       ctx.fillStyle = stateColors.textClicked;
