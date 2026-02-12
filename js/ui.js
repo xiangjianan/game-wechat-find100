@@ -389,12 +389,31 @@ export default class UI {
     }
 
     if (this.showInstructions) {
-      if (this.onPlayClickSound) {
-        this.onPlayClickSound();
+      const isMobile = this.width < 768;
+      const buttonWidth = isMobile ? 180 : 220;
+      const buttonHeight = isMobile ? 48 : 56;
+      const modalWidth = isMobile ? Math.min(360, this.width - 40) : 480;
+      const modalHeight = isMobile ? 420 : 480;
+      const modalX = (this.width - modalWidth) / 2;
+      const modalY = (this.height - modalHeight) / 2;
+      const buttonX = (this.width - buttonWidth) / 2;
+      const buttonY = modalY + modalHeight - (isMobile ? 80 : 90);
+
+      if (x >= buttonX && x <= buttonX + buttonWidth &&
+          y >= buttonY && y <= buttonY + buttonHeight) {
+        this.clickedButton = 'instructions_ok';
+        this.clickAnimation = 1;
+        if (this.onPlayClickSound) {
+          this.onPlayClickSound();
+        }
+        setTimeout(() => {
+          this.clickedButton = null;
+          this.clickAnimation = 0;
+          this.showInstructions = false;
+          this.hoveredButton = null;
+        }, 150);
+        return true;
       }
-      this.showInstructions = false;
-      this.hoveredButton = null;
-      this.clickedButton = null;
       return true;
     }
     
@@ -1153,8 +1172,26 @@ export default class UI {
     const buttonX = (this.width - buttonWidth) / 2;
     const buttonY = modalY + modalHeight - (isMobile ? 80 : 90);
 
-    this.drawBrutalismRect(ctx, buttonX, buttonY, buttonWidth, buttonHeight, scheme.buttonPrimary, {
-      shadowOffset: 6,
+    const isHovered = this.hoveredButton === 'instructions_ok';
+    const isClicked = this.clickedButton === 'instructions_ok';
+
+    let fillColor = scheme.buttonPrimary;
+    if (isHovered) {
+      fillColor = this.lightenColor(scheme.buttonPrimary, 0.15);
+    }
+
+    let scale = 1;
+    if (isHovered) scale = 1.02;
+    if (isClicked) scale = 0.95;
+
+    const scaledWidth = buttonWidth * scale;
+    const scaledHeight = buttonHeight * scale;
+    const scaledX = (this.width - scaledWidth) / 2;
+    const scaledY = buttonY + (buttonHeight - scaledHeight) / 2;
+
+    const shadowOffset = isClicked ? 2 : (isHovered ? 8 : 6);
+    this.drawBrutalismRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, fillColor, {
+      shadowOffset: shadowOffset,
       borderWidth: 4
     });
 
@@ -1199,10 +1236,29 @@ export default class UI {
       allButtons.push(...this.headerButtons);
     }
     
-    for (const button of allButtons) {
-      if (this.isPointInButton(this.mouseX, this.mouseY, button)) {
-        this.hoveredButton = button.id;
-        break;
+    if (this.showInstructions) {
+      const isMobile = this.width < 768;
+      const buttonWidth = isMobile ? 180 : 220;
+      const buttonHeight = isMobile ? 48 : 56;
+      const modalWidth = isMobile ? Math.min(360, this.width - 40) : 480;
+      const modalHeight = isMobile ? 420 : 480;
+      const modalX = (this.width - modalWidth) / 2;
+      const modalY = (this.height - modalHeight) / 2;
+      const buttonX = (this.width - buttonWidth) / 2;
+      const buttonY = modalY + modalHeight - (isMobile ? 80 : 90);
+
+      if (this.mouseX >= buttonX && this.mouseX <= buttonX + buttonWidth &&
+          this.mouseY >= buttonY && this.mouseY <= buttonY + buttonHeight) {
+        this.hoveredButton = 'instructions_ok';
+      }
+    }
+    
+    if (!this.hoveredButton) {
+      for (const button of allButtons) {
+        if (this.isPointInButton(this.mouseX, this.mouseY, button)) {
+          this.hoveredButton = button.id;
+          break;
+        }
       }
     }
   }
