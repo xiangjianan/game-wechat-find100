@@ -389,6 +389,9 @@ export default class UI {
     }
 
     if (this.showInstructions) {
+      if (this.onPlayClickSound) {
+        this.onPlayClickSound();
+      }
       this.showInstructions = false;
       this.hoveredButton = null;
       this.clickedButton = null;
