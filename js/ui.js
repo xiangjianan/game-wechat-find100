@@ -834,7 +834,7 @@ export default class UI {
 
     this.renderBrutalismTitle(ctx, this.width / 2, titleY, titleSize);
 
-    const sloganY = titleY + (isMobile ? 85 : 105);
+    const sloganY = titleY + (isMobile ? 110 : 140);
     ctx.font = `bold ${subtitleSize}px Arial, sans-serif`;
     ctx.fillStyle = scheme.text;
     ctx.textAlign = 'center';
