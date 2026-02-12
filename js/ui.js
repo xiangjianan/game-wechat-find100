@@ -1087,7 +1087,7 @@ export default class UI {
     ctx.fillRect(0, 0, this.width, this.height);
 
     const modalWidth = isMobile ? Math.min(360, this.width - 40) : 480;
-    const modalHeight = isMobile ? 420 : 480;
+    const modalHeight = isMobile ? 380 : 420;
     const modalX = (this.width - modalWidth) / 2;
     const modalY = (this.height - modalHeight) / 2;
 
@@ -1115,57 +1115,68 @@ export default class UI {
     if (!this.instructionsData) {
       this.instructionsData = instructions;
     }
-    
+
     this.renderInstructionsContent(ctx, instructions, modalX, modalY, modalHeight, isMobile);
   }
 
   getInstructionsData() {
     const scheme = this.getScheme();
-    if (this.gameMode === 'timed') {
-      return [
-        { icon: '1', text: '按顺序点击数字，直到100为止', color: scheme.buttonPrimary },
-        { icon: '2', text: '点对加时5秒，点错减5秒', color: scheme.buttonSuccess },
-        { icon: '3', text: '倒计时归零则通关失败', color: scheme.danger }
-      ];
-    } else {
-      return [
-        { icon: '1', text: '按顺序点击数字，直到100为止', color: scheme.buttonPrimary },
-        { icon: '2', text: '无时间限制，自由探索', color: scheme.buttonSuccess },
-        { icon: '3', text: '享受轻松的游戏体验', color: scheme.accent }
-      ];
-    }
+    return {
+      common: {
+        text: '按顺序点击数字，直到100为止'
+      },
+      timed: {
+        title: '限时模式',
+        color: scheme.buttonPrimary,
+        desc: '点对加时5s，点错减时-5s'
+      },
+      free: {
+        title: '自由模式',
+        color: scheme.accent,
+        desc: '无时间限制，自由探索'
+      }
+    };
   }
 
   renderInstructionsContent(ctx, instructions, modalX, modalY, modalHeight, isMobile) {
     const scheme = this.getScheme();
-    const contentStartY = modalY + (isMobile ? 110 : 130);
-    const lineHeight = isMobile ? 75 : 85;
 
+    const commonY = modalY + (isMobile ? 100 : 120);
+    ctx.font = `bold ${isMobile ? 16 : 18}px Arial, sans-serif`;
+    ctx.fillStyle = scheme.text;
+    ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    ctx.fillText(instructions.common.text, this.width / 2, commonY);
 
-    for (let i = 0; i < instructions.length; i++) {
-      const instruction = instructions[i];
-      const y = contentStartY + i * lineHeight;
+    const modeY = commonY + (isMobile ? 60 : 80);
+    const modeWidth = (this.width - modalX * 2 - (isMobile ? 20 : 40)) / 2;
+    const modeHeight = isMobile ? 80 : 100;
+    const leftModeX = modalX + (isMobile ? 10 : 20);
+    const rightModeX = leftModeX + modeWidth + (isMobile ? 20 : 40);
 
-      const iconSize = isMobile ? 48 : 56;
-      const iconX = modalX + (isMobile ? 30 : 40);
-      const iconY = y;
+    const modes = [
+      { key: 'timed', x: leftModeX },
+      { key: 'free', x: rightModeX }
+    ];
 
-      this.drawBrutalismRect(ctx, iconX, iconY - iconSize / 2, iconSize, iconSize, instruction.color, {
+    modes.forEach(mode => {
+      const modeData = instructions[mode.key];
+
+      this.drawBrutalismRect(ctx, mode.x, modeY, modeWidth, modeHeight, modeData.color, {
         shadowOffset: 4,
         borderWidth: 3
       });
 
-      ctx.font = `bold ${isMobile ? 22 : 26}px "Arial Black", Arial, sans-serif`;
+      ctx.font = `bold ${isMobile ? 20 : 24}px "Arial Black", Arial, sans-serif`;
       ctx.fillStyle = scheme.textLight;
       ctx.textAlign = 'center';
-      ctx.fillText(instruction.icon, iconX + iconSize / 2, iconY);
+      ctx.textBaseline = 'middle';
+      ctx.fillText(modeData.title, mode.x + modeWidth / 2, modeY + modeHeight * 0.4);
 
-      ctx.font = `bold ${isMobile ? 15 : 17}px Arial, sans-serif`;
-      ctx.fillStyle = scheme.text;
-      ctx.textAlign = 'left';
-      ctx.fillText(instruction.text, iconX + iconSize + (isMobile ? 15 : 20), y);
-    }
+      ctx.font = `bold ${isMobile ? 12 : 14}px Arial, sans-serif`;
+      ctx.fillStyle = scheme.textLight;
+      ctx.fillText(modeData.desc, mode.x + modeWidth / 2, modeY + modeHeight * 0.7);
+    });
 
     const buttonWidth = isMobile ? 180 : 220;
     const buttonHeight = isMobile ? 48 : 56;
@@ -1198,7 +1209,8 @@ export default class UI {
     ctx.fillStyle = scheme.textLight;
     ctx.font = `bold ${isMobile ? 18 : 20}px "Arial Black", Arial, sans-serif`;
     ctx.textAlign = 'center';
-    ctx.fillText('知道了', this.width / 2, buttonY + buttonHeight / 2);
+    ctx.textBaseline = 'middle';
+    ctx.fillText('知道了', this.width / 2, scaledY + scaledHeight / 2);
   }
 
   renderButtons(ctx) {
