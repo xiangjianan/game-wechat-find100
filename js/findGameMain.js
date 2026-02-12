@@ -144,6 +144,10 @@ export default class FindGameMain {
       this.soundManager.playClick();
     };
 
+    this.rankManager.onPlayClickSound = () => {
+      this.soundManager.playClick();
+    };
+
     this.ui.onOpenRank = () => {
       this.openRank();
     };

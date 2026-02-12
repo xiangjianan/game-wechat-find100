@@ -8,6 +8,7 @@ export default class RankManager {
     this.sharedCanvasContext = null;
     this.isOpen = false;
     this.onCloseCallback = null;
+    this.onPlayClickSound = null;
     this.isWeChatGame = typeof wx !== 'undefined' && wx.createOpenDataContext;
   }
 
@@ -197,6 +198,9 @@ export default class RankManager {
     const closeBtnSize = 40;
     if (x >= width - closeBtnSize && x <= width &&
         y >= 0 && y <= closeBtnSize) {
+      if (this.onPlayClickSound) {
+        this.onPlayClickSound();
+      }
       this.close();
       return true;
     }

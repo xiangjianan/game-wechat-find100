@@ -431,6 +431,9 @@ export default class UI {
       if (this.isPointInButton(x, y, button)) {
         this.clickedButton = button.id;
         this.clickAnimation = 1;
+        if (this.onPlayClickSound) {
+          this.onPlayClickSound();
+        }
         setTimeout(() => {
           this.clickedButton = null;
           this.clickAnimation = 0;
