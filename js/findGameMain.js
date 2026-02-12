@@ -27,6 +27,11 @@ export default class FindGameMain {
     this.rankManager.init();
     this.loadGameProgress();
     
+    // 加载保存的游戏模式
+    const savedMode = this.loadGameMode();
+    this.ui.setGameMode(savedMode);
+    this.gameManager.setGameMode(savedMode);
+    
     this.setupEventListeners();
     this.setupUICallbacks();
     
@@ -237,8 +242,8 @@ export default class FindGameMain {
   }
 
   setupUICallbacks() {
-    this.ui.onGameStart = (count, level) => {
-      this.startGame(count, level);
+    this.ui.onGameStart = (count, level, gameMode) => {
+      this.startGame(count, level, gameMode);
     };
 
     this.ui.onGameReset = () => {
@@ -265,6 +270,10 @@ export default class FindGameMain {
       this.closeRank();
     };
     
+    this.ui.onModeChange = (mode) => {
+      this.saveGameMode(mode);
+    };
+    
     this.gameManager.onGameComplete = (time) => {
       this.handleGameComplete(time);
     };
@@ -275,12 +284,22 @@ export default class FindGameMain {
     
     this.gameManager.onError = (center) => {
       this.soundManager.playError();
-      this.ui.showFloatingText(center.x, center.y, '-5秒', '#FF4444');
+      // 只在限时模式下显示时间提示
+      if (this.gameManager.isTimedMode()) {
+        this.ui.showFloatingText(center.x, center.y, '-5秒', '#FF4444');
+      } else {
+        this.ui.showFloatingText(center.x, center.y, '错误', '#FF4444');
+      }
     };
     
     this.gameManager.onCorrectClick = (center) => {
       this.soundManager.playClick();
-      this.ui.showFloatingText(center.x, center.y, '+5秒', '#44FF44');
+      // 只在限时模式下显示时间提示
+      if (this.gameManager.isTimedMode()) {
+        this.ui.showFloatingText(center.x, center.y, '+5秒', '#44FF44');
+      } else {
+        this.ui.showFloatingText(center.x, center.y, '正确', '#44FF44');
+      }
     };
   }
 
@@ -314,21 +333,25 @@ export default class FindGameMain {
     }
   }
 
-  startGame(count, level) {
+  startGame(count, level, gameMode = null) {
     this.ui.currentLevel = level;
-    this.gameManager.initGame(count, level);
+    // 如果没有指定游戏模式，使用当前UI中的模式
+    const mode = gameMode || this.ui.getGameMode();
+    this.gameManager.initGame(count, level, mode);
     this.ui.initGame();
   }
 
   startNextLevel(level) {
     this.ui.currentLevel = level;
-    this.startGame(this.ui.levelConfig[level].count, level);
+    const mode = this.ui.getGameMode();
+    this.startGame(this.ui.levelConfig[level].count, level, mode);
   }
 
   resetGame() {
     const count = this.gameManager.polygonCount;
     const level = this.gameManager.currentLevel;
-    this.gameManager.initGame(count, level);
+    const mode = this.ui.getGameMode();
+    this.gameManager.initGame(count, level, mode);
   }
 
   backToMenu() {
@@ -533,6 +556,39 @@ export default class FindGameMain {
     } catch (e) {
       console.log('Load game progress failed:', e);
     }
+  }
+
+  saveGameMode(mode) {
+    if (typeof wx === 'undefined' || !wx.setStorageSync) {
+      console.log('wx API not available, skipping mode save');
+      return;
+    }
+    
+    try {
+      wx.setStorageSync('gameMode', mode);
+      console.log('Game mode saved:', mode);
+    } catch (e) {
+      console.log('Save game mode failed:', e);
+    }
+  }
+
+  loadGameMode() {
+    if (typeof wx === 'undefined' || !wx.getStorageSync) {
+      console.log('wx API not available, skipping mode load');
+      return 'timed';
+    }
+    
+    try {
+      const savedMode = wx.getStorageSync('gameMode');
+      if (savedMode && (savedMode === 'timed' || savedMode === 'untimed')) {
+        console.log('Game mode loaded:', savedMode);
+        return savedMode;
+      }
+    } catch (e) {
+      console.log('Load game mode failed:', e);
+    }
+    
+    return 'timed'; // 默认返回限时模式
   }
 
   openRank() {

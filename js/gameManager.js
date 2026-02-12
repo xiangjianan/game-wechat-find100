@@ -23,11 +23,15 @@ export default class GameManager {
     this.timerInterval = null;
     this.clickCount = 0;
     this.errorCount = 0;
+    
+    // 游戏模式: 'timed' (限时模式) 或 'untimed' (无计时器模式)
+    this.gameMode = 'timed';
   }
 
-  initGame(count, level = 1) {
+  initGame(count, level = 1, gameMode = 'timed') {
     this.polygonCount = count;
     this.currentLevel = level;
+    this.gameMode = gameMode;
     this.polygons = this.generator.generatePolygons(count, 'normal');
     this.currentNumber = 1;
     this.totalNumbers = count;
@@ -37,7 +41,10 @@ export default class GameManager {
     this.clickCount = 0;
     this.errorCount = 0;
     
-    this.startTimer();
+    // 只在限时模式下启动计时器
+    if (this.gameMode === 'timed') {
+      this.startTimer();
+    }
   }
 
   handleClick(x, y) {
@@ -66,7 +73,10 @@ export default class GameManager {
     this.currentNumber++;
     this.clickCount++;
     
-    this.timeLeft += this.timeBonus;
+    // 只在限时模式下增加时间
+    if (this.gameMode === 'timed') {
+      this.timeLeft += this.timeBonus;
+    }
 
     if (this.currentNumber > this.totalNumbers) {
       this.handleGameComplete();
@@ -83,9 +93,12 @@ export default class GameManager {
     this.errorCount++;
     this.clickCount++;
     
-    this.timeLeft -= this.timeBonus;
-    if (this.timeLeft < 0) {
-      this.timeLeft = 0;
+    // 只在限时模式下减少时间
+    if (this.gameMode === 'timed') {
+      this.timeLeft -= this.timeBonus;
+      if (this.timeLeft < 0) {
+        this.timeLeft = 0;
+      }
     }
     
     if (this.onError) {
@@ -185,5 +198,17 @@ export default class GameManager {
 
   getErrorCount() {
     return this.errorCount;
+  }
+
+  getGameMode() {
+    return this.gameMode;
+  }
+
+  setGameMode(mode) {
+    this.gameMode = mode;
+  }
+
+  isTimedMode() {
+    return this.gameMode === 'timed';
   }
 }

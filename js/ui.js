@@ -41,6 +41,10 @@ export default class UI {
     this.menuAnimation = 0;
     this.menuTargetAnimation = 1;
     this.particleOffset = 0;
+    
+    // 游戏模式: 'timed' (限时模式) 或 'untimed' (无计时器模式)
+    this.gameMode = 'timed';
+    this.showModeSelector = false;
   }
 
   roundRect(ctx, x, y, width, height, radius) {
@@ -143,7 +147,39 @@ export default class UI {
     const centerX = this.width / 2;
     const startY = this.height * 0.55;
     
+    // 模式选择按钮样式
+    const modeButtonWidth = isMobile ? 160 : 200;
+    const modeButtonHeight = isMobile ? 44 : 52;
+    const modeButtonSpacing = isMobile ? 12 : 16;
+    const modeButtonsStartY = this.height * 0.35;
+    
     this.buttons = [
+      // 模式选择按钮组
+      {
+        id: 'modeTimed',
+        text: '⏱️ 限时模式',
+        x: centerX - modeButtonWidth - modeButtonSpacing / 2,
+        y: modeButtonsStartY,
+        width: modeButtonWidth,
+        height: modeButtonHeight,
+        gradientColors: this.gameMode === 'timed' ? ['#F97316', '#EA580C'] : ['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.1)'],
+        hoverGradientColors: ['#FB923C', '#F87171'],
+        shadowColor: this.gameMode === 'timed' ? 'rgba(249, 115, 22, 0.5)' : 'rgba(255, 255, 255, 0.1)',
+        action: () => this.onSelectMode('timed')
+      },
+      {
+        id: 'modeUntimed',
+        text: '♾️ 自由模式',
+        x: centerX + modeButtonSpacing / 2,
+        y: modeButtonsStartY,
+        width: modeButtonWidth,
+        height: modeButtonHeight,
+        gradientColors: this.gameMode === 'untimed' ? ['#10B981', '#059669'] : ['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.1)'],
+        hoverGradientColors: ['#34D399', '#10B981'],
+        shadowColor: this.gameMode === 'untimed' ? 'rgba(16, 185, 129, 0.5)' : 'rgba(255, 255, 255, 0.1)',
+        action: () => this.onSelectMode('untimed')
+      },
+      // 游戏主按钮
       {
         id: 'start',
         text: '开始游戏',
@@ -314,7 +350,7 @@ export default class UI {
   onStartGame() {
     this.currentLevel = 1;
     if (this.onGameStart) {
-      this.onGameStart(this.levelConfig[this.currentLevel].count, this.currentLevel);
+      this.onGameStart(this.levelConfig[this.currentLevel].count, this.currentLevel, this.gameMode);
     }
   }
 
@@ -342,7 +378,7 @@ export default class UI {
   onPlayAgain() {
     this.showCompletion = false;
     if (this.onGameStart) {
-      this.onGameStart(this.levelConfig[this.currentLevel].count, this.currentLevel);
+      this.onGameStart(this.levelConfig[this.currentLevel].count, this.currentLevel, this.gameMode);
     }
   }
 
@@ -358,6 +394,24 @@ export default class UI {
     if (this.onOpenRank) {
       this.onOpenRank();
     }
+  }
+
+  onSelectMode(mode) {
+    this.gameMode = mode;
+    this.instructionsData = null; // 清除缓存的规则数据
+    this.initMenu(); // 重新初始化菜单以更新按钮状态
+    if (this.onModeChange) {
+      this.onModeChange(mode);
+    }
+  }
+
+  setGameMode(mode) {
+    this.gameMode = mode;
+    this.instructionsData = null; // 清除缓存的规则数据
+  }
+
+  getGameMode() {
+    return this.gameMode;
   }
 
   showRank() {
@@ -1148,26 +1202,28 @@ export default class UI {
       ctx.fillText(button.text, scaledX + (scaledSize / 2) | 0, scaledY + (scaledSize / 2) | 0);
     });
 
-    // 计时器 - 与返回按钮垂直中心对齐
-    const centerX = this.width / 2;
-    const timerY = buttonY + buttonSize / 2;
-    const timerFontSize = isMobile ? 24 : 32;
-    
-    // 简化计时器颜色逻辑
-    let timerColor;
-    if (timeLeft <= 5.0) {
-      timerColor = '#EF4444';
-    } else if (timeLeft <= 10.0) {
-      timerColor = '#F59E0B';
-    } else {
-      timerColor = '#FFFFFF';
+    // 只在限时模式下显示计时器
+    if (this.gameMode === 'timed') {
+      const centerX = this.width / 2;
+      const timerY = buttonY + buttonSize / 2;
+      const timerFontSize = isMobile ? 24 : 32;
+      
+      // 简化计时器颜色逻辑
+      let timerColor;
+      if (timeLeft <= 5.0) {
+        timerColor = '#EF4444';
+      } else if (timeLeft <= 10.0) {
+        timerColor = '#F59E0B';
+      } else {
+        timerColor = '#FFFFFF';
+      }
+      
+      ctx.font = `bold ${timerFontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+      ctx.fillStyle = timerColor;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`${timeLeft.toFixed(1)}s`, centerX, timerY);
     }
-    
-    ctx.font = `bold ${timerFontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-    ctx.fillStyle = timerColor;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(`${timeLeft.toFixed(1)}s`, centerX, timerY);
   }
 
   renderFooter(ctx, footerHeight, bottomSafeArea, isMobile, currentNumber, totalNumbers) {
@@ -1262,15 +1318,27 @@ export default class UI {
     ctx.lineTo(this.width / 2 + titleWidth / 2 + 20, titleY + 20);
     ctx.stroke();
 
-    // 规则内容样式优化 - 预定义数据，避免每帧创建
-    const instructions = this.instructionsData || [
-      { icon: '🔢', text: '按顺序点击数字，直到100为止', color: '#60A5FA' },
-      { icon: '⏱️', text: '点对加时5秒，点错减5秒', color: '#34D399' },
-      { icon: '⚠️', text: '倒计时归零则通关失败', color: '#F87171' }
-    ];
+    // 规则内容样式优化 - 根据当前游戏模式显示不同的规则
+    const instructions = this.instructionsData || this.getInstructionsData();
     // 缓存数据，避免重复创建
     if (!this.instructionsData) {
       this.instructionsData = instructions;
+    }
+  }
+
+  getInstructionsData() {
+    if (this.gameMode === 'timed') {
+      return [
+        { icon: '🔢', text: '按顺序点击数字，直到100为止', color: '#60A5FA' },
+        { icon: '⏱️', text: '点对加时5秒，点错减5秒', color: '#34D399' },
+        { icon: '⚠️', text: '倒计时归零则通关失败', color: '#F87171' }
+      ];
+    } else {
+      return [
+        { icon: '🔢', text: '按顺序点击数字，直到100为止', color: '#60A5FA' },
+        { icon: '♾️', text: '无时间限制，自由探索', color: '#34D399' },
+        { icon: '✨', text: '享受轻松的游戏体验', color: '#F87171' }
+      ];
     }
 
     const contentStartY = modalY + (isMobile ? 110 : 130);
@@ -1344,7 +1412,11 @@ export default class UI {
       instructions: ['#0EA5E9', '#3B82F6'],
       instructionsHover: ['#38BDF8', '#60A5FA'],
       rank: ['#A855F7', '#EC4899'],
-      rankHover: ['#C084FC', '#F472B6']
+      rankHover: ['#C084FC', '#F472B6'],
+      modeTimed: this.gameMode === 'timed' ? ['#F97316', '#EA580C'] : ['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.1)'],
+      modeTimedHover: ['#FB923C', '#F87171'],
+      modeUntimed: this.gameMode === 'untimed' ? ['#10B981', '#059669'] : ['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.1)'],
+      modeUntimedHover: ['#34D399', '#10B981']
     };
     
     for (let i = 0; i < this.buttons.length; i++) {
@@ -1374,6 +1446,8 @@ export default class UI {
         case 'start': btnColors = isHovered ? colors.startHover : colors.start; break;
         case 'instructions': btnColors = isHovered ? colors.instructionsHover : colors.instructions; break;
         case 'rank': btnColors = isHovered ? colors.rankHover : colors.rank; break;
+        case 'modeTimed': btnColors = isHovered ? colors.modeTimedHover : colors.modeTimed; break;
+        case 'modeUntimed': btnColors = isHovered ? colors.modeUntimedHover : colors.modeUntimed; break;
         default: btnColors = colors.start;
       }
       
