@@ -231,7 +231,6 @@ export default class UI {
         width: buttonWidth,
         height: buttonHeight,
         color: this.getScheme().buttonPrimary,
-        hoverColor: this.lightenColor(this.getScheme().buttonPrimary, 0.15),
         action: () => this.onStartGame()
       },
       {
@@ -242,7 +241,6 @@ export default class UI {
         width: buttonWidth,
         height: buttonHeight,
         color: this.gameMode === 'timed' ? this.getScheme().buttonPrimary : this.getScheme().buttonSuccess,
-        hoverColor: this.gameMode === 'timed' ? this.lightenColor(this.getScheme().buttonPrimary, 0.15) : this.lightenColor(this.getScheme().buttonSuccess, 0.15),
         action: () => this.onToggleMode()
       },
       {
@@ -253,7 +251,6 @@ export default class UI {
         width: buttonWidth,
         height: buttonHeight,
         color: this.getScheme().accent,
-        hoverColor: this.lightenColor(this.getScheme().accent, 0.15),
         action: () => this.onShowInstructions()
       },
       {
@@ -264,7 +261,6 @@ export default class UI {
         width: buttonWidth,
         height: buttonHeight,
         color: this.getScheme().danger,
-        hoverColor: this.lightenColor(this.getScheme().danger, 0.15),
         action: () => this.onOpenRank()
       }
     ];
