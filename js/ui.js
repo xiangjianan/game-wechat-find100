@@ -518,10 +518,62 @@ export default class UI {
   onSelectMode(mode) {
     this.gameMode = mode;
     this.instructionsData = null;
-    this.initMenu();
+    this.refreshMenuButtons();
     if (this.onModeChange) {
       this.onModeChange(mode);
     }
+  }
+
+  refreshMenuButtons() {
+    const isMobile = this.width < 768;
+    const buttonWidth = isMobile ? 240 : 280;
+    const buttonHeight = isMobile ? 60 : 70;
+    const buttonSpacing = isMobile ? 20 : 24;
+    const centerX = this.width / 2;
+    const startY = this.height * 0.42;
+    
+    this.buttons = [
+      {
+        id: 'start',
+        text: '开始游戏',
+        x: centerX - buttonWidth / 2,
+        y: startY,
+        width: buttonWidth,
+        height: buttonHeight,
+        color: this.getScheme().buttonPrimary,
+        action: () => this.onStartGame()
+      },
+      {
+        id: 'toggleMode',
+        text: this.gameMode === 'timed' ? '限时模式' : '自由模式',
+        x: centerX - buttonWidth / 2,
+        y: startY + buttonHeight + buttonSpacing,
+        width: buttonWidth,
+        height: buttonHeight,
+        color: this.gameMode === 'timed' ? this.getScheme().buttonPrimary : this.getScheme().buttonSuccess,
+        action: () => this.onToggleMode()
+      },
+      {
+        id: 'instructions',
+        text: '游戏规则',
+        x: centerX - buttonWidth / 2,
+        y: startY + (buttonHeight + buttonSpacing) * 2,
+        width: buttonWidth,
+        height: buttonHeight,
+        color: this.getScheme().accent,
+        action: () => this.onShowInstructions()
+      },
+      {
+        id: 'rank',
+        text: '排行榜',
+        x: centerX - buttonWidth / 2,
+        y: startY + (buttonHeight + buttonSpacing) * 3,
+        width: buttonWidth,
+        height: buttonHeight,
+        color: this.getScheme().danger,
+        action: () => this.onOpenRank()
+      }
+    ];
   }
 
   onToggleMode() {
