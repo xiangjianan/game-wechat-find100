@@ -397,6 +397,10 @@ export default class UI {
     this.showCompletion = false;
     this.showFailure = false;
     this.buttons = [];
+    this.modeSwitcher.x = 0;
+    this.modeSwitcher.y = 0;
+    this.modeSwitcher.width = 0;
+    this.modeSwitcher.height = 0;
   }
 
   initCompletion(time) {
