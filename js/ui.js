@@ -204,7 +204,7 @@ export default class UI {
       ctx.fillStyle = scheme.shadow;
       ctx.fillRect(x + segmentWidth + borderWidth + offsetX + 2, y + borderWidth + offsetY + 2, segmentWidth - borderWidth * 2, height - borderWidth * 2);
       
-      ctx.fillStyle = scheme.buttonPrimary;
+      ctx.fillStyle = scheme.accent;
       ctx.fillRect(x + segmentWidth + borderWidth + offsetX, y + borderWidth + offsetY, segmentWidth - borderWidth * 2, height - borderWidth * 2);
     }
     
@@ -359,7 +359,7 @@ export default class UI {
         y: startY,
         width: buttonWidth,
         height: buttonHeight,
-        color: this.getScheme().buttonPrimary,
+        color: this.getScheme().accent,
         action: () => this.onStartGame()
       },
       {
@@ -369,7 +369,7 @@ export default class UI {
         y: startY + buttonHeight + buttonSpacing,
         width: buttonWidth,
         height: buttonHeight,
-        color: this.getScheme().accent,
+        color: this.getScheme().buttonPrimary,
         action: () => this.onShowInstructions()
       },
       {
@@ -663,7 +663,7 @@ export default class UI {
         y: startY,
         width: buttonWidth,
         height: buttonHeight,
-        color: this.getScheme().buttonPrimary,
+        color: this.getScheme().accent,
         action: () => this.onStartGame()
       },
       {
@@ -673,7 +673,7 @@ export default class UI {
         y: startY + buttonHeight + buttonSpacing,
         width: buttonWidth,
         height: buttonHeight,
-        color: this.getScheme().accent,
+        color: this.getScheme().buttonPrimary,
         action: () => this.onShowInstructions()
       },
       {
