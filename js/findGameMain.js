@@ -447,14 +447,14 @@ export default class FindGameMain {
 
   openRank() {
     this.rankManager.open(() => {
-      this.ui.hideRank();
+      this.ui.hideRankView();
     });
-    this.ui.showRank();
+    this.ui.showRankView();
   }
 
   closeRank() {
     this.rankManager.close();
-    this.ui.hideRank();
+    this.ui.hideRankView();
   }
 
   getBestTime(difficulty, count) {

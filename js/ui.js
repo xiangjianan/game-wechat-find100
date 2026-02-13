@@ -542,12 +542,12 @@ export default class UI {
     return this.gameMode;
   }
 
-  showRank() {
+  showRankView() {
     this.showRank = true;
     this.buttons = [];
   }
 
-  hideRank() {
+  hideRankView() {
     this.showRank = false;
     this.initMenu();
   }
