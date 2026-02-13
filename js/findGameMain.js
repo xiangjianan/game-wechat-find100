@@ -234,14 +234,41 @@ export default class FindGameMain {
       }
     };
     
-    this.gameManager.onCorrectClick = (center) => {
+    this.gameManager.onCorrectClick = (center, comboLevel) => {
       this.soundManager.playClick();
       this.vibrationManager.vibrateCorrect();
-      if (this.gameManager.isTimedMode()) {
-        this.ui.showFloatingText(center.x, center.y, '+5秒', '#44FF44');
-      } else {
-        this.ui.showFloatingText(center.x, center.y, '正确', '#44FF44');
+      
+      const comboCount = this.gameManager.getComboCount();
+      if (comboLevel) {
+        this.vibrationManager.vibrateCombo(comboLevel.vibration);
       }
+      
+      if (this.gameManager.isTimedMode()) {
+        if (comboCount >= 5) {
+          this.ui.showFloatingText(center.x, center.y, `+${comboCount}秒`, '#44FF44');
+        } else {
+          this.ui.showFloatingText(center.x, center.y, '+5秒', '#44FF44');
+        }
+      } else {
+        if (comboCount >= 5) {
+          this.ui.showFloatingText(center.x, center.y, `正确 ${comboCount}连击`, '#44FF44');
+        } else {
+          this.ui.showFloatingText(center.x, center.y, '正确', '#44FF44');
+        }
+      }
+    };
+    
+    this.gameManager.onComboUpdate = (count, level) => {
+      this.ui.updateCombo(count, level);
+    };
+    
+    this.gameManager.onComboLevelUp = (level, count) => {
+      this.ui.onComboLevelUp(level, count);
+      this.vibrationManager.vibrateCombo(level.vibration);
+    };
+    
+    this.gameManager.onComboBreak = (count, level) => {
+      this.ui.onComboBreak(count, level);
     };
   }
 

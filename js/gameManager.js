@@ -1,10 +1,12 @@
 import LineDividerGenerator from './lineDividerGenerator';
+import ComboManager from './comboManager';
 
 export default class GameManager {
   constructor(width, height) {
     this.width = width;
     this.height = height;
     this.generator = new LineDividerGenerator(width, height);
+    this.comboManager = new ComboManager();
     this.polygons = [];
     this.currentNumber = 1;
     this.totalNumbers = 0;
@@ -16,6 +18,9 @@ export default class GameManager {
     this.onGameComplete = null;
     this.onError = null;
     this.onCorrectClick = null;
+    this.onComboUpdate = null;
+    this.onComboLevelUp = null;
+    this.onComboBreak = null;
     
     this.timeLeft = 5.0;
     this.initialTime = 5.0;
@@ -24,6 +29,32 @@ export default class GameManager {
     this.clickCount = 0;
     this.errorCount = 0;
     this.gameMode = 'timed';
+    
+    this.setupComboCallbacks();
+  }
+
+  setupComboCallbacks() {
+    this.comboManager.onComboUpdate = (count, level) => {
+      if (this.gameMode === 'timed' && count >= 5) {
+        this.timeLeft += count;
+      }
+      
+      if (this.onComboUpdate) {
+        this.onComboUpdate(count, level);
+      }
+    };
+    
+    this.comboManager.onComboLevelUp = (level, count) => {
+      if (this.onComboLevelUp) {
+        this.onComboLevelUp(level, count);
+      }
+    };
+    
+    this.comboManager.onComboBreak = (count, level) => {
+      if (this.onComboBreak) {
+        this.onComboBreak(count, level);
+      }
+    };
   }
 
   initGame(count, level = 1, gameMode = 'timed') {
@@ -70,8 +101,15 @@ export default class GameManager {
     this.currentNumber++;
     this.clickCount++;
     
+    const comboLevel = this.comboManager.onCorrectClick();
+    const comboCount = this.comboManager.getComboCount();
+    
     if (this.gameMode === 'timed') {
-      this.timeLeft += this.timeBonus;
+      if (comboCount >= 5) {
+        // 连击时不再加基础时间，时间奖励由 onComboUpdate 处理
+      } else {
+        this.timeLeft += this.timeBonus;
+      }
     }
 
     if (this.currentNumber > this.totalNumbers) {
@@ -80,7 +118,7 @@ export default class GameManager {
     
     if (this.onCorrectClick) {
       const center = polygon.getCenter();
-      this.onCorrectClick(center);
+      this.onCorrectClick(center, comboLevel);
     }
   }
 
@@ -88,6 +126,8 @@ export default class GameManager {
     polygon.shake();
     this.errorCount++;
     this.clickCount++;
+    
+    this.comboManager.onWrongClick();
     
     if (this.gameMode === 'timed') {
       this.timeLeft -= this.timeBonus;
@@ -127,6 +167,23 @@ export default class GameManager {
     this.timeLeft = this.initialTime;
     this.clickCount = 0;
     this.errorCount = 0;
+    this.comboManager.reset();
+  }
+
+  getComboCount() {
+    return this.comboManager.getComboCount();
+  }
+
+  getComboMultiplier() {
+    return this.comboManager.getMultiplier();
+  }
+
+  getMaxCombo() {
+    return this.comboManager.getMaxCombo();
+  }
+
+  getComboLevel() {
+    return this.comboManager.getCurrentComboLevel();
   }
 
   update() {

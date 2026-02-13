@@ -69,6 +69,16 @@ export default class UI {
     this.touchStartY = 0;
     this.lastTouchY = 0;
     this.isTouching = false;
+    
+    this.comboData = {
+      count: 0,
+      level: null,
+      animation: 0,
+      scale: 1,
+      glowIntensity: 0,
+      breakAnimation: 0
+    };
+    this.comboParticles = [];
   }
 
   getScheme() {
@@ -375,6 +385,8 @@ export default class UI {
   }
 
   updateEffects(deltaTime) {
+    this.updateComboEffects(deltaTime);
+    
     for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
       const ft = this.floatingTexts[i];
       ft.life -= deltaTime * 1.5;
@@ -1218,6 +1230,10 @@ export default class UI {
 
     this.renderButtons(ctx);
     
+    if (gameState === 'playing') {
+      this.renderComboDisplay(ctx);
+    }
+    
     if (this.showModal) {
       this.renderModal(ctx);
     }
@@ -1814,6 +1830,164 @@ export default class UI {
 
   handleTouchEnd() {
     this.isTouching = false;
+  }
+
+  updateCombo(count, level) {
+    const previousCount = this.comboData.count;
+    const previousLevel = this.comboData.level;
+    
+    this.comboData.count = count;
+    this.comboData.level = level;
+    
+    if (count > 0) {
+      this.comboData.animation = Math.min(1, this.comboData.animation + 0.1);
+      this.comboData.scale = 1.2;
+      this.comboData.glowIntensity = level ? 1 : 0.5;
+      
+      if (count >= 5 && count !== previousCount) {
+        this.createComboParticles(level, count);
+        this.comboData.scale = 1.4;
+      }
+    } else {
+      this.comboData.animation = Math.max(0, this.comboData.animation - 0.1);
+      this.comboData.glowIntensity = 0;
+    }
+    
+    if (level && level !== previousLevel) {
+      this.flashScreen(level.color, 0.3);
+    }
+  }
+
+  onComboLevelUp(level, count) {
+    this.comboData.scale = 1.6;
+    this.createComboParticles(level, count);
+    this.flashScreen(level.color, 0.4);
+  }
+
+  onComboBreak(count, level) {
+    this.comboData.breakAnimation = 1;
+    this.comboData.count = 0;
+    this.comboData.level = null;
+  }
+
+  createComboParticles(level, count) {
+    const particleCount = Math.min(count || 5, 20);
+    const color = level ? level.color : '#FFD700';
+    
+    for (let i = 0; i < particleCount; i++) {
+      this.comboParticles.push({
+        x: this.width / 2 + (Math.random() - 0.5) * 100,
+        y: this.height / 3 + (Math.random() - 0.5) * 50,
+        vx: (Math.random() - 0.5) * 12,
+        vy: (Math.random() - 0.5) * 12 - 3,
+        size: Math.random() * 10 + 5,
+        color: color,
+        alpha: 1,
+        life: 1
+      });
+    }
+  }
+
+  updateComboEffects(deltaTime) {
+    if (this.comboData.scale > 1) {
+      this.comboData.scale = Math.max(1, this.comboData.scale - deltaTime * 2);
+    }
+    
+    if (this.comboData.breakAnimation > 0) {
+      this.comboData.breakAnimation = Math.max(0, this.comboData.breakAnimation - deltaTime * 3);
+    }
+    
+    for (let i = this.comboParticles.length - 1; i >= 0; i--) {
+      const particle = this.comboParticles[i];
+      particle.x += particle.vx;
+      particle.y += particle.vy;
+      particle.vy += 0.3;
+      particle.life -= deltaTime * 2;
+      particle.alpha = particle.life;
+      
+      if (particle.life <= 0) {
+        this.comboParticles.splice(i, 1);
+      }
+    }
+  }
+
+  renderComboDisplay(ctx) {
+    if (this.comboData.count < 5) return;
+    
+    const scheme = this.getScheme();
+    const isMobile = this.width < 768;
+    const centerX = this.width / 2;
+    const centerY = isMobile ? 80 : 100;
+    
+    const level = this.comboData.level;
+    const color = level ? level.color : scheme.accent;
+    const scale = this.comboData.scale;
+    
+    ctx.save();
+    
+    if (this.comboData.glowIntensity > 0) {
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 20 * this.comboData.glowIntensity;
+    }
+    
+    ctx.translate(centerX, centerY);
+    ctx.scale(scale, scale);
+    ctx.translate(-centerX, -centerY);
+    
+    const boxWidth = isMobile ? 120 : 150;
+    const boxHeight = isMobile ? 50 : 60;
+    const boxX = centerX - boxWidth / 2;
+    const boxY = centerY - boxHeight / 2;
+    
+    this.drawBrutalismRect(ctx, boxX, boxY, boxWidth, boxHeight, color, {
+      shadowOffset: 4,
+      borderWidth: 3
+    });
+    
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = `bold ${isMobile ? 24 : 28}px "Arial Black", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`${this.comboData.count}连击`, centerX, centerY - (isMobile ? 5 : 8));
+    
+    if (level) {
+      ctx.font = `bold ${isMobile ? 12 : 14}px Arial, sans-serif`;
+      ctx.fillText(level.name, centerX, centerY + (isMobile ? 15 : 18));
+    }
+    
+    ctx.restore();
+    
+    this.renderComboParticles(ctx);
+    
+    if (this.comboData.breakAnimation > 0) {
+      this.renderComboBreakEffect(ctx);
+    }
+  }
+
+  renderComboParticles(ctx) {
+    for (const particle of this.comboParticles) {
+      ctx.save();
+      ctx.globalAlpha = particle.alpha;
+      ctx.fillStyle = particle.color;
+      ctx.beginPath();
+      ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  renderComboBreakEffect(ctx) {
+    const alpha = this.comboData.breakAnimation;
+    ctx.save();
+    ctx.globalAlpha = alpha * 0.5;
+    ctx.fillStyle = '#FF0000';
+    ctx.fillRect(0, 0, this.width, this.height);
+    ctx.restore();
+  }
+
+  flashScreen(color, intensity) {
+    this.flashAlpha = intensity;
+    this.flashColor = color;
   }
 
   renderButtons(ctx) {

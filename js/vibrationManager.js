@@ -113,6 +113,46 @@ export default class VibrationManager {
     } catch (e) {}
   }
 
+  vibrateCombo(intensity) {
+    if (!this.enabled || !this.supported) return;
+
+    try {
+      switch (intensity) {
+        case 'light':
+          if (typeof wx !== 'undefined' && typeof wx.vibrateShort === 'function') {
+            wx.vibrateShort({ type: 'light' });
+          } else if (typeof navigator !== 'undefined' && navigator.vibrate) {
+            navigator.vibrate(20);
+          }
+          break;
+          
+        case 'medium':
+          if (typeof wx !== 'undefined' && typeof wx.vibrateShort === 'function') {
+            wx.vibrateShort({ type: 'medium' });
+            setTimeout(() => {
+              if (this.enabled && typeof wx.vibrateShort === 'function') {
+                wx.vibrateShort({ type: 'medium' });
+              }
+            }, 50);
+          } else if (typeof navigator !== 'undefined' && navigator.vibrate) {
+            navigator.vibrate([30, 30, 30]);
+          }
+          break;
+          
+        case 'heavy':
+          if (typeof wx !== 'undefined' && typeof wx.vibrateLong === 'function') {
+            wx.vibrateLong({});
+          } else if (typeof navigator !== 'undefined' && navigator.vibrate) {
+            navigator.vibrate([50, 30, 50, 30, 50]);
+          }
+          break;
+          
+        default:
+          this.vibrateShort();
+      }
+    } catch (e) {}
+  }
+
   setEnabled(enabled) {
     this.enabled = enabled;
   }
