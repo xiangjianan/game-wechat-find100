@@ -4,6 +4,7 @@ import UI from './ui';
 import SoundManager from './soundManager';
 import RankManager from './rankManager';
 import VibrationManager from './vibrationManager';
+import AchievementManager from './achievementManager';
 import { getColorScheme } from './constants/colors';
 
 let canvas;
@@ -23,11 +24,13 @@ export default class FindGameMain {
     this.soundManager = new SoundManager();
     this.rankManager = new RankManager();
     this.vibrationManager = new VibrationManager();
+    this.achievementManager = new AchievementManager();
     this.aniId = 0;
     
     this.soundManager.init();
     this.rankManager.init();
     this.vibrationManager.checkSupport();
+    this.achievementManager.loadProgress();
     this.loadGameProgress();
     
     const savedMode = this.loadGameMode();
@@ -51,6 +54,7 @@ export default class FindGameMain {
         const y = touch.clientY;
         
         this.ui.updateMousePosition(x, y);
+        this.ui.handleTouchStart(y);
         this.handleInput(x, y);
       } catch (error) {
         // 静默处理错误
@@ -65,6 +69,15 @@ export default class FindGameMain {
         const x = touch.clientX;
         const y = touch.clientY;
         this.ui.updateMousePosition(x, y);
+        this.ui.handleTouchMove(y);
+      } catch (error) {
+        // 静默处理错误
+      }
+    };
+    
+    const handleTouchEnd = (res) => {
+      try {
+        this.ui.handleTouchEnd();
       } catch (error) {
         // 静默处理错误
       }
@@ -73,6 +86,7 @@ export default class FindGameMain {
     if (typeof wx !== 'undefined' && typeof wx.onTouchStart === 'function') {
       wx.onTouchStart(handleTouchStart);
       wx.onTouchMove(handleTouchMove);
+      wx.onTouchEnd(handleTouchEnd);
     } else {
       if (!canvas || typeof canvas.addEventListener !== 'function') return;
       
@@ -89,7 +103,33 @@ export default class FindGameMain {
           const y = touch.clientY - rect.top;
           
           this.ui.updateMousePosition(x, y);
+          this.ui.handleTouchStart(y);
           this.handleInput(x, y);
+        } catch (error) {
+          // 静默处理错误
+        }
+      };
+      
+      const handleTouchMoveEvent = (e) => {
+        try {
+          e.preventDefault();
+          e.stopPropagation();
+          if (e.touches && e.touches.length > 0) {
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            this.ui.updateMousePosition(x, y);
+            this.ui.handleTouchMove(y);
+          }
+        } catch (error) {
+          // 静默处理错误
+        }
+      };
+      
+      const handleTouchEndEvent = (e) => {
+        try {
+          this.ui.handleTouchEnd();
         } catch (error) {
           // 静默处理错误
         }
@@ -111,18 +151,23 @@ export default class FindGameMain {
         }
       };
       
-      canvas.addEventListener('touchstart', handleTouch, { passive: false });
-      canvas.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (e.touches && e.touches.length > 0) {
-          const touch = e.touches[0];
-          const rect = canvas.getBoundingClientRect();
-          this.ui.updateMousePosition(touch.clientX - rect.left, touch.clientY - rect.top);
+      const handleWheel = (e) => {
+        try {
+          if (this.ui.showAchievements) {
+            e.preventDefault();
+            this.ui.handleAchievementsScroll(e.deltaY);
+          }
+        } catch (error) {
+          // 静默处理错误
         }
-      }, { passive: false });
+      };
+      
+      canvas.addEventListener('touchstart', handleTouch, { passive: false });
+      canvas.addEventListener('touchmove', handleTouchMoveEvent, { passive: false });
+      canvas.addEventListener('touchend', handleTouchEndEvent, { passive: false });
       canvas.addEventListener('mousemove', handleMouse);
       canvas.addEventListener('click', handleMouse);
+      canvas.addEventListener('wheel', handleWheel, { passive: false });
     }
   }
 
@@ -157,6 +202,14 @@ export default class FindGameMain {
 
     this.ui.onCloseRank = () => {
       this.closeRank();
+    };
+    
+    this.ui.onAchievementsOpen = () => {
+      this.openAchievements();
+    };
+
+    this.ui.onAchievementsClose = () => {
+      this.closeAchievements();
     };
     
     this.ui.onModeChange = (mode) => {
@@ -241,6 +294,21 @@ export default class FindGameMain {
     
     this.rankManager.uploadScore(time, this.gameManager.currentLevel);
     
+    const achievementData = {
+      level: this.gameManager.currentLevel,
+      time: time,
+      errors: this.gameManager.getErrorCount(),
+      totalNumbers: this.gameManager.totalNumbers,
+      mode: this.gameManager.getGameMode()
+    };
+    
+    const unlockedAchievements = this.achievementManager.checkAchievement('level_complete', achievementData);
+    this.achievementManager.checkAchievement('game_complete', achievementData);
+    
+    if (unlockedAchievements.length > 0) {
+      this.ui.showAchievementNotification(unlockedAchievements);
+    }
+    
     if (this.ui.shouldAutoAdvance()) {
       this.ui.showModalDialog(
         'gameComplete',
@@ -298,6 +366,13 @@ export default class FindGameMain {
 
   handleGameFailed() {
     this.soundManager.playError();
+    
+    this.achievementManager.checkAchievement('game_fail', {
+      level: this.gameManager.currentLevel,
+      progress: this.gameManager.getProgress(),
+      total: this.gameManager.getTotalProgress()
+    });
+    
     this.ui.showModalDialog(
       'gameFailed',
       '再接再厉！',
@@ -462,6 +537,14 @@ export default class FindGameMain {
   closeRank() {
     this.rankManager.close();
     this.ui.hideRankView();
+  }
+
+  openAchievements() {
+    this.ui.achievementsData = this.achievementManager.getAllAchievements();
+  }
+
+  closeAchievements() {
+    this.ui.showAchievements = false;
   }
 
   getBestTime(difficulty, count) {

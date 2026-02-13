@@ -59,6 +59,16 @@ export default class UI {
       hoveredSegment: null,
       clickedSegment: null
     };
+    
+    this.achievementNotifications = [];
+    this.achievementNotificationDuration = 3000;
+    
+    this.showAchievements = false;
+    this.achievementsData = null;
+    this.achievementScrollOffset = 0;
+    this.touchStartY = 0;
+    this.lastTouchY = 0;
+    this.isTouching = false;
   }
 
   getScheme() {
@@ -287,6 +297,83 @@ export default class UI {
     this.shakeTime = 10;
   }
 
+  showAchievementNotification(achievements) {
+    if (!achievements || achievements.length === 0) return;
+    
+    achievements.forEach((achievement, index) => {
+      this.achievementNotifications.push({
+        achievement,
+        startTime: Date.now() + index * 500,
+        animation: 0,
+        targetAnimation: 1
+      });
+    });
+  }
+
+  updateAchievementNotifications(deltaTime) {
+    const now = Date.now();
+    
+    for (let i = this.achievementNotifications.length - 1; i >= 0; i--) {
+      const notification = this.achievementNotifications[i];
+      
+      if (now < notification.startTime) continue;
+      
+      const elapsed = now - notification.startTime;
+      
+      if (elapsed < 300) {
+        notification.animation = Math.min(1, notification.animation + deltaTime * 5);
+      } else if (elapsed > this.achievementNotificationDuration - 300) {
+        notification.animation = Math.max(0, notification.animation - deltaTime * 5);
+      }
+      
+      if (elapsed > this.achievementNotificationDuration) {
+        this.achievementNotifications.splice(i, 1);
+      }
+    }
+  }
+
+  renderAchievementNotifications(ctx) {
+    const scheme = this.getScheme();
+    const isMobile = this.width < 768;
+    
+    for (const notification of this.achievementNotifications) {
+      if (notification.animation <= 0) continue;
+      
+      const achievement = notification.achievement;
+      const alpha = notification.animation;
+      
+      const notificationWidth = isMobile ? 280 : 320;
+      const notificationHeight = isMobile ? 80 : 90;
+      const notificationX = (this.width - notificationWidth) / 2;
+      const notificationY = isMobile ? 100 : 120;
+      
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      
+      const slideOffset = (1 - notification.animation) * 50;
+      const actualY = notificationY - slideOffset;
+      
+      this.drawBrutalismRect(ctx, notificationX, actualY, notificationWidth, notificationHeight, scheme.buttonSuccess, {
+        shadowOffset: 8,
+        borderWidth: 4
+      });
+      
+      ctx.fillStyle = scheme.textLight;
+      ctx.font = `bold ${isMobile ? 14 : 16}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('成就解锁!', this.width / 2, actualY + (isMobile ? 20 : 25));
+      
+      ctx.font = `bold ${isMobile ? 28 : 32}px Arial, sans-serif`;
+      ctx.fillText(achievement.icon, this.width / 2, actualY + (isMobile ? 50 : 55));
+      
+      ctx.font = `bold ${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
+      ctx.fillText(achievement.name, this.width / 2, actualY + notificationHeight - (isMobile ? 15 : 18));
+      
+      ctx.restore();
+    }
+  }
+
   updateEffects(deltaTime) {
     for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
       const ft = this.floatingTexts[i];
@@ -343,6 +430,7 @@ export default class UI {
     this.modalTargetAnimation = 0;
     this.menuAnimation = 0;
     this.menuTargetAnimation = 1;
+    this.showAchievements = false;
     
     const isMobile = this.width < 768;
     const buttonWidth = isMobile ? 240 : 280;
@@ -373,10 +461,20 @@ export default class UI {
         action: () => this.onShowInstructions()
       },
       {
+        id: 'achievements',
+        text: '成就',
+        x: centerX - buttonWidth / 2,
+        y: startY + (buttonHeight + buttonSpacing) * 2,
+        width: buttonWidth,
+        height: buttonHeight,
+        color: this.getScheme().buttonSuccess,
+        action: () => this.onOpenAchievements()
+      },
+      {
         id: 'rank',
         text: '排行榜',
         x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 2,
+        y: startY + (buttonHeight + buttonSpacing) * 3,
         width: buttonWidth,
         height: buttonHeight,
         color: this.getScheme().danger,
@@ -505,6 +603,34 @@ export default class UI {
   handleClick(x, y) {
     if (this.showRank) {
       return false;
+    }
+
+    if (this.showAchievements) {
+      const isMobile = this.width < 768;
+      const buttonWidth = isMobile ? 180 : 220;
+      const buttonHeight = isMobile ? 48 : 56;
+      const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
+      const modalHeight = isMobile ? this.height - 80 : this.height - 100;
+      const modalY = (this.height - modalHeight) / 2;
+      const buttonX = (this.width - buttonWidth) / 2;
+      const buttonY = modalY + modalHeight - (isMobile ? 70 : 80);
+
+      if (x >= buttonX && x <= buttonX + buttonWidth &&
+          y >= buttonY && y <= buttonY + buttonHeight) {
+        this.clickedButton = 'achievements_close';
+        this.clickAnimation = 1;
+        if (this.onPlayClickSound) {
+          this.onPlayClickSound();
+        }
+        setTimeout(() => {
+          this.clickedButton = null;
+          this.clickAnimation = 0;
+          this.onCloseAchievements();
+          this.hoveredButton = null;
+        }, 150);
+        return true;
+      }
+      return true;
     }
 
     if (this.showInstructions) {
@@ -641,6 +767,21 @@ export default class UI {
       this.onOpenRank();
     }
   }
+  
+  onOpenAchievements() {
+    this.showAchievements = true;
+    this.achievementScrollOffset = 0;
+    if (this.onAchievementsOpen) {
+      this.onAchievementsOpen();
+    }
+  }
+  
+  onCloseAchievements() {
+    this.showAchievements = false;
+    if (this.onAchievementsClose) {
+      this.onAchievementsClose();
+    }
+  }
 
   onSelectMode(mode) {
     this.gameMode = mode;
@@ -681,10 +822,20 @@ export default class UI {
         action: () => this.onShowInstructions()
       },
       {
+        id: 'achievements',
+        text: '成就',
+        x: centerX - buttonWidth / 2,
+        y: startY + (buttonHeight + buttonSpacing) * 2,
+        width: buttonWidth,
+        height: buttonHeight,
+        color: this.getScheme().buttonSuccess,
+        action: () => this.onOpenAchievements()
+      },
+      {
         id: 'rank',
         text: '排行榜',
         x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 2,
+        y: startY + (buttonHeight + buttonSpacing) * 3,
         width: buttonWidth,
         height: buttonHeight,
         color: this.getScheme().danger,
@@ -963,10 +1114,20 @@ export default class UI {
 
     this.updateEffects(deltaTime);
     this.updateMenuAnimation(deltaTime);
+    this.updateAchievementNotifications(deltaTime);
+
+    if (this.showAchievements) {
+      this.renderMenu(ctx);
+      this.renderAchievements(ctx);
+      this.renderEffects(ctx);
+      this.renderAchievementNotifications(ctx);
+      return;
+    }
 
     if (this.showInstructions) {
       this.renderInstructions(ctx);
       this.renderEffects(ctx);
+      this.renderAchievementNotifications(ctx);
       return;
     }
 
@@ -987,6 +1148,7 @@ export default class UI {
     }
 
     this.renderEffects(ctx);
+    this.renderAchievementNotifications(ctx);
   }
 
   updateMenuAnimation(deltaTime) {
@@ -1388,6 +1550,197 @@ export default class UI {
     ctx.fillText('知道了', this.width / 2, scaledY + scaledHeight / 2);
   }
 
+  renderAchievements(ctx) {
+    const scheme = this.getScheme();
+    const isMobile = this.width < 768;
+
+    ctx.fillStyle = `rgba(0, 0, 0, 0.8)`;
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
+    const modalHeight = isMobile ? this.height - 80 : this.height - 100;
+    const modalX = (this.width - modalWidth) / 2;
+    const modalY = (this.height - modalHeight) / 2;
+
+    this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
+      shadowOffset: 10,
+      borderWidth: 5
+    });
+
+    const titleY = modalY + (isMobile ? 40 : 50);
+    ctx.fillStyle = scheme.text;
+    ctx.font = `bold ${isMobile ? 28 : 34}px "Arial Black", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('成就', this.width / 2, titleY);
+
+    const titleWidth = ctx.measureText('成就').width;
+    ctx.strokeStyle = scheme.buttonSuccess;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(this.width / 2 - titleWidth / 2 - 20, titleY + 25);
+    ctx.lineTo(this.width / 2 + titleWidth / 2 + 20, titleY + 25);
+    ctx.stroke();
+
+    if (this.achievementsData) {
+      this.renderAchievementsList(ctx, modalX, modalY, modalWidth, modalHeight, isMobile);
+    }
+
+    const buttonWidth = isMobile ? 180 : 220;
+    const buttonHeight = isMobile ? 48 : 56;
+    const buttonX = (this.width - buttonWidth) / 2;
+    const buttonY = modalY + modalHeight - (isMobile ? 70 : 80);
+
+    const isHovered = this.hoveredButton === 'achievements_close';
+    const isClicked = this.clickedButton === 'achievements_close';
+
+    let fillColor = scheme.buttonPrimary;
+    if (isHovered) {
+      fillColor = this.lightenColor(scheme.buttonPrimary, 0.15);
+    }
+
+    let scale = 1;
+    if (isHovered) scale = 1.02;
+    if (isClicked) scale = 0.95;
+
+    const scaledWidth = buttonWidth * scale;
+    const scaledHeight = buttonHeight * scale;
+    const scaledX = (this.width - scaledWidth) / 2;
+    const scaledY = buttonY + (buttonHeight - scaledHeight) / 2;
+
+    const shadowOffset = isClicked ? 2 : (isHovered ? 8 : 6);
+    this.drawBrutalismRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, fillColor, {
+      shadowOffset: shadowOffset,
+      borderWidth: 4
+    });
+
+    ctx.fillStyle = scheme.textLight;
+    ctx.font = `bold ${isMobile ? 18 : 20}px "Arial Black", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('返回', this.width / 2, scaledY + scaledHeight / 2);
+  }
+
+  renderAchievementsList(ctx, modalX, modalY, modalWidth, modalHeight, isMobile) {
+    const scheme = this.getScheme();
+    const achievements = this.achievementsData;
+    
+    if (!achievements || achievements.length === 0) return;
+
+    const listStartY = modalY + (isMobile ? 90 : 110);
+    const listEndY = modalY + modalHeight - (isMobile ? 90 : 100);
+    const listHeight = listEndY - listStartY;
+    const itemHeight = isMobile ? 70 : 80;
+    const itemPadding = isMobile ? 8 : 10;
+    const itemWidth = modalWidth - (isMobile ? 20 : 30);
+    const itemX = modalX + (isMobile ? 10 : 15);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(modalX, listStartY, modalWidth, listHeight);
+    ctx.clip();
+
+    const totalHeight = achievements.length * (itemHeight + itemPadding);
+    const maxScroll = Math.max(0, totalHeight - listHeight);
+    this.achievementScrollOffset = Math.max(0, Math.min(this.achievementScrollOffset, maxScroll));
+
+    achievements.forEach((achievement, index) => {
+      const itemY = listStartY + index * (itemHeight + itemPadding) - this.achievementScrollOffset;
+      
+      if (itemY + itemHeight < listStartY || itemY > listEndY) return;
+
+      const bgColor = achievement.unlocked ? scheme.buttonSuccess : scheme.cardBg;
+      const alpha = achievement.unlocked ? 1 : 0.6;
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+
+      this.drawBrutalismRect(ctx, itemX, itemY, itemWidth, itemHeight, bgColor, {
+        shadowOffset: achievement.unlocked ? 4 : 2,
+        borderWidth: achievement.unlocked ? 3 : 2
+      });
+
+      ctx.font = `bold ${isMobile ? 28 : 32}px Arial, sans-serif`;
+      ctx.fillStyle = achievement.unlocked ? scheme.textLight : scheme.text;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(achievement.icon, itemX + (isMobile ? 12 : 15), itemY + itemHeight / 2);
+
+      ctx.font = `bold ${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
+      ctx.fillText(achievement.name, itemX + (isMobile ? 55 : 65), itemY + (isMobile ? 22 : 25));
+
+      ctx.font = `${isMobile ? 12 : 14}px Arial, sans-serif`;
+      ctx.fillStyle = achievement.unlocked ? scheme.textLight : scheme.text;
+      ctx.globalAlpha = achievement.unlocked ? 0.9 : 0.5;
+      ctx.fillText(achievement.description, itemX + (isMobile ? 55 : 65), itemY + (isMobile ? 45 : 50));
+
+      if (!achievement.unlocked && achievement.progress !== undefined && achievement.target !== undefined) {
+        const progressText = `${achievement.progress}/${achievement.target}`;
+        ctx.font = `bold ${isMobile ? 12 : 14}px Arial, sans-serif`;
+        ctx.fillStyle = scheme.accent;
+        ctx.globalAlpha = 1;
+        ctx.textAlign = 'right';
+        ctx.fillText(progressText, itemX + itemWidth - (isMobile ? 12 : 15), itemY + (isMobile ? 45 : 50));
+      }
+
+      if (achievement.unlocked && achievement.reward) {
+        const rewardText = `+${achievement.reward.amount}金币`;
+        ctx.font = `bold ${isMobile ? 12 : 14}px Arial, sans-serif`;
+        ctx.fillStyle = scheme.textLight;
+        ctx.globalAlpha = 0.8;
+        ctx.textAlign = 'right';
+        ctx.fillText(rewardText, itemX + itemWidth - (isMobile ? 12 : 15), itemY + (isMobile ? 45 : 50));
+      }
+
+      ctx.restore();
+    });
+
+    ctx.restore();
+
+    const unlockedCount = achievements.filter(a => a.unlocked).length;
+    const totalCount = achievements.length;
+    const progressText = `已解锁: ${unlockedCount}/${totalCount}`;
+    
+    ctx.fillStyle = scheme.text;
+    ctx.font = `bold ${isMobile ? 14 : 16}px Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(progressText, this.width / 2, modalY + (isMobile ? 70 : 85));
+  }
+
+  handleAchievementsScroll(deltaY) {
+    if (!this.showAchievements) return;
+    
+    this.achievementScrollOffset += deltaY;
+  }
+
+  handleTouchStart(y) {
+    if (!this.showAchievements) return;
+    this.touchStartY = y;
+    this.lastTouchY = y;
+    this.isTouching = true;
+  }
+
+  handleTouchMove(y) {
+    if (!this.showAchievements || !this.isTouching) return;
+    
+    const deltaY = this.lastTouchY - y;
+    this.lastTouchY = y;
+    
+    const isMobile = this.width < 768;
+    const modalHeight = isMobile ? this.height - 80 : this.height - 100;
+    const listStartY = (this.height - modalHeight) / 2 + (isMobile ? 90 : 110);
+    const listEndY = (this.height - modalHeight) / 2 + modalHeight - (isMobile ? 90 : 100);
+    
+    if (y >= listStartY && y <= listEndY) {
+      this.achievementScrollOffset += deltaY;
+    }
+  }
+
+  handleTouchEnd() {
+    this.isTouching = false;
+  }
+
   renderButtons(ctx) {
     const isMobile = this.width < 768;
     
@@ -1422,6 +1775,23 @@ export default class UI {
     
     if (this.headerButtons) {
       allButtons.push(...this.headerButtons);
+    }
+    
+    if (this.showAchievements) {
+      const isMobile = this.width < 768;
+      const buttonWidth = isMobile ? 180 : 220;
+      const buttonHeight = isMobile ? 48 : 56;
+      const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
+      const modalHeight = isMobile ? this.height - 80 : this.height - 100;
+      const modalY = (this.height - modalHeight) / 2;
+      const buttonX = (this.width - buttonWidth) / 2;
+      const buttonY = modalY + modalHeight - (isMobile ? 70 : 80);
+
+      if (this.mouseX >= buttonX && this.mouseX <= buttonX + buttonWidth &&
+          this.mouseY >= buttonY && this.mouseY <= buttonY + buttonHeight) {
+        this.hoveredButton = 'achievements_close';
+      }
+      return;
     }
     
     if (this.showInstructions) {
