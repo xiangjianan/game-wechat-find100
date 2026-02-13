@@ -3,6 +3,7 @@ import GameManager from './gameManager';
 import UI from './ui';
 import SoundManager from './soundManager';
 import RankManager from './rankManager';
+import VibrationManager from './vibrationManager';
 import { getColorScheme } from './constants/colors';
 
 let canvas;
@@ -21,10 +22,12 @@ export default class FindGameMain {
     this.ui = new UI(SCREEN_WIDTH, SCREEN_HEIGHT);
     this.soundManager = new SoundManager();
     this.rankManager = new RankManager();
+    this.vibrationManager = new VibrationManager();
     this.aniId = 0;
     
     this.soundManager.init();
     this.rankManager.init();
+    this.vibrationManager.checkSupport();
     this.loadGameProgress();
     
     const savedMode = this.loadGameMode();
@@ -170,6 +173,7 @@ export default class FindGameMain {
     
     this.gameManager.onError = (center) => {
       this.soundManager.playError();
+      this.vibrationManager.vibrateError();
       if (this.gameManager.isTimedMode()) {
         this.ui.showFloatingText(center.x, center.y, '-5秒', '#FF4444');
       } else {
@@ -179,6 +183,7 @@ export default class FindGameMain {
     
     this.gameManager.onCorrectClick = (center) => {
       this.soundManager.playClick();
+      this.vibrationManager.vibrateCorrect();
       if (this.gameManager.isTimedMode()) {
         this.ui.showFloatingText(center.x, center.y, '+5秒', '#44FF44');
       } else {
