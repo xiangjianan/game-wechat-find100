@@ -914,7 +914,17 @@ export default class UI {
     ctx.fillRect(0, 0, this.width, this.height);
 
     const modalWidth = isMobile ? Math.min(360, this.width - 40) : 440;
-    const modalHeight = this.modalType === 'gameComplete' ? (isMobile ? 420 : 480) : (isMobile ? 380 : 420);
+    const hasScoreInMessage = this.modalMessage && this.modalMessage.includes('得分');
+    let modalHeight;
+    
+    if (this.modalType === 'gameComplete') {
+      modalHeight = isMobile ? 420 : 480;
+    } else if (this.modalType === 'gameFailed') {
+      modalHeight = hasScoreInMessage ? (isMobile ? 480 : 540) : (isMobile ? 380 : 420);
+    } else {
+      modalHeight = isMobile ? 380 : 420;
+    }
+    
     const modalX = (this.width - modalWidth) / 2;
     const modalY = (this.height - modalHeight) / 2;
 
