@@ -446,10 +446,12 @@ export default class FindGameMain {
   }
 
   openRank() {
-    this.rankManager.open(() => {
+    const opened = this.rankManager.open(() => {
       this.ui.hideRankView();
     });
-    this.ui.showRankView();
+    if (opened !== false) {
+      this.ui.showRankView();
+    }
   }
 
   closeRank() {

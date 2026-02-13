@@ -87,7 +87,7 @@ export default class RankManager {
   open(onClose = null) {
     if (!this.isWeChatGame) {
       console.log('非微信小游戏环境，无法打开排行榜');
-      return;
+      return false;
     }
 
     this.isOpen = true;
@@ -100,6 +100,7 @@ export default class RankManager {
     });
 
     console.log('排行榜已打开');
+    return true;
   }
 
   /**
