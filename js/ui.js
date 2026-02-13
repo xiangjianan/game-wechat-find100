@@ -70,6 +70,12 @@ export default class UI {
     this.lastTouchY = 0;
     this.isTouching = false;
     
+    this.scrollVelocity = 0;
+    this.scrollFriction = 0.95;
+    this.scrollMinVelocity = 0.5;
+    this.lastScrollDelta = 0;
+    this.lastScrollTime = 0;
+    
     this.comboData = {
       count: 0,
       level: null,
@@ -386,6 +392,7 @@ export default class UI {
 
   updateEffects(deltaTime) {
     this.updateComboEffects(deltaTime);
+    this.updateScrollInertia(deltaTime);
     
     for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
       const ft = this.floatingTexts[i];
@@ -1803,6 +1810,8 @@ export default class UI {
     if (!this.showAchievements) return;
     
     this.achievementScrollOffset += deltaY;
+    this.scrollVelocity = deltaY;
+    this.lastScrollTime = Date.now();
   }
 
   handleTouchStart(y) {
@@ -1810,13 +1819,18 @@ export default class UI {
     this.touchStartY = y;
     this.lastTouchY = y;
     this.isTouching = true;
+    this.scrollVelocity = 0;
+    this.lastScrollDelta = 0;
   }
 
   handleTouchMove(y) {
     if (!this.showAchievements || !this.isTouching) return;
     
+    const now = Date.now();
+    const deltaTime = now - this.lastScrollTime;
     const deltaY = this.lastTouchY - y;
     this.lastTouchY = y;
+    this.lastScrollTime = now;
     
     const isMobile = this.width < 768;
     const modalHeight = isMobile ? this.height - 80 : this.height - 100;
@@ -1825,11 +1839,27 @@ export default class UI {
     
     if (y >= listStartY && y <= listEndY) {
       this.achievementScrollOffset += deltaY;
+      
+      if (deltaTime > 0) {
+        this.scrollVelocity = deltaY / deltaTime * 16;
+      }
+      this.lastScrollDelta = deltaY;
     }
   }
 
   handleTouchEnd() {
     this.isTouching = false;
+  }
+
+  updateScrollInertia(deltaTime) {
+    if (!this.showAchievements || this.isTouching) return;
+    
+    if (Math.abs(this.scrollVelocity) > this.scrollMinVelocity) {
+      this.achievementScrollOffset += this.scrollVelocity;
+      this.scrollVelocity *= this.scrollFriction;
+    } else {
+      this.scrollVelocity = 0;
+    }
   }
 
   updateCombo(count, level) {

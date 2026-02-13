@@ -58,9 +58,9 @@ export default class AchievementManager {
       {
         id: 'A006',
         name: '速度达人',
-        description: '30秒内完成第二关',
+        description: '300秒内完成第二关',
         category: 'speed',
-        condition: { type: 'fast_complete', level: 2, maxTime: 30 },
+        condition: { type: 'fast_complete', level: 2, maxTime: 300 },
         reward: { type: 'coins', amount: 800 },
         icon: '💨'
       },
