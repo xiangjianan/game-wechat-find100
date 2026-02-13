@@ -48,6 +48,17 @@ export default class UI {
     this.showModeSelector = false;
     this.instructionsData = null;
     this.headerButtons = null;
+    
+    this.modeSwitcher = {
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+      animation: 0,
+      targetAnimation: 1,
+      hoveredSegment: null,
+      clickedSegment: null
+    };
   }
 
   getScheme() {
@@ -139,6 +150,135 @@ export default class UI {
     ctx.fillText(button.text, centerX, centerY);
     
     ctx.restore();
+  }
+
+  drawModeSwitcher(ctx, x, y, width, height) {
+    const scheme = this.getScheme();
+    const isMobile = this.width < 768;
+    
+    this.modeSwitcher.x = x;
+    this.modeSwitcher.y = y;
+    this.modeSwitcher.width = width;
+    this.modeSwitcher.height = height;
+    
+    const segmentWidth = width / 2;
+    const borderWidth = 4;
+    const shadowOffset = 6;
+    
+    ctx.fillStyle = scheme.shadow;
+    this.roundRect(ctx, x + shadowOffset, y + shadowOffset, width, height, 0);
+    ctx.fill();
+    
+    ctx.fillStyle = scheme.cardBg;
+    ctx.fillRect(x, y, width, height);
+    
+    ctx.strokeStyle = scheme.border;
+    ctx.lineWidth = borderWidth;
+    ctx.strokeRect(x, y, width, height);
+    
+    const isTimedActive = this.gameMode === 'timed';
+    const isTimedHovered = this.modeSwitcher.hoveredSegment === 'timed';
+    const isTimedClicked = this.modeSwitcher.clickedSegment === 'timed';
+    const isUntimedHovered = this.modeSwitcher.hoveredSegment === 'untimed';
+    const isUntimedClicked = this.modeSwitcher.clickedSegment === 'untimed';
+    
+    if (isTimedActive) {
+      let offsetX = 0;
+      let offsetY = 0;
+      if (isTimedClicked) {
+        offsetX = 2;
+        offsetY = 2;
+      } else if (isTimedHovered) {
+        offsetX = -1;
+        offsetY = -1;
+      }
+      
+      ctx.fillStyle = scheme.shadow;
+      ctx.fillRect(x + borderWidth + offsetX + 2, y + borderWidth + offsetY + 2, segmentWidth - borderWidth * 2, height - borderWidth * 2);
+      
+      ctx.fillStyle = isTimedHovered ? this.lightenColor(scheme.buttonPrimary, 0.1) : scheme.buttonPrimary;
+      ctx.fillRect(x + borderWidth + offsetX, y + borderWidth + offsetY, segmentWidth - borderWidth * 2, height - borderWidth * 2);
+    } else {
+      let offsetX = 0;
+      let offsetY = 0;
+      if (isUntimedClicked) {
+        offsetX = 2;
+        offsetY = 2;
+      } else if (isUntimedHovered) {
+        offsetX = -1;
+        offsetY = -1;
+      }
+      
+      ctx.fillStyle = scheme.shadow;
+      ctx.fillRect(x + segmentWidth + borderWidth + offsetX + 2, y + borderWidth + offsetY + 2, segmentWidth - borderWidth * 2, height - borderWidth * 2);
+      
+      ctx.fillStyle = isUntimedHovered ? this.lightenColor(scheme.buttonSuccess, 0.1) : scheme.buttonSuccess;
+      ctx.fillRect(x + segmentWidth + borderWidth + offsetX, y + borderWidth + offsetY, segmentWidth - borderWidth * 2, height - borderWidth * 2);
+    }
+    
+    ctx.strokeStyle = scheme.border;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x + segmentWidth, y);
+    ctx.lineTo(x + segmentWidth, y + height);
+    ctx.stroke();
+    
+    const fontSize = isMobile ? 16 : 18;
+    ctx.font = `bold ${fontSize}px "Arial Black", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    const timedIcon = '⏱';
+    const untimedIcon = '∞';
+    
+    if (isTimedActive) {
+      ctx.fillStyle = scheme.textLight;
+    } else {
+      ctx.fillStyle = isTimedHovered ? scheme.buttonPrimary : scheme.text;
+    }
+    ctx.fillText(`限时模式`, x + segmentWidth / 2, y + height / 2);
+    
+    if (!isTimedActive) {
+      ctx.fillStyle = scheme.textLight;
+    } else {
+      ctx.fillStyle = isUntimedHovered ? scheme.buttonSuccess : scheme.text;
+    }
+    ctx.fillText(`自由模式`, x + segmentWidth + segmentWidth / 2, y + height / 2);
+  }
+
+  isPointInModeSwitcher(x, y) {
+    const ms = this.modeSwitcher;
+    if (ms.width === 0) return null;
+    
+    if (x >= ms.x && x <= ms.x + ms.width && y >= ms.y && y <= ms.y + ms.height) {
+      const segmentWidth = ms.width / 2;
+      if (x < ms.x + segmentWidth) {
+        return 'timed';
+      } else {
+        return 'untimed';
+      }
+    }
+    return null;
+  }
+
+  handleModeSwitcherClick(x, y) {
+    const segment = this.isPointInModeSwitcher(x, y);
+    if (segment && segment !== this.gameMode) {
+      this.modeSwitcher.clickedSegment = segment;
+      if (this.onPlayClickSound) {
+        this.onPlayClickSound();
+      }
+      setTimeout(() => {
+        this.modeSwitcher.clickedSegment = null;
+        this.onSelectMode(segment);
+      }, 100);
+      return true;
+    }
+    return false;
+  }
+
+  updateModeSwitcherHover(x, y) {
+    this.modeSwitcher.hoveredSegment = this.isPointInModeSwitcher(x, y);
   }
 
   showFloatingText(x, y, text, color) {
@@ -234,20 +374,10 @@ export default class UI {
         action: () => this.onStartGame()
       },
       {
-        id: 'toggleMode',
-        text: this.gameMode === 'timed' ? '限时模式' : '自由模式',
-        x: centerX - buttonWidth / 2,
-        y: startY + buttonHeight + buttonSpacing,
-        width: buttonWidth,
-        height: buttonHeight,
-        color: this.gameMode === 'timed' ? this.getScheme().buttonPrimary : this.getScheme().buttonSuccess,
-        action: () => this.onToggleMode()
-      },
-      {
         id: 'instructions',
         text: '游戏规则',
         x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 2,
+        y: startY + buttonHeight + buttonSpacing,
         width: buttonWidth,
         height: buttonHeight,
         color: this.getScheme().accent,
@@ -257,7 +387,7 @@ export default class UI {
         id: 'rank',
         text: '排行榜',
         x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 3,
+        y: startY + (buttonHeight + buttonSpacing) * 2,
         width: buttonWidth,
         height: buttonHeight,
         color: this.getScheme().danger,
@@ -440,6 +570,10 @@ export default class UI {
       }
     }
     
+    if (this.handleModeSwitcherClick(x, y)) {
+      return true;
+    }
+    
     const allButtons = [...this.buttons];
     if (this.headerButtons) {
       allButtons.push(...this.headerButtons);
@@ -544,20 +678,10 @@ export default class UI {
         action: () => this.onStartGame()
       },
       {
-        id: 'toggleMode',
-        text: this.gameMode === 'timed' ? '限时模式' : '自由模式',
-        x: centerX - buttonWidth / 2,
-        y: startY + buttonHeight + buttonSpacing,
-        width: buttonWidth,
-        height: buttonHeight,
-        color: this.gameMode === 'timed' ? this.getScheme().buttonPrimary : this.getScheme().buttonSuccess,
-        action: () => this.onToggleMode()
-      },
-      {
         id: 'instructions',
         text: '游戏规则',
         x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 2,
+        y: startY + buttonHeight + buttonSpacing,
         width: buttonWidth,
         height: buttonHeight,
         color: this.getScheme().accent,
@@ -567,7 +691,7 @@ export default class UI {
         id: 'rank',
         text: '排行榜',
         x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 3,
+        y: startY + (buttonHeight + buttonSpacing) * 2,
         width: buttonWidth,
         height: buttonHeight,
         color: this.getScheme().danger,
@@ -911,6 +1035,16 @@ export default class UI {
     ctx.textBaseline = 'middle';
     ctx.fillText('找回消失的专注，从找到第一个 1 开始...', this.width / 2, sloganY);
     
+    ctx.restore();
+    
+    const switcherWidth = isMobile ? 260 : 300;
+    const switcherHeight = isMobile ? 44 : 50;
+    const switcherX = (this.width - switcherWidth) / 2;
+    const switcherY = sloganY + (isMobile ? 35 : 45);
+    
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, this.menuAnimation * 2);
+    this.drawModeSwitcher(ctx, switcherX, switcherY, switcherWidth, switcherHeight);
     ctx.restore();
   }
 
@@ -1281,6 +1415,7 @@ export default class UI {
   updateMousePosition(x, y) {
     this.mouseX = x;
     this.mouseY = y;
+    this.updateModeSwitcherHover(x, y);
     this.updateHoveredButton();
   }
 
