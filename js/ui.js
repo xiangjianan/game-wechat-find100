@@ -461,24 +461,25 @@ export default class UI {
         action: () => this.onShowInstructions()
       },
       {
-        id: 'achievements',
-        text: '成就',
+        id: 'rank',
+        text: '排行榜',
         x: centerX - buttonWidth / 2,
         y: startY + (buttonHeight + buttonSpacing) * 2,
         width: buttonWidth,
         height: buttonHeight,
-        color: this.getScheme().buttonSuccess,
-        action: () => this.onOpenAchievements()
+        color: this.getScheme().danger,
+        action: () => this.onOpenRank()
       },
       {
-        id: 'rank',
-        text: '排行榜',
+        id: 'achievements',
+        text: '成就',
         x: centerX - buttonWidth / 2,
         y: startY + (buttonHeight + buttonSpacing) * 3,
         width: buttonWidth,
         height: buttonHeight,
-        color: this.getScheme().danger,
-        action: () => this.onOpenRank()
+        color: this.getScheme().buttonSecondary,
+        hoverColor: this.lightenColor(this.getScheme().buttonSecondary, 0.15),
+        action: () => this.onOpenAchievements()
       }
     ];
   }
@@ -822,24 +823,25 @@ export default class UI {
         action: () => this.onShowInstructions()
       },
       {
-        id: 'achievements',
-        text: '成就',
+        id: 'rank',
+        text: '排行榜',
         x: centerX - buttonWidth / 2,
         y: startY + (buttonHeight + buttonSpacing) * 2,
         width: buttonWidth,
         height: buttonHeight,
-        color: this.getScheme().buttonSuccess,
-        action: () => this.onOpenAchievements()
+        color: this.getScheme().danger,
+        action: () => this.onOpenRank()
       },
       {
-        id: 'rank',
-        text: '排行榜',
+        id: 'achievements',
+        text: '成就',
         x: centerX - buttonWidth / 2,
         y: startY + (buttonHeight + buttonSpacing) * 3,
         width: buttonWidth,
         height: buttonHeight,
-        color: this.getScheme().danger,
-        action: () => this.onOpenRank()
+        color: this.getScheme().buttonSecondary,
+        hoverColor: this.lightenColor(this.getScheme().buttonSecondary, 0.15),
+        action: () => this.onOpenAchievements()
       }
     ];
   }
