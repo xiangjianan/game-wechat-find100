@@ -177,9 +177,7 @@ export default class UI {
     ctx.strokeRect(x, y, width, height);
     
     const isTimedActive = this.gameMode === 'timed';
-    const isTimedHovered = this.modeSwitcher.hoveredSegment === 'timed';
     const isTimedClicked = this.modeSwitcher.clickedSegment === 'timed';
-    const isUntimedHovered = this.modeSwitcher.hoveredSegment === 'untimed';
     const isUntimedClicked = this.modeSwitcher.clickedSegment === 'untimed';
     
     if (isTimedActive) {
@@ -188,15 +186,12 @@ export default class UI {
       if (isTimedClicked) {
         offsetX = 2;
         offsetY = 2;
-      } else if (isTimedHovered) {
-        offsetX = -1;
-        offsetY = -1;
       }
       
       ctx.fillStyle = scheme.shadow;
       ctx.fillRect(x + borderWidth + offsetX + 2, y + borderWidth + offsetY + 2, segmentWidth - borderWidth * 2, height - borderWidth * 2);
       
-      ctx.fillStyle = isTimedHovered ? this.lightenColor(scheme.buttonPrimary, 0.1) : scheme.buttonPrimary;
+      ctx.fillStyle = scheme.buttonPrimary;
       ctx.fillRect(x + borderWidth + offsetX, y + borderWidth + offsetY, segmentWidth - borderWidth * 2, height - borderWidth * 2);
     } else {
       let offsetX = 0;
@@ -204,15 +199,12 @@ export default class UI {
       if (isUntimedClicked) {
         offsetX = 2;
         offsetY = 2;
-      } else if (isUntimedHovered) {
-        offsetX = -1;
-        offsetY = -1;
       }
       
       ctx.fillStyle = scheme.shadow;
       ctx.fillRect(x + segmentWidth + borderWidth + offsetX + 2, y + borderWidth + offsetY + 2, segmentWidth - borderWidth * 2, height - borderWidth * 2);
       
-      ctx.fillStyle = isUntimedHovered ? this.lightenColor(scheme.buttonSuccess, 0.1) : scheme.buttonSuccess;
+      ctx.fillStyle = scheme.buttonPrimary;
       ctx.fillRect(x + segmentWidth + borderWidth + offsetX, y + borderWidth + offsetY, segmentWidth - borderWidth * 2, height - borderWidth * 2);
     }
     
@@ -228,20 +220,17 @@ export default class UI {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
-    const timedIcon = '⏱';
-    const untimedIcon = '∞';
-    
     if (isTimedActive) {
       ctx.fillStyle = scheme.textLight;
     } else {
-      ctx.fillStyle = isTimedHovered ? scheme.buttonPrimary : scheme.text;
+      ctx.fillStyle = scheme.text;
     }
     ctx.fillText(`限时模式`, x + segmentWidth / 2, y + height / 2);
     
     if (!isTimedActive) {
       ctx.fillStyle = scheme.textLight;
     } else {
-      ctx.fillStyle = isUntimedHovered ? scheme.buttonSuccess : scheme.text;
+      ctx.fillStyle = scheme.text;
     }
     ctx.fillText(`自由模式`, x + segmentWidth + segmentWidth / 2, y + height / 2);
   }
