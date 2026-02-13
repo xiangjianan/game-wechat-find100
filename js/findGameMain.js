@@ -292,16 +292,21 @@ export default class FindGameMain {
     this.soundManager.playComplete();
     this.saveGameProgress(time);
     
-    const score = this.rankManager.calculateScore(
-      this.gameManager.totalNumbers,
-      time
-    );
+    const isLevel2 = this.gameManager.currentLevel === 2;
+    let score = 0;
     
-    this.rankManager.uploadScore(
-      time, 
-      this.gameManager.currentLevel, 
-      this.gameManager.totalNumbers
-    );
+    if (isLevel2) {
+      score = this.rankManager.calculateScore(
+        this.gameManager.totalNumbers,
+        time
+      );
+      
+      this.rankManager.uploadScore(
+        time, 
+        this.gameManager.currentLevel, 
+        this.gameManager.totalNumbers
+      );
+    }
     
     const achievementData = {
       level: this.gameManager.currentLevel,
@@ -318,13 +323,18 @@ export default class FindGameMain {
       this.ui.showAchievementNotification(unlockedAchievements);
     }
     
-    const scoreMessage = `完成时间: ${time.toFixed(2)}秒\n得分: ${score}`;
+    let message;
+    if (isLevel2) {
+      message = `完成时间: ${time.toFixed(2)}秒\n得分: ${score}`;
+    } else {
+      message = `完成时间: ${time.toFixed(2)}秒`;
+    }
     
     if (this.ui.shouldAutoAdvance()) {
       this.ui.showModalDialog(
         'gameComplete',
         '恭喜通关！',
-        scoreMessage,
+        message,
         [
           {
             id: 'nextLevel',
@@ -340,7 +350,7 @@ export default class FindGameMain {
       this.ui.showModalDialog(
         'gameComplete',
         '恭喜通关！',
-        scoreMessage,
+        message,
         [
           {
             id: 'nextLevel',
@@ -378,16 +388,47 @@ export default class FindGameMain {
   handleGameFailed() {
     this.soundManager.playError();
     
-    this.achievementManager.checkAchievement('game_fail', {
-      level: this.gameManager.currentLevel,
-      progress: this.gameManager.getProgress(),
-      total: this.gameManager.getTotalProgress()
-    });
+    const isLevel2 = this.gameManager.currentLevel === 2;
+    
+    if (isLevel2) {
+      const progress = this.gameManager.getProgress();
+      const time = this.gameManager.getCompletionTime();
+      const score = this.rankManager.calculateScore(progress, time);
+      
+      this.rankManager.uploadScore(
+        time, 
+        this.gameManager.currentLevel, 
+        progress
+      );
+      
+      this.achievementManager.checkAchievement('game_fail', {
+        level: this.gameManager.currentLevel,
+        progress: progress,
+        total: this.gameManager.getTotalProgress(),
+        score: score
+      });
+    } else {
+      this.achievementManager.checkAchievement('game_fail', {
+        level: this.gameManager.currentLevel,
+        progress: this.gameManager.getProgress(),
+        total: this.gameManager.getTotalProgress()
+      });
+    }
+    
+    let failMessage;
+    if (isLevel2) {
+      const progress = this.gameManager.getProgress();
+      const time = this.gameManager.getCompletionTime();
+      const score = this.rankManager.calculateScore(progress, time);
+      failMessage = `完成进度: ${progress}/${this.gameManager.getTotalProgress()}\n用时: ${time.toFixed(2)}秒\n得分: ${score}`;
+    } else {
+      failMessage = `完成进度: ${this.gameManager.getProgress()}/${this.gameManager.getTotalProgress()}\n用时: ${this.gameManager.getCompletionTime().toFixed(2)}秒`;
+    }
     
     this.ui.showModalDialog(
       'gameFailed',
       '再接再厉！',
-      `完成进度: ${this.gameManager.getProgress()}/${this.gameManager.getTotalProgress()}\n用时: ${this.gameManager.getCompletionTime().toFixed(2)}秒`,
+      failMessage,
       [
         {
           id: 'tryAgain',

@@ -966,14 +966,27 @@ export default class UI {
       }
     });
     
+    const hasScore = scoreValue && scoreValue !== '';
+    
     ctx.fillStyle = scheme.text;
     ctx.font = `bold ${isMobile ? 16 : 18}px Arial, sans-serif`;
-    ctx.fillText('完成时间', centerX, y + (isMobile ? 155 : 180));
+    
+    if (hasScore) {
+      ctx.fillText('完成时间', centerX, y + (isMobile ? 155 : 180));
+    } else {
+      ctx.fillText('完成时间', centerX, y + (isMobile ? 175 : 210));
+    }
     
     const timeBoxWidth = isMobile ? 160 : 200;
     const timeBoxHeight = isMobile ? 40 : 48;
     const timeBoxX = centerX - timeBoxWidth / 2;
-    const timeBoxY = y + (isMobile ? 175 : 200);
+    let timeBoxY;
+    
+    if (hasScore) {
+      timeBoxY = y + (isMobile ? 175 : 200);
+    } else {
+      timeBoxY = y + (isMobile ? 195 : 230);
+    }
     
     this.drawBrutalismRect(ctx, timeBoxX, timeBoxY, timeBoxWidth, timeBoxHeight, scheme.buttonPrimary, {
       shadowOffset: 4,
@@ -984,23 +997,25 @@ export default class UI {
     ctx.font = `bold ${isMobile ? 20 : 24}px "Arial Black", Arial, sans-serif`;
     ctx.fillText(timeValue || '0.00秒', centerX, timeBoxY + timeBoxHeight / 2);
     
-    ctx.fillStyle = scheme.text;
-    ctx.font = `bold ${isMobile ? 16 : 18}px Arial, sans-serif`;
-    ctx.fillText('得分', centerX, y + (isMobile ? 235 : 270));
-    
-    const scoreBoxWidth = isMobile ? 160 : 200;
-    const scoreBoxHeight = isMobile ? 40 : 48;
-    const scoreBoxX = centerX - scoreBoxWidth / 2;
-    const scoreBoxY = y + (isMobile ? 255 : 290);
-    
-    this.drawBrutalismRect(ctx, scoreBoxX, scoreBoxY, scoreBoxWidth, scoreBoxHeight, scheme.accent, {
-      shadowOffset: 4,
-      borderWidth: 3
-    });
-    
-    ctx.fillStyle = scheme.textLight;
-    ctx.font = `bold ${isMobile ? 20 : 24}px "Arial Black", Arial, sans-serif`;
-    ctx.fillText(scoreValue || '0', centerX, scoreBoxY + scoreBoxHeight / 2);
+    if (hasScore) {
+      ctx.fillStyle = scheme.text;
+      ctx.font = `bold ${isMobile ? 16 : 18}px Arial, sans-serif`;
+      ctx.fillText('得分', centerX, y + (isMobile ? 235 : 270));
+      
+      const scoreBoxWidth = isMobile ? 160 : 200;
+      const scoreBoxHeight = isMobile ? 40 : 48;
+      const scoreBoxX = centerX - scoreBoxWidth / 2;
+      const scoreBoxY = y + (isMobile ? 255 : 290);
+      
+      this.drawBrutalismRect(ctx, scoreBoxX, scoreBoxY, scoreBoxWidth, scoreBoxHeight, scheme.accent, {
+        shadowOffset: 4,
+        borderWidth: 3
+      });
+      
+      ctx.fillStyle = scheme.textLight;
+      ctx.font = `bold ${isMobile ? 20 : 24}px "Arial Black", Arial, sans-serif`;
+      ctx.fillText(scoreValue, centerX, scoreBoxY + scoreBoxHeight / 2);
+    }
     
     this.renderModalButtons(ctx, x, y + height - (isMobile ? 140 : 160), width, isMobile);
   }
@@ -1022,6 +1037,7 @@ export default class UI {
     const messageLines = this.modalMessage.split('\n');
     let progressText = '';
     let timeText = '';
+    let scoreText = '';
     
     messageLines.forEach(line => {
       if (line.includes('完成进度')) {
@@ -1029,6 +1045,9 @@ export default class UI {
       }
       if (line.includes('用时')) {
         timeText = line;
+      }
+      if (line.includes('得分')) {
+        scoreText = line.replace('得分:', '').trim();
       }
     });
     
@@ -1042,11 +1061,33 @@ export default class UI {
     }
     if (timeText) {
       ctx.fillText(timeText, centerX, textY);
+      textY += isMobile ? 28 : 32;
+    }
+    
+    if (scoreText) {
+      ctx.fillText('得分', centerX, textY);
+      textY += isMobile ? 25 : 30;
+      
+      const scoreBoxWidth = isMobile ? 120 : 150;
+      const scoreBoxHeight = isMobile ? 36 : 44;
+      const scoreBoxX = centerX - scoreBoxWidth / 2;
+      const scoreBoxY = textY;
+      
+      this.drawBrutalismRect(ctx, scoreBoxX, scoreBoxY, scoreBoxWidth, scoreBoxHeight, scheme.accent, {
+        shadowOffset: 4,
+        borderWidth: 3
+      });
+      
+      ctx.fillStyle = scheme.textLight;
+      ctx.font = `bold ${isMobile ? 18 : 22}px "Arial Black", Arial, sans-serif`;
+      ctx.fillText(scoreText, centerX, scoreBoxY + scoreBoxHeight / 2);
+      
+      textY += scoreBoxHeight + (isMobile ? 15 : 20);
     }
     
     ctx.fillStyle = scheme.text;
     ctx.font = `bold ${isMobile ? 16 : 18}px Arial, sans-serif`;
-    ctx.fillText('别放弃，再试一次!', centerX, y + (isMobile ? 210 : 240));
+    ctx.fillText('别放弃，再试一次!', centerX, textY + (isMobile ? 10 : 15));
     
     this.renderModalButtons(ctx, x, y + height - (isMobile ? 130 : 150), width, isMobile);
   }
