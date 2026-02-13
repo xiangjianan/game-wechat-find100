@@ -292,7 +292,16 @@ export default class FindGameMain {
     this.soundManager.playComplete();
     this.saveGameProgress(time);
     
-    this.rankManager.uploadScore(time, this.gameManager.currentLevel);
+    const score = this.rankManager.calculateScore(
+      this.gameManager.totalNumbers,
+      time
+    );
+    
+    this.rankManager.uploadScore(
+      time, 
+      this.gameManager.currentLevel, 
+      this.gameManager.totalNumbers
+    );
     
     const achievementData = {
       level: this.gameManager.currentLevel,
@@ -309,11 +318,13 @@ export default class FindGameMain {
       this.ui.showAchievementNotification(unlockedAchievements);
     }
     
+    const scoreMessage = `完成时间: ${time.toFixed(2)}秒\n得分: ${score}`;
+    
     if (this.ui.shouldAutoAdvance()) {
       this.ui.showModalDialog(
         'gameComplete',
         '恭喜通关！',
-        `完成时间: ${time.toFixed(2)}秒`,
+        scoreMessage,
         [
           {
             id: 'nextLevel',
@@ -329,7 +340,7 @@ export default class FindGameMain {
       this.ui.showModalDialog(
         'gameComplete',
         '恭喜通关！',
-        `完成时间: ${time.toFixed(2)}秒`,
+        scoreMessage,
         [
           {
             id: 'nextLevel',

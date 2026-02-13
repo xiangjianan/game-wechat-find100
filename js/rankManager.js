@@ -42,16 +42,28 @@ export default class RankManager {
    * @param {number} score - 分数（时间越短分数越高）
    * @param {number} level - 关卡
    */
-  uploadScore(score, level = 1) {
+  calculateScore(totalNumbers, time) {
+    const baseScorePerNumber = 100;
+    const baseTimePerNumber = 1.5;
+    const timeBonusMultiplier = 50;
+    
+    const baseScore = totalNumbers * baseScorePerNumber;
+    const expectedTime = totalNumbers * baseTimePerNumber;
+    const timeDiff = expectedTime - time;
+    const timeBonus = Math.max(0, timeDiff * timeBonusMultiplier);
+    const finalScore = Math.floor(baseScore + timeBonus);
+    
+    return Math.max(0, finalScore);
+  }
+
+  uploadScore(time, level = 1, totalNumbers = 10) {
     if (!this.isWeChatGame) {
       console.log('非微信小游戏环境，无法上传分数');
       return;
     }
 
     try {
-      // 将时间转换为分数（时间越短分数越高）
-      // 基础分10000，每秒扣100分
-      const finalScore = Math.max(0, Math.floor(10000 - score * 100));
+      const finalScore = this.calculateScore(totalNumbers, time);
 
       wx.setUserCloudStorage({
         KVDataList: [
@@ -61,15 +73,19 @@ export default class RankManager {
           },
           {
             key: 'time',
-            value: score.toString()
+            value: time.toString()
           },
           {
             key: 'level',
             value: level.toString()
+          },
+          {
+            key: 'totalNumbers',
+            value: totalNumbers.toString()
           }
         ],
         success: () => {
-          console.log('分数上传成功:', finalScore);
+          console.log('分数上传成功:', finalScore, '数字数量:', totalNumbers, '用时:', time);
         },
         fail: (error) => {
           console.error('分数上传失败:', error);
