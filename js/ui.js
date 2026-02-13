@@ -456,7 +456,7 @@ export default class UI {
     const buttonHeight = isMobile ? 60 : 70;
     const buttonSpacing = isMobile ? 20 : 24;
     const centerX = this.width / 2;
-    const startY = this.height * 0.42;
+    const startY = this.height * 0.48;
     
     this.buttons = [
       {
@@ -818,7 +818,7 @@ export default class UI {
     const buttonHeight = isMobile ? 60 : 70;
     const buttonSpacing = isMobile ? 20 : 24;
     const centerX = this.width / 2;
-    const startY = this.height * 0.42;
+    const startY = this.height * 0.48;
     
     this.buttons = [
       {

@@ -125,7 +125,7 @@ export default class AchievementManager {
         category: 'mode',
         condition: { type: 'mode_complete', mode: 'untimed' },
         reward: { type: 'coins', amount: 200 },
-        icon: '🕊️'
+        icon: '🦅'
       },
       {
         id: 'A401',
