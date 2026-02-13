@@ -1947,7 +1947,8 @@ export default class UI {
     const scheme = this.getScheme();
     const isMobile = this.width < 768;
     const centerX = this.width / 2;
-    const centerY = isMobile ? 80 : 100;
+    const headerHeight = isMobile ? 100 : 120;
+    const centerY = headerHeight + (isMobile ? 45 : 55);
     
     const level = this.comboData.level;
     const color = level ? level.color : scheme.accent;
