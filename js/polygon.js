@@ -31,6 +31,9 @@ export default class Polygon {
     this.targetScale = 1;
     this.shakeOffset = { x: 0, y: 0 };
     this.shakeTime = 0;
+    this.isHinted = false;
+    this.hintPulse = 0;
+    this.hintGlowIntensity = 0;
   }
 
   getCenter() {
@@ -84,6 +87,14 @@ export default class Polygon {
     this.errorAlpha = 0.8;
   }
 
+  setHintHighlight(enabled) {
+    this.isHinted = enabled;
+    if (enabled) {
+      this.hintPulse = 0;
+      this.hintGlowIntensity = 0;
+    }
+  }
+
   update() {
     this.scale += (this.targetScale - this.scale) * 0.2;
     
@@ -102,6 +113,14 @@ export default class Polygon {
         this.errorAlpha = 0;
         this.isError = false;
       }
+    }
+
+    if (this.isHinted) {
+      this.hintPulse += 0.08;
+      this.hintGlowIntensity = 0.5 + Math.sin(this.hintPulse) * 0.5;
+    } else {
+      this.hintPulse = 0;
+      this.hintGlowIntensity = 0;
     }
   }
 
@@ -125,6 +144,11 @@ export default class Polygon {
     ctx.scale(this.scale, this.scale);
     ctx.translate(-center.x, -center.y);
 
+    if (this.isHinted) {
+      ctx.shadowColor = '#FFD700';
+      ctx.shadowBlur = 25 * this.hintGlowIntensity;
+    }
+
     ctx.beginPath();
     ctx.moveTo(this.vertices[0].x, this.vertices[0].y);
     for (let i = 1; i < this.vertices.length; i++) {
@@ -135,6 +159,9 @@ export default class Polygon {
     let fillColor;
     if (this.isClicked) {
       fillColor = stateColors.clicked;
+    } else if (this.isHinted) {
+      const intensity = this.hintGlowIntensity;
+      fillColor = this.interpolateColor('#FFD700', '#FFA500', intensity);
     } else if (this.isHighlighted) {
       fillColor = stateColors.highlighted;
     } else {
@@ -150,12 +177,37 @@ export default class Polygon {
     }
 
     ctx.strokeStyle = scheme.border;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = this.isHinted ? 4 : 2;
     ctx.lineCap = 'square';
     ctx.lineJoin = 'miter';
     ctx.stroke();
 
+    if (this.isHinted) {
+      ctx.strokeStyle = `rgba(255, 215, 0, ${0.5 + this.hintGlowIntensity * 0.5})`;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+
     ctx.restore();
+  }
+
+  interpolateColor(color1, color2, factor) {
+    const hex1 = color1.replace('#', '');
+    const hex2 = color2.replace('#', '');
+    
+    const r1 = parseInt(hex1.substr(0, 2), 16);
+    const g1 = parseInt(hex1.substr(2, 2), 16);
+    const b1 = parseInt(hex1.substr(4, 2), 16);
+    
+    const r2 = parseInt(hex2.substr(0, 2), 16);
+    const g2 = parseInt(hex2.substr(2, 2), 16);
+    const b2 = parseInt(hex2.substr(4, 2), 16);
+    
+    const r = Math.round(r1 + (r2 - r1) * factor);
+    const g = Math.round(g1 + (g2 - g1) * factor);
+    const b = Math.round(b1 + (b2 - b1) * factor);
+    
+    return `rgb(${r}, ${g}, ${b})`;
   }
 
   renderText(ctx) {

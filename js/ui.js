@@ -85,6 +85,10 @@ export default class UI {
       breakAnimation: 0
     };
     this.comboParticles = [];
+    
+    this.hintCount = 0;
+    this.onUseHint = null;
+    this.hintButtonAnimation = 0;
   }
 
   getScheme() {
@@ -393,6 +397,7 @@ export default class UI {
   updateEffects(deltaTime) {
     this.updateComboEffects(deltaTime);
     this.updateScrollInertia(deltaTime);
+    this.updateHintButtonAnimation(deltaTime);
     
     for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
       const ft = this.floatingTexts[i];
@@ -519,6 +524,7 @@ export default class UI {
     this.modeSwitcher.y = 0;
     this.modeSwitcher.width = 0;
     this.modeSwitcher.height = 0;
+    this.hintButtonAnimation = 0;
   }
 
   initCompletion(time) {
@@ -720,6 +726,23 @@ export default class UI {
     
     for (const button of allButtons) {
       if (this.isPointInButton(x, y, button)) {
+        if (button.id === 'hint') {
+          if (this.hintCount <= 0) return true;
+          this.clickedButton = button.id;
+          this.clickAnimation = 1;
+          if (this.onPlayClickSound) {
+            this.onPlayClickSound();
+          }
+          setTimeout(() => {
+            this.clickedButton = null;
+            this.clickAnimation = 0;
+            if (this.onUseHint) {
+              this.onUseHint();
+            }
+          }, 150);
+          return true;
+        }
+        
         this.clickedButton = button.id;
         this.clickAnimation = 1;
         if (this.onPlayClickSound) {
@@ -877,6 +900,20 @@ export default class UI {
 
   getGameMode() {
     return this.gameMode;
+  }
+
+  setHintCount(count) {
+    this.hintCount = count;
+  }
+
+  updateHintButtonAnimation(deltaTime) {
+    if (this.hintButtonAnimation > 0) {
+      this.hintButtonAnimation = Math.max(0, this.hintButtonAnimation - deltaTime * 5);
+    }
+  }
+
+  triggerHintButtonAnimation() {
+    this.hintButtonAnimation = 1;
   }
 
   showRankView() {
@@ -1442,6 +1479,51 @@ export default class UI {
       
       ctx.fillStyle = isHovered ? scheme.textLight : scheme.text;
       ctx.fillText(button.text, scaledX + (scaledSize / 2) | 0, scaledY + (scaledSize / 2) | 0);
+    });
+
+    const hintButtonX = this.width - buttonStartX - buttonSize;
+    const hintButtonY = buttonY;
+    const isHintHovered = this.mouseX >= hintButtonX && this.mouseX <= hintButtonX + buttonSize &&
+                          this.mouseY >= hintButtonY && this.mouseY <= hintButtonY + buttonSize;
+    const isHintClicked = this.clickedButton === 'hint';
+    const hasHints = this.hintCount > 0;
+
+    let hintScale = 1;
+    if (isHintHovered && hasHints) hintScale = 1.05;
+    if (isHintClicked) hintScale = 0.95;
+    if (this.hintButtonAnimation > 0) {
+      hintScale = 1 + this.hintButtonAnimation * 0.1;
+    }
+
+    const hintScaledSize = (buttonSize * hintScale) | 0;
+    const hintScaledX = (hintButtonX + (buttonSize - hintScaledSize) / 2) | 0;
+    const hintScaledY = (hintButtonY + (buttonSize - hintScaledSize) / 2) | 0;
+
+    let hintFillColor = hasHints ? scheme.accent : scheme.cardBg;
+    if (isHintHovered && hasHints) {
+      hintFillColor = this.lightenColor(scheme.accent, 0.15);
+    }
+
+    const hintShadowOffset = isHintClicked ? 2 : (isHintHovered && hasHints ? 6 : 4);
+    this.drawBrutalismRect(ctx, hintScaledX, hintScaledY, hintScaledSize, hintScaledSize, hintFillColor, {
+      shadowOffset: hintShadowOffset,
+      borderWidth: 3
+    });
+
+    ctx.font = `bold ${isMobile ? 18 : 22}px Arial, sans-serif`;
+    ctx.fillStyle = hasHints ? scheme.textLight : scheme.text;
+    ctx.fillText('💡', hintScaledX + (hintScaledSize / 2) | 0, hintScaledY + (hintScaledSize / 2) | 0);
+
+    ctx.font = `bold ${isMobile ? 12 : 14}px "Arial Black", Arial, sans-serif`;
+    ctx.fillStyle = hasHints ? scheme.textLight : scheme.text;
+    ctx.fillText(`${this.hintCount}`, hintScaledX + (hintScaledSize / 2) | 0, hintScaledY + hintScaledSize - (isMobile ? 8 : 10));
+
+    this.headerButtons.push({
+      id: 'hint',
+      x: hintButtonX,
+      y: hintButtonY,
+      width: buttonSize,
+      height: buttonSize
     });
 
     if (this.gameMode === 'timed') {

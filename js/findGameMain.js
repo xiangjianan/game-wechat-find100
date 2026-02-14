@@ -270,6 +270,15 @@ export default class FindGameMain {
     this.gameManager.onComboBreak = (count, level) => {
       this.ui.onComboBreak(count, level);
     };
+
+    this.ui.onUseHint = () => {
+      this.useHint();
+    };
+
+    this.gameManager.onHintUsed = (count) => {
+      this.ui.setHintCount(count);
+      this.ui.triggerHintButtonAnimation();
+    };
   }
 
   handleInput(x, y) {
@@ -294,6 +303,7 @@ export default class FindGameMain {
     this.ui.currentLevel = level;
     const mode = gameMode || this.ui.getGameMode();
     this.gameManager.initGame(count, level, mode);
+    this.ui.setHintCount(this.gameManager.getHintCount());
     this.ui.initGame();
   }
 
@@ -624,6 +634,10 @@ export default class FindGameMain {
 
   closeAchievements() {
     this.ui.showAchievements = false;
+  }
+
+  useHint() {
+    this.gameManager.useHint();
   }
 
   getBestTime(difficulty, count) {

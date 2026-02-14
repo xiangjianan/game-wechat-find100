@@ -30,6 +30,10 @@ export default class GameManager {
     this.errorCount = 0;
     this.gameMode = 'timed';
     
+    this.hintCount = 3;
+    this.hintedPolygon = null;
+    this.onHintUsed = null;
+    
     this.setupComboCallbacks();
   }
 
@@ -69,6 +73,8 @@ export default class GameManager {
     this.timeLeft = this.initialTime;
     this.clickCount = 0;
     this.errorCount = 0;
+    this.hintCount = level === 1 ? 3 : 5;
+    this.hintedPolygon = null;
     
     if (this.gameMode === 'timed') {
       this.startTimer();
@@ -97,6 +103,10 @@ export default class GameManager {
     setTimeout(() => {
       polygon.resetHighlight();
     }, 200);
+
+    if (this.hintedPolygon === polygon) {
+      this.clearHint();
+    }
 
     this.currentNumber++;
     this.clickCount++;
@@ -168,6 +178,8 @@ export default class GameManager {
     this.clickCount = 0;
     this.errorCount = 0;
     this.comboManager.reset();
+    this.hintCount = 3;
+    this.hintedPolygon = null;
   }
 
   getComboCount() {
@@ -266,5 +278,37 @@ export default class GameManager {
 
   isTimedMode() {
     return this.gameMode === 'timed';
+  }
+
+  useHint() {
+    if (this.gameState !== 'playing') return false;
+    if (this.hintCount <= 0) return false;
+    if (this.currentNumber > this.totalNumbers) return false;
+
+    this.clearHint();
+
+    const targetPolygon = this.polygons.find(p => p.number === this.currentNumber && !p.isClicked);
+    if (!targetPolygon) return false;
+
+    this.hintCount--;
+    this.hintedPolygon = targetPolygon;
+    targetPolygon.setHintHighlight(true);
+
+    if (this.onHintUsed) {
+      this.onHintUsed(this.hintCount);
+    }
+
+    return true;
+  }
+
+  clearHint() {
+    if (this.hintedPolygon) {
+      this.hintedPolygon.setHintHighlight(false);
+      this.hintedPolygon = null;
+    }
+  }
+
+  getHintCount() {
+    return this.hintCount;
   }
 }
