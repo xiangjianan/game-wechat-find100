@@ -20,15 +20,6 @@ export default class AchievementManager {
         icon: '🎮'
       },
       {
-        id: 'A003',
-        name: '连续作战',
-        description: '连续玩5局',
-        category: 'beginner',
-        condition: { type: 'consecutive_games', count: 5 },
-        reward: { type: 'coins', amount: 300 },
-        icon: '🔥'
-      },
-      {
         id: 'A004',
         name: '轻松搞定',
         description: '5秒内完成第一关',
@@ -54,6 +45,15 @@ export default class AchievementManager {
         condition: { type: 'fast_complete', level: 2, maxTime: 300 },
         reward: { type: 'coins', amount: 800 },
         icon: '💨'
+      },
+      {
+        id: 'A007',
+        name: '闪电侠',
+        description: '250秒内完成第二关',
+        category: 'speed',
+        condition: { type: 'fast_complete', level: 2, maxTime: 250 },
+        reward: { type: 'coins', amount: 2000 },
+        icon: '⚡'
       },
       {
         id: 'A102',
