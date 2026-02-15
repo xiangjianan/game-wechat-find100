@@ -690,7 +690,7 @@ export default class FindGameMain {
 
   openShop() {
     this.ui.shopProducts = this.shopManager.getAllProducts();
-    this.ui.openShop();
+    this.ui.showShop = true;
   }
 
   handleShopBuy(product) {
