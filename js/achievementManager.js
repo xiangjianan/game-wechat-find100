@@ -20,15 +20,6 @@ export default class AchievementManager {
         icon: '🎮'
       },
       {
-        id: 'A302',
-        name: '自由探索',
-        description: '在自由模式下完成关卡',
-        category: 'mode',
-        condition: { type: 'mode_complete', mode: 'untimed' },
-        reward: { type: 'coins', amount: 200 },
-        icon: '🦅'
-      },
-      {
         id: 'A201',
         name: '第二关挑战',
         description: '完成第二关',
@@ -36,33 +27,6 @@ export default class AchievementManager {
         condition: { type: 'level_complete', level: 2 },
         reward: { type: 'coins', amount: 500 },
         icon: '🏆'
-      },
-      {
-        id: 'A401',
-        name: '坚持不懈',
-        description: '累计游戏20次',
-        category: 'persistence',
-        condition: { type: 'games_completed', count: 20 },
-        reward: { type: 'coins', amount: 400 },
-        icon: '💪'
-      },
-      {
-        id: 'A402',
-        name: '游戏达人',
-        description: '累计游戏50次',
-        category: 'persistence',
-        condition: { type: 'games_completed', count: 50 },
-        reward: { type: 'coins', amount: 800 },
-        icon: '🌟'
-      },
-      {
-        id: 'A403',
-        name: '数一数噻大师',
-        description: '累计游戏100次',
-        category: 'persistence',
-        condition: { type: 'games_completed', count: 100 },
-        reward: { type: 'coins', amount: 2000 },
-        icon: '👑'
       },
       {
         id: 'A004',
@@ -99,6 +63,42 @@ export default class AchievementManager {
         condition: { type: 'fast_complete', level: 2, maxTime: 250 },
         reward: { type: 'coins', amount: 2000 },
         icon: '🚀'
+      },
+      {
+        id: 'A302',
+        name: '自由探索',
+        description: '在自由模式下完成关卡',
+        category: 'mode',
+        condition: { type: 'mode_complete', mode: 'untimed' },
+        reward: { type: 'coins', amount: 200 },
+        icon: '🦅'
+      },
+      {
+        id: 'A401',
+        name: '坚持不懈',
+        description: '累计游戏20次',
+        category: 'persistence',
+        condition: { type: 'games_completed', count: 20 },
+        reward: { type: 'coins', amount: 400 },
+        icon: '💪'
+      },
+      {
+        id: 'A402',
+        name: '游戏达人',
+        description: '累计游戏50次',
+        category: 'persistence',
+        condition: { type: 'games_completed', count: 50 },
+        reward: { type: 'coins', amount: 800 },
+        icon: '🌟'
+      },
+      {
+        id: 'A403',
+        name: '数一数噻大师',
+        description: '累计游戏100次',
+        category: 'persistence',
+        condition: { type: 'games_completed', count: 100 },
+        reward: { type: 'coins', amount: 2000 },
+        icon: '👑'
       },
       {
         id: 'A102',
