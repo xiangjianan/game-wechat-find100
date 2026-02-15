@@ -11,15 +11,6 @@ export default class AchievementManager {
   initAchievements() {
     const achievements = [
       {
-        id: 'A001',
-        name: '初出茅庐',
-        description: '完成第一关',
-        category: 'beginner',
-        condition: { type: 'level_complete', level: 1 },
-        reward: { type: 'coins', amount: 100 },
-        icon: '🎯'
-      },
-      {
         id: 'A002',
         name: '入门选手',
         description: '完成10次游戏',
@@ -40,18 +31,18 @@ export default class AchievementManager {
       {
         id: 'A004',
         name: '轻松搞定',
-        description: '10秒内完成第一关',
+        description: '5秒内完成第一关',
         category: 'speed',
-        condition: { type: 'fast_complete', level: 1, maxTime: 10 },
+        condition: { type: 'fast_complete', level: 1, maxTime: 5 },
         reward: { type: 'coins', amount: 500 },
         icon: '⚡'
       },
       {
         id: 'A005',
         name: '超凡速度',
-        description: '5秒内完成第一关',
+        description: '3秒内完成第一关',
         category: 'speed',
-        condition: { type: 'fast_complete', level: 1, maxTime: 5 },
+        condition: { type: 'fast_complete', level: 1, maxTime: 3 },
         reward: { type: 'coins', amount: 1000 },
         icon: '🚀'
       },
@@ -360,7 +351,7 @@ export default class AchievementManager {
 
   getCategories() {
     const categories = new Map();
-    categories.set('beginner', { name: '初出茅庐', icon: '🎯' });
+    categories.set('beginner', { name: '新手入门', icon: '🎮' });
     categories.set('speed', { name: '速度恶魔', icon: '⚡' });
     categories.set('perfect', { name: '完美主义', icon: '✨' });
     categories.set('progress', { name: '进度达人', icon: '🏆' });
