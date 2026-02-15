@@ -4,6 +4,7 @@ export default class AchievementManager {
     this.unlockedAchievements = new Set();
     this.progress = new Map();
     this.pendingNotifications = [];
+    this.coinManager = null;
     this.initAchievements();
     this.loadProgress();
   }
@@ -283,6 +284,11 @@ export default class AchievementManager {
 
     this.unlockedAchievements.add(id);
     this.pendingNotifications.push(achievement);
+    
+    if (achievement.reward && achievement.reward.type === 'coins' && this.coinManager) {
+      this.coinManager.addCoins(achievement.reward.amount);
+    }
+    
     this.saveProgress();
   }
 
@@ -396,6 +402,10 @@ export default class AchievementManager {
     categories.set('persistence', { name: '坚持不懈', icon: '💪' });
     categories.set('combo', { name: '连击大师', icon: '⭐' });
     return categories;
+  }
+
+  setCoinManager(coinManager) {
+    this.coinManager = coinManager;
   }
 
   reset() {

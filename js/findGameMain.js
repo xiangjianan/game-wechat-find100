@@ -5,6 +5,9 @@ import SoundManager from './soundManager';
 import RankManager from './rankManager';
 import VibrationManager from './vibrationManager';
 import AchievementManager from './achievementManager';
+import CoinManager from './coinManager';
+import ItemManager from './itemManager';
+import ShopManager from './shopManager';
 import { getColorScheme } from './constants/colors';
 
 let canvas;
@@ -25,17 +28,29 @@ export default class FindGameMain {
     this.rankManager = new RankManager();
     this.vibrationManager = new VibrationManager();
     this.achievementManager = new AchievementManager();
+    this.coinManager = new CoinManager();
+    this.itemManager = new ItemManager();
+    this.shopManager = new ShopManager();
     this.aniId = 0;
     
     this.soundManager.init();
     this.rankManager.init();
     this.vibrationManager.checkSupport();
     this.achievementManager.loadProgress();
+    this.coinManager.init();
+    this.itemManager.init();
+    this.shopManager.init(this.coinManager, this.itemManager);
+    
+    this.gameManager.setItemManager(this.itemManager);
+    this.achievementManager.setCoinManager(this.coinManager);
+    
     this.loadGameProgress();
     
     const savedMode = this.loadGameMode();
     this.ui.setGameMode(savedMode);
     this.gameManager.setGameMode(savedMode);
+    
+    this.ui.setCoins(this.coinManager.getCoins());
     
     this.setupEventListeners();
     this.setupUICallbacks();
@@ -214,6 +229,25 @@ export default class FindGameMain {
     
     this.ui.onModeChange = (mode) => {
       this.saveGameMode(mode);
+    };
+    
+    this.ui.onOpenShop = () => {
+      this.openShop();
+    };
+    
+    this.ui.onShopBuy = (product) => {
+      this.handleShopBuy(product);
+    };
+    
+    this.coinManager.onCoinChanged = (coins, amount, type) => {
+      this.ui.setCoins(coins);
+    };
+    
+    this.itemManager.onItemChanged = (itemId, count, type) => {
+      if (itemId === 'hint' && this.gameManager) {
+        this.gameManager.hintCount = count;
+        this.ui.setHintCount(count);
+      }
     };
     
     this.gameManager.onGameComplete = (time) => {
@@ -652,6 +686,25 @@ export default class FindGameMain {
 
   useHint() {
     this.gameManager.useHint();
+  }
+
+  openShop() {
+    this.ui.shopProducts = this.shopManager.getAllProducts();
+    this.ui.openShop();
+  }
+
+  handleShopBuy(product) {
+    const result = this.shopManager.buy(product.id);
+    
+    if (result.success) {
+      this.soundManager.playClick();
+      this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `+${result.itemsAdded} 💡`, '#44FF44');
+    } else {
+      this.soundManager.playError();
+      if (result.reason === 'not_enough_coins') {
+        this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, '金币不足!', '#FF4444');
+      }
+    }
   }
 
   getBestTime(difficulty, count) {

@@ -89,6 +89,21 @@ export default class UI {
     this.hintCount = 0;
     this.onUseHint = null;
     this.hintButtonAnimation = 0;
+    
+    this.coins = 0;
+    this.onOpenShop = null;
+    
+    this.showShop = false;
+    this.shopScrollOffset = 0;
+    this.shopTouchStartY = 0;
+    this.shopLastTouchY = 0;
+    this.shopIsTouching = false;
+    this.shopScrollVelocity = 0;
+    this.shopScrollFriction = 0.95;
+    this.shopScrollMinVelocity = 0.5;
+    this.shopLastScrollDelta = 0;
+    this.shopLastScrollTime = 0;
+    this.shopProducts = null;
   }
 
   getScheme() {
@@ -455,6 +470,7 @@ export default class UI {
     this.menuAnimation = 0;
     this.menuTargetAnimation = 1;
     this.showAchievements = false;
+    this.showShop = false;
     
     const isMobile = this.width < 768;
     const buttonWidth = isMobile ? 240 : 280;
@@ -495,10 +511,21 @@ export default class UI {
         action: () => this.onOpenRank()
       },
       {
+        id: 'shop',
+        text: '商店',
+        x: centerX - buttonWidth / 2,
+        y: startY + (buttonHeight + buttonSpacing) * 3,
+        width: buttonWidth,
+        height: buttonHeight,
+        color: '#FFD700',
+        hoverColor: this.lightenColor('#FFD700', 0.15),
+        action: () => this.onOpenShop()
+      },
+      {
         id: 'achievements',
         text: '成就',
         x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 3,
+        y: startY + (buttonHeight + buttonSpacing) * 4,
         width: buttonWidth,
         height: buttonHeight,
         color: this.getScheme().buttonSecondary,
@@ -629,6 +656,10 @@ export default class UI {
   handleClick(x, y) {
     if (this.showRank) {
       return false;
+    }
+
+    if (this.showShop) {
+      return this.handleShopClick(x, y);
     }
 
     if (this.showAchievements) {
@@ -875,10 +906,21 @@ export default class UI {
         action: () => this.onOpenRank()
       },
       {
+        id: 'shop',
+        text: '商店',
+        x: centerX - buttonWidth / 2,
+        y: startY + (buttonHeight + buttonSpacing) * 3,
+        width: buttonWidth,
+        height: buttonHeight,
+        color: '#FFD700',
+        hoverColor: this.lightenColor('#FFD700', 0.15),
+        action: () => this.onOpenShop()
+      },
+      {
         id: 'achievements',
         text: '成就',
         x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 3,
+        y: startY + (buttonHeight + buttonSpacing) * 4,
         width: buttonWidth,
         height: buttonHeight,
         color: this.getScheme().buttonSecondary,
@@ -904,6 +946,10 @@ export default class UI {
 
   setHintCount(count) {
     this.hintCount = count;
+  }
+
+  setCoins(coins) {
+    this.coins = coins;
   }
 
   updateHintButtonAnimation(deltaTime) {
@@ -1246,6 +1292,15 @@ export default class UI {
     this.updateEffects(deltaTime);
     this.updateMenuAnimation(deltaTime);
     this.updateAchievementNotifications(deltaTime);
+    this.updateShopScrollInertia(deltaTime);
+
+    if (this.showShop) {
+      this.renderMenu(ctx);
+      this.renderShop(ctx);
+      this.renderEffects(ctx);
+      this.renderAchievementNotifications(ctx);
+      return;
+    }
 
     if (this.showAchievements) {
       this.renderMenu(ctx);
@@ -1336,6 +1391,8 @@ export default class UI {
     ctx.globalAlpha = Math.min(1, this.menuAnimation * 2);
     this.drawModeSwitcher(ctx, switcherX, switcherY, switcherWidth, switcherHeight);
     ctx.restore();
+    
+    this.renderCoinsDisplay(ctx);
   }
 
   renderBrutalismPattern(ctx) {
@@ -1897,6 +1954,10 @@ export default class UI {
   }
 
   handleTouchStart(y) {
+    if (this.showShop) {
+      this.handleShopTouchStart(y);
+      return;
+    }
     if (!this.showAchievements) return;
     this.touchStartY = y;
     this.lastTouchY = y;
@@ -1906,6 +1967,10 @@ export default class UI {
   }
 
   handleTouchMove(y) {
+    if (this.showShop) {
+      this.handleShopTouchMove(y);
+      return;
+    }
     if (!this.showAchievements || !this.isTouching) return;
     
     const now = Date.now();
@@ -1930,6 +1995,10 @@ export default class UI {
   }
 
   handleTouchEnd() {
+    if (this.showShop) {
+      this.handleShopTouchEnd();
+      return;
+    }
     this.isTouching = false;
   }
 
@@ -2186,5 +2255,307 @@ export default class UI {
   isPointInButton(x, y, button) {
     return x >= button.x && x <= button.x + button.width &&
            y >= button.y && y <= button.y + button.height;
+  }
+
+  renderCoinsDisplay(ctx) {
+    const scheme = this.getScheme();
+    const isMobile = this.width < 768;
+    
+    const boxWidth = isMobile ? 140 : 180;
+    const boxHeight = isMobile ? 44 : 52;
+    const boxX = this.width - boxWidth - (isMobile ? 16 : 24);
+    const boxY = isMobile ? 16 : 24;
+    
+    this.drawBrutalismRect(ctx, boxX, boxY, boxWidth, boxHeight, '#FFD700', {
+      shadowOffset: 4,
+      borderWidth: 3
+    });
+    
+    ctx.fillStyle = '#000000';
+    ctx.font = `bold ${isMobile ? 18 : 22}px "Arial Black", Arial, sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('💰', boxX + (isMobile ? 12 : 16), boxY + boxHeight / 2);
+    
+    ctx.textAlign = 'right';
+    ctx.fillText(`${this.coins}`, boxX + boxWidth - (isMobile ? 12 : 16), boxY + boxHeight / 2);
+  }
+
+  openShop() {
+    this.showShop = true;
+    this.shopScrollOffset = 0;
+    this.shopScrollVelocity = 0;
+    if (this.onOpenShop) {
+      this.onOpenShop();
+    }
+  }
+
+  closeShop() {
+    this.showShop = false;
+    this.initMenu();
+  }
+
+  renderShop(ctx) {
+    const scheme = this.getScheme();
+    const isMobile = this.width < 768;
+
+    ctx.fillStyle = `rgba(0, 0, 0, 0.8)`;
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
+    const modalHeight = isMobile ? this.height - 80 : this.height - 100;
+    const modalX = (this.width - modalWidth) / 2;
+    const modalY = (this.height - modalHeight) / 2;
+
+    this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
+      shadowOffset: 10,
+      borderWidth: 5
+    });
+
+    const titleY = modalY + (isMobile ? 40 : 50);
+    ctx.fillStyle = scheme.text;
+    ctx.font = `bold ${isMobile ? 28 : 34}px "Arial Black", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('商店', this.width / 2, titleY);
+
+    const titleWidth = ctx.measureText('商店').width;
+    ctx.strokeStyle = '#FFD700';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(this.width / 2 - titleWidth / 2 - 20, titleY + 25);
+    ctx.lineTo(this.width / 2 + titleWidth / 2 + 20, titleY + 25);
+    ctx.stroke();
+
+    if (this.shopProducts) {
+      this.renderShopProducts(ctx, modalX, modalY, modalWidth, modalHeight, isMobile);
+    }
+
+    const buttonWidth = isMobile ? 180 : 220;
+    const buttonHeight = isMobile ? 48 : 56;
+    const buttonX = (this.width - buttonWidth) / 2;
+    const buttonY = modalY + modalHeight - (isMobile ? 70 : 80);
+
+    const isHovered = this.hoveredButton === 'shop_close';
+    const isClicked = this.clickedButton === 'shop_close';
+
+    let fillColor = scheme.buttonPrimary;
+    if (isHovered) {
+      fillColor = this.lightenColor(scheme.buttonPrimary, 0.15);
+    }
+
+    let scale = 1;
+    if (isHovered) scale = 1.02;
+    if (isClicked) scale = 0.95;
+
+    const scaledWidth = buttonWidth * scale;
+    const scaledHeight = buttonHeight * scale;
+    const scaledX = (this.width - scaledWidth) / 2;
+    const scaledY = buttonY + (buttonHeight - scaledHeight) / 2;
+
+    const shadowOffset = isClicked ? 2 : (isHovered ? 8 : 6);
+    this.drawBrutalismRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, fillColor, {
+      shadowOffset: shadowOffset,
+      borderWidth: 4
+    });
+
+    ctx.fillStyle = scheme.textLight;
+    ctx.font = `bold ${isMobile ? 18 : 20}px "Arial Black", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('返回', this.width / 2, scaledY + scaledHeight / 2);
+
+    const coinsY = buttonY - (isMobile ? 20 : 25);
+    ctx.fillStyle = scheme.text;
+    ctx.font = `bold ${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(`💰 金币: ${this.coins}`, this.width / 2, coinsY);
+  }
+
+  renderShopProducts(ctx, modalX, modalY, modalWidth, modalHeight, isMobile) {
+    const scheme = this.getScheme();
+    const products = this.shopProducts;
+    
+    if (!products || products.length === 0) return;
+
+    const listStartY = modalY + (isMobile ? 90 : 110);
+    const listEndY = modalY + modalHeight - (isMobile ? 120 : 140);
+    const listHeight = listEndY - listStartY;
+    const itemHeight = isMobile ? 100 : 120;
+    const itemPadding = isMobile ? 12 : 15;
+    const itemWidth = modalWidth - (isMobile ? 20 : 30);
+    const itemX = modalX + (isMobile ? 10 : 15);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(modalX, listStartY, modalWidth, listHeight);
+    ctx.clip();
+
+    const totalHeight = products.length * (itemHeight + itemPadding);
+    const maxScroll = Math.max(0, totalHeight - listHeight);
+    this.shopScrollOffset = Math.max(0, Math.min(this.shopScrollOffset, maxScroll));
+
+    products.forEach((product, index) => {
+      const itemY = listStartY + index * (itemHeight + itemPadding) - this.shopScrollOffset;
+      
+      if (itemY + itemHeight < listStartY || itemY > listEndY) return;
+
+      const canBuy = this.coins >= product.price;
+      const bgColor = canBuy ? '#FFD700' : scheme.cardBg;
+
+      this.drawBrutalismRect(ctx, itemX, itemY, itemWidth, itemHeight, bgColor, {
+        shadowOffset: canBuy ? 4 : 2,
+        borderWidth: canBuy ? 3 : 2
+      });
+
+      ctx.font = `bold ${isMobile ? 36 : 44}px Arial, sans-serif`;
+      ctx.fillStyle = canBuy ? '#000000' : scheme.text;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(product.icon, itemX + (isMobile ? 12 : 15), itemY + itemHeight / 2);
+
+      ctx.font = `bold ${isMobile ? 18 : 20}px "Arial Black", Arial, sans-serif`;
+      ctx.fillText(product.name, itemX + (isMobile ? 55 : 65), itemY + (isMobile ? 25 : 30));
+
+      ctx.font = `${isMobile ? 12 : 14}px Arial, sans-serif`;
+      ctx.fillStyle = canBuy ? '#000000' : scheme.text;
+      ctx.fillText(product.description, itemX + (isMobile ? 55 : 65), itemY + (isMobile ? 50 : 55));
+
+      const priceText = `💰 ${product.price}`;
+      ctx.font = `bold ${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
+      ctx.textAlign = 'right';
+      ctx.fillText(priceText, itemX + itemWidth - (isMobile ? 12 : 15), itemY + itemHeight / 2);
+
+      if (!canBuy) {
+        ctx.font = `bold ${isMobile ? 14 : 16}px Arial, sans-serif`;
+        ctx.fillStyle = scheme.danger;
+        ctx.fillText('金币不足', itemX + itemWidth - (isMobile ? 12 : 15), itemY + itemHeight - (isMobile ? 12 : 15));
+      }
+    });
+
+    ctx.restore();
+  }
+
+  handleShopScroll(deltaY) {
+    if (!this.showShop) return;
+    
+    this.shopScrollOffset += deltaY;
+    this.shopScrollVelocity = deltaY;
+    this.shopLastScrollTime = Date.now();
+  }
+
+  handleShopTouchStart(y) {
+    if (!this.showShop) return;
+    this.shopTouchStartY = y;
+    this.shopLastTouchY = y;
+    this.shopIsTouching = true;
+    this.shopScrollVelocity = 0;
+    this.shopLastScrollDelta = 0;
+  }
+
+  handleShopTouchMove(y) {
+    if (!this.showShop || !this.shopIsTouching) return;
+    
+    const now = Date.now();
+    const deltaTime = now - this.shopLastScrollTime;
+    const deltaY = this.shopLastTouchY - y;
+    this.shopLastTouchY = y;
+    this.shopLastScrollTime = now;
+    
+    const isMobile = this.width < 768;
+    const modalHeight = isMobile ? this.height - 80 : this.height - 100;
+    const listStartY = (this.height - modalHeight) / 2 + (isMobile ? 90 : 110);
+    const listEndY = (this.height - modalHeight) / 2 + modalHeight - (isMobile ? 120 : 140);
+    
+    if (y >= listStartY && y <= listEndY) {
+      this.shopScrollOffset += deltaY;
+      
+      if (deltaTime > 0) {
+        this.shopScrollVelocity = deltaY / deltaTime * 16;
+      }
+      this.shopLastScrollDelta = deltaY;
+    }
+  }
+
+  handleShopTouchEnd() {
+    this.shopIsTouching = false;
+  }
+
+  updateShopScrollInertia(deltaTime) {
+    if (!this.showShop || this.shopIsTouching) return;
+    
+    if (Math.abs(this.shopScrollVelocity) > this.shopScrollMinVelocity) {
+      this.shopScrollOffset += this.shopScrollVelocity;
+      this.shopScrollVelocity *= this.shopScrollFriction;
+    } else {
+      this.shopScrollVelocity = 0;
+    }
+  }
+
+  handleShopClick(x, y) {
+    if (!this.showShop) return false;
+    
+    const isMobile = this.width < 768;
+    const buttonWidth = isMobile ? 180 : 220;
+    const buttonHeight = isMobile ? 48 : 56;
+    const modalHeight = isMobile ? this.height - 80 : this.height - 100;
+    const modalY = (this.height - modalHeight) / 2;
+    const buttonX = (this.width - buttonWidth) / 2;
+    const buttonY = modalY + modalHeight - (isMobile ? 70 : 80);
+
+    if (x >= buttonX && x <= buttonX + buttonWidth &&
+        y >= buttonY && y <= buttonY + buttonHeight) {
+      this.clickedButton = 'shop_close';
+      this.clickAnimation = 1;
+      if (this.onPlayClickSound) {
+        this.onPlayClickSound();
+      }
+      setTimeout(() => {
+        this.clickedButton = null;
+        this.clickAnimation = 0;
+        this.closeShop();
+        this.hoveredButton = null;
+      }, 150);
+      return true;
+    }
+
+    if (this.shopProducts) {
+      const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
+      const modalX = (this.width - modalWidth) / 2;
+      const listStartY = modalY + (isMobile ? 90 : 110);
+      const listEndY = modalY + modalHeight - (isMobile ? 120 : 140);
+      const itemHeight = isMobile ? 100 : 120;
+      const itemPadding = isMobile ? 12 : 15;
+      const itemWidth = modalWidth - (isMobile ? 20 : 30);
+      const itemX = modalX + (isMobile ? 10 : 15);
+
+      if (y >= listStartY && y <= listEndY) {
+        for (let i = 0; i < this.shopProducts.length; i++) {
+          const product = this.shopProducts[i];
+          const itemY = listStartY + i * (itemHeight + itemPadding) - this.shopScrollOffset;
+
+          if (y >= itemY && y <= itemY + itemHeight &&
+              x >= itemX && x <= itemX + itemWidth) {
+            if (this.coins >= product.price) {
+              this.clickedButton = `shop_buy_${product.id}`;
+              this.clickAnimation = 1;
+              if (this.onPlayClickSound) {
+                this.onPlayClickSound();
+              }
+              setTimeout(() => {
+                this.clickedButton = null;
+                this.clickAnimation = 0;
+                if (this.onShopBuy) {
+                  this.onShopBuy(product);
+                }
+              }, 150);
+              return true;
+            }
+          }
+        }
+      }
+    }
+
+    return true;
   }
 }
