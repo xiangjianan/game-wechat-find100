@@ -260,6 +260,18 @@ export default class FindGameMain {
     
     this.gameManager.onComboUpdate = (count, level) => {
       this.ui.updateCombo(count, level);
+      
+      const comboThresholds = [5, 10, 20];
+      if (comboThresholds.includes(count) && this.gameManager.currentLevel === 2) {
+        const unlockedAchievements = this.achievementManager.checkAchievement('combo', {
+          count: count,
+          level: this.gameManager.currentLevel
+        });
+        
+        if (unlockedAchievements.length > 0) {
+          this.ui.showAchievementNotification(unlockedAchievements);
+        }
+      }
     };
     
     this.gameManager.onComboLevelUp = (level, count) => {
