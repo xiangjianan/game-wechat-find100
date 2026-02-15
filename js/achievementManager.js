@@ -58,27 +58,27 @@ export default class AchievementManager {
       {
         id: 'A101',
         name: '完美无缺',
-        description: '零错误完成关卡',
+        description: '零错误完成第二关',
         category: 'perfect',
-        condition: { type: 'perfect_game' },
+        condition: { type: 'perfect_game', level: 2 },
         reward: { type: 'coins', amount: 500 },
         icon: '✨'
       },
       {
         id: 'A102',
         name: '完美主义者',
-        description: '连续3次零错误完成',
+        description: '连续3次零错误完成第二关',
         category: 'perfect',
-        condition: { type: 'consecutive_perfect', count: 3 },
+        condition: { type: 'consecutive_perfect', count: 3, level: 2 },
         reward: { type: 'coins', amount: 1000 },
         icon: '💎'
       },
       {
         id: 'A103',
         name: '精准射手',
-        description: '累计10次零错误完成',
+        description: '累计10次零错误完成第二关',
         category: 'perfect',
-        condition: { type: 'total_perfect_games', count: 10 },
+        condition: { type: 'total_perfect_games', count: 10, level: 2 },
         reward: { type: 'coins', amount: 1500 },
         icon: '🎯'
       },
@@ -199,27 +199,37 @@ export default class AchievementManager {
                data.time <= condition.maxTime;
 
       case 'perfect_game':
-        return eventType === 'level_complete' && data.errors === 0;
+        return eventType === 'level_complete' && 
+               data.errors === 0 && 
+               data.level === (condition.level || 1);
 
       case 'consecutive_perfect':
         if (eventType === 'level_complete') {
+          const targetLevel = condition.level || 1;
+          if (data.level !== targetLevel) return false;
           if (data.errors === 0) {
-            const current = this.progress.get('consecutive_perfect') || 0;
-            this.progress.set('consecutive_perfect', current + 1);
+            const key = `consecutive_perfect_level${targetLevel}`;
+            const current = this.progress.get(key) || 0;
+            this.progress.set(key, current + 1);
           } else {
-            this.progress.set('consecutive_perfect', 0);
+            const key = `consecutive_perfect_level${targetLevel}`;
+            this.progress.set(key, 0);
           }
           this.saveProgress();
-          return this.progress.get('consecutive_perfect') >= condition.count;
+          const key = `consecutive_perfect_level${targetLevel}`;
+          return this.progress.get(key) >= condition.count;
         }
         return false;
 
       case 'total_perfect_games':
         if (eventType === 'level_complete' && data.errors === 0) {
-          const current = this.progress.get('total_perfect_games') || 0;
-          this.progress.set('total_perfect_games', current + 1);
+          const targetLevel = condition.level || 1;
+          if (data.level !== targetLevel) return false;
+          const key = `total_perfect_games_level${targetLevel}`;
+          const current = this.progress.get(key) || 0;
+          this.progress.set(key, current + 1);
           this.saveProgress();
-          return this.progress.get('total_perfect_games') >= condition.count;
+          return this.progress.get(key) >= condition.count;
         }
         return false;
 
