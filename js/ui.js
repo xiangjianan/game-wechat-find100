@@ -1538,51 +1538,6 @@ export default class UI {
       ctx.fillText(button.text, scaledX + (scaledSize / 2) | 0, scaledY + (scaledSize / 2) | 0);
     });
 
-    const hintButtonX = this.width - buttonStartX - buttonSize;
-    const hintButtonY = buttonY;
-    const isHintHovered = this.mouseX >= hintButtonX && this.mouseX <= hintButtonX + buttonSize &&
-                          this.mouseY >= hintButtonY && this.mouseY <= hintButtonY + buttonSize;
-    const isHintClicked = this.clickedButton === 'hint';
-    const hasHints = this.hintCount > 0;
-
-    let hintScale = 1;
-    if (isHintHovered && hasHints) hintScale = 1.05;
-    if (isHintClicked) hintScale = 0.95;
-    if (this.hintButtonAnimation > 0) {
-      hintScale = 1 + this.hintButtonAnimation * 0.1;
-    }
-
-    const hintScaledSize = (buttonSize * hintScale) | 0;
-    const hintScaledX = (hintButtonX + (buttonSize - hintScaledSize) / 2) | 0;
-    const hintScaledY = (hintButtonY + (buttonSize - hintScaledSize) / 2) | 0;
-
-    let hintFillColor = hasHints ? scheme.accent : scheme.cardBg;
-    if (isHintHovered && hasHints) {
-      hintFillColor = this.lightenColor(scheme.accent, 0.15);
-    }
-
-    const hintShadowOffset = isHintClicked ? 2 : (isHintHovered && hasHints ? 6 : 4);
-    this.drawBrutalismRect(ctx, hintScaledX, hintScaledY, hintScaledSize, hintScaledSize, hintFillColor, {
-      shadowOffset: hintShadowOffset,
-      borderWidth: 3
-    });
-
-    ctx.font = `bold ${isMobile ? 18 : 22}px Arial, sans-serif`;
-    ctx.fillStyle = hasHints ? scheme.textLight : scheme.text;
-    ctx.fillText('💡', hintScaledX + (hintScaledSize / 2) | 0, hintScaledY + (hintScaledSize / 2) | 0);
-
-    ctx.font = `bold ${isMobile ? 12 : 14}px "Arial Black", Arial, sans-serif`;
-    ctx.fillStyle = hasHints ? scheme.textLight : scheme.text;
-    ctx.fillText(`${this.hintCount}`, hintScaledX + (hintScaledSize / 2) | 0, hintScaledY + hintScaledSize - (isMobile ? 8 : 10));
-
-    this.headerButtons.push({
-      id: 'hint',
-      x: hintButtonX,
-      y: hintButtonY,
-      width: buttonSize,
-      height: buttonSize
-    });
-
     if (this.gameMode === 'timed') {
       const centerX = this.width / 2;
       const timerY = buttonY + buttonSize / 2;
@@ -1651,6 +1606,65 @@ export default class UI {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(`${currentNumber - 1}/${totalNumbers}`, centerX, progressBarY + progressBarHeight / 2);
+    
+    this.renderHintButton(ctx, footerY, footerHeight, bottomSafeArea, isMobile);
+  }
+
+  renderHintButton(ctx, footerY, footerHeight, bottomSafeArea, isMobile) {
+    const scheme = this.getScheme();
+    const buttonSize = isMobile ? 40 : 64;
+    const paddingX = isMobile ? 16 : 20;
+    const offsetY = isMobile ? 8 : 12;
+    
+    const buttonX = paddingX;
+    const buttonY = footerY - offsetY + bottomSafeArea / 2;
+    
+    const isHintHovered = this.mouseX >= buttonX && this.mouseX <= buttonX + buttonSize &&
+                          this.mouseY >= buttonY && this.mouseY <= buttonY + buttonSize;
+    const isHintClicked = this.clickedButton === 'hint';
+    const hasHints = this.hintCount > 0;
+
+    let hintScale = 1;
+    if (isHintHovered && hasHints) hintScale = 1.05;
+    if (isHintClicked) hintScale = 0.95;
+    if (this.hintButtonAnimation > 0) {
+      hintScale = 1 + this.hintButtonAnimation * 0.1;
+    }
+
+    const hintScaledSize = (buttonSize * hintScale) | 0;
+    const hintScaledX = (buttonX + (buttonSize - hintScaledSize) / 2) | 0;
+    const hintScaledY = (buttonY + (buttonSize - hintScaledSize) / 2) | 0;
+
+    let hintFillColor = hasHints ? scheme.accent : scheme.cardBg;
+    if (isHintHovered && hasHints) {
+      hintFillColor = this.lightenColor(scheme.accent, 0.15);
+    }
+
+    const hintShadowOffset = isHintClicked ? 2 : (isHintHovered && hasHints ? 6 : 4);
+    this.drawBrutalismRect(ctx, hintScaledX, hintScaledY, hintScaledSize, hintScaledSize, hintFillColor, {
+      shadowOffset: hintShadowOffset,
+      borderWidth: 3
+    });
+
+    ctx.font = `bold ${isMobile ? 18 : 28}px Arial, sans-serif`;
+    ctx.fillStyle = hasHints ? scheme.textLight : scheme.text;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('💡', hintScaledX + (hintScaledSize / 2) | 0, hintScaledY + (hintScaledSize / 2) | 0);
+
+    ctx.font = `bold ${isMobile ? 10 : 14}px "Arial Black", Arial, sans-serif`;
+    ctx.fillStyle = hasHints ? scheme.textLight : scheme.text;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(`${this.hintCount}`, hintScaledX + hintScaledSize - (isMobile ? 4 : 6), hintScaledY + hintScaledSize - (isMobile ? 4 : 6));
+
+    this.headerButtons.push({
+      id: 'hint',
+      x: hintScaledX,
+      y: hintScaledY,
+      width: hintScaledSize,
+      height: hintScaledSize
+    });
   }
 
   renderInstructions(ctx) {
