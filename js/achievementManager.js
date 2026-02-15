@@ -20,58 +20,13 @@ export default class AchievementManager {
         icon: '🎮'
       },
       {
-        id: 'A004',
-        name: '轻松搞定',
-        description: '5秒内完成第一关',
-        category: 'speed',
-        condition: { type: 'fast_complete', level: 1, maxTime: 5 },
-        reward: { type: 'coins', amount: 500 },
-        icon: '⚡'
-      },
-      {
-        id: 'A005',
-        name: '超凡速度',
-        description: '3秒内完成第一关',
-        category: 'speed',
-        condition: { type: 'fast_complete', level: 1, maxTime: 3 },
-        reward: { type: 'coins', amount: 1000 },
-        icon: '🚀'
-      },
-      {
-        id: 'A006',
-        name: '速度达人',
-        description: '300秒内完成第二关',
-        category: 'speed',
-        condition: { type: 'fast_complete', level: 2, maxTime: 300 },
-        reward: { type: 'coins', amount: 800 },
-        icon: '💨'
-      },
-      {
-        id: 'A007',
-        name: '闪电侠',
-        description: '250秒内完成第二关',
-        category: 'speed',
-        condition: { type: 'fast_complete', level: 2, maxTime: 250 },
-        reward: { type: 'coins', amount: 2000 },
-        icon: '⚡'
-      },
-      {
-        id: 'A102',
-        name: '完美主义者',
-        description: '连续3次零错误完成第二关',
-        category: 'perfect',
-        condition: { type: 'consecutive_perfect', count: 3, level: 2 },
-        reward: { type: 'coins', amount: 1000 },
-        icon: '💎'
-      },
-      {
-        id: 'A103',
-        name: '精准射手',
-        description: '累计10次零错误完成第二关',
-        category: 'perfect',
-        condition: { type: 'total_perfect_games', count: 10, level: 2 },
-        reward: { type: 'coins', amount: 3000 },
-        icon: '🎯'
+        id: 'A302',
+        name: '自由探索',
+        description: '在自由模式下完成关卡',
+        category: 'mode',
+        condition: { type: 'mode_complete', mode: 'untimed' },
+        reward: { type: 'coins', amount: 200 },
+        icon: '🦅'
       },
       {
         id: 'A201',
@@ -81,33 +36,6 @@ export default class AchievementManager {
         condition: { type: 'level_complete', level: 2 },
         reward: { type: 'coins', amount: 500 },
         icon: '🏆'
-      },
-      {
-        id: 'A202',
-        name: '百数挑战',
-        description: '在第二关找到100个数字',
-        category: 'progress',
-        condition: { type: 'total_numbers_found', count: 100 },
-        reward: { type: 'coins', amount: 300 },
-        icon: '💯'
-      },
-      {
-        id: 'A301',
-        name: '时间大师',
-        description: '在限时模式下完成关卡',
-        category: 'mode',
-        condition: { type: 'mode_complete', mode: 'timed' },
-        reward: { type: 'coins', amount: 200 },
-        icon: '⏰'
-      },
-      {
-        id: 'A302',
-        name: '自由探索',
-        description: '在自由模式下完成关卡',
-        category: 'mode',
-        condition: { type: 'mode_complete', mode: 'untimed' },
-        reward: { type: 'coins', amount: 200 },
-        icon: '🦅'
       },
       {
         id: 'A401',
@@ -135,6 +63,60 @@ export default class AchievementManager {
         condition: { type: 'games_completed', count: 100 },
         reward: { type: 'coins', amount: 2000 },
         icon: '👑'
+      },
+      {
+        id: 'A004',
+        name: '轻松搞定',
+        description: '5秒内完成第一关',
+        category: 'speed',
+        condition: { type: 'fast_complete', level: 1, maxTime: 5 },
+        reward: { type: 'coins', amount: 500 },
+        icon: '⚡️'
+      },
+      {
+        id: 'A005',
+        name: '闪电侠',
+        description: '3秒内完成第一关',
+        category: 'speed',
+        condition: { type: 'fast_complete', level: 1, maxTime: 3 },
+        reward: { type: 'coins', amount: 1000 },
+        icon: '⚡️'
+      },
+      {
+        id: 'A006',
+        name: '速度达人',
+        description: '300秒内完成第二关',
+        category: 'speed',
+        condition: { type: 'fast_complete', level: 2, maxTime: 300 },
+        reward: { type: 'coins', amount: 800 },
+        icon: '💨'
+      },
+      {
+        id: 'A007',
+        name: '超凡速度',
+        description: '250秒内完成第二关',
+        category: 'speed',
+        condition: { type: 'fast_complete', level: 2, maxTime: 250 },
+        reward: { type: 'coins', amount: 2000 },
+        icon: '🚀'
+      },
+      {
+        id: 'A102',
+        name: '完美主义者',
+        description: '连续3次零错误完成第二关',
+        category: 'perfect',
+        condition: { type: 'consecutive_perfect', count: 3, level: 2 },
+        reward: { type: 'coins', amount: 1000 },
+        icon: '💎'
+      },
+      {
+        id: 'A103',
+        name: '精准射手',
+        description: '累计10次零错误完成第二关',
+        category: 'perfect',
+        condition: { type: 'total_perfect_games', count: 10, level: 2 },
+        reward: { type: 'coins', amount: 3000 },
+        icon: '🎯'
       }
     ];
 
