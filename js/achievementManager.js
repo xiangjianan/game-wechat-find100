@@ -117,6 +117,33 @@ export default class AchievementManager {
         condition: { type: 'total_perfect_games', count: 10, level: 2 },
         reward: { type: 'coins', amount: 3000 },
         icon: '🎯'
+      },
+      {
+        id: 'A501',
+        name: '连击新星',
+        description: '在第二关达成5连击',
+        category: 'combo',
+        condition: { type: 'combo', count: 5, level: 2 },
+        reward: { type: 'coins', amount: 500 },
+        icon: '⭐'
+      },
+      {
+        id: 'A502',
+        name: '连击大师',
+        description: '在第二关达成10连击',
+        category: 'combo',
+        condition: { type: 'combo', count: 10, level: 2 },
+        reward: { type: 'coins', amount: 1000 },
+        icon: '🌟'
+      },
+      {
+        id: 'A503',
+        name: '连击狂魔',
+        description: '在第二关达成20连击',
+        category: 'combo',
+        condition: { type: 'combo', count: 20, level: 2 },
+        reward: { type: 'coins', amount: 3000 },
+        icon: '🔥'
       }
     ];
 
@@ -126,12 +153,13 @@ export default class AchievementManager {
   }
 
   checkAchievement(eventType, data) {
+    this.updateProgress(eventType, data);
     const newlyUnlocked = [];
 
     for (const [id, achievement] of this.achievements) {
       if (this.unlockedAchievements.has(id)) continue;
 
-      if (this.checkCondition(achievement.condition, eventType, data)) {
+      if (this.checkCondition(achievement.condition, eventType, data, id)) {
         this.unlockAchievement(id);
         newlyUnlocked.push(achievement);
       }
@@ -140,7 +168,46 @@ export default class AchievementManager {
     return newlyUnlocked;
   }
 
-  checkCondition(condition, eventType, data) {
+  updateProgress(eventType, data) {
+    switch (eventType) {
+      case 'game_complete':
+        const gamesCompleted = this.progress.get('games_completed') || 0;
+        this.progress.set('games_completed', gamesCompleted + 1);
+        
+        const consecutiveGames = this.progress.get('consecutive_games') || 0;
+        this.progress.set('consecutive_games', consecutiveGames + 1);
+        this.saveProgress();
+        break;
+
+      case 'game_fail':
+        this.progress.set('consecutive_games', 0);
+        this.saveProgress();
+        break;
+
+      case 'level_complete':
+        if (data.errors === 0) {
+          const targetLevel = data.level;
+          const consecutiveKey = `consecutive_perfect_level${targetLevel}`;
+          const consecutiveCurrent = this.progress.get(consecutiveKey) || 0;
+          this.progress.set(consecutiveKey, consecutiveCurrent + 1);
+          
+          const totalKey = `total_perfect_games_level${targetLevel}`;
+          const totalCurrent = this.progress.get(totalKey) || 0;
+          this.progress.set(totalKey, totalCurrent + 1);
+        } else {
+          const targetLevel = data.level;
+          const consecutiveKey = `consecutive_perfect_level${targetLevel}`;
+          this.progress.set(consecutiveKey, 0);
+        }
+
+        const totalNumbers = this.progress.get('total_numbers_found') || 0;
+        this.progress.set('total_numbers_found', totalNumbers + (data.totalNumbers || 0));
+        this.saveProgress();
+        break;
+    }
+  }
+
+  checkCondition(condition, eventType, data, achievementId) {
     switch (condition.type) {
       case 'level_complete':
         return eventType === 'level_complete' && data.level >= condition.level;
@@ -148,21 +215,14 @@ export default class AchievementManager {
       case 'games_completed':
         if (eventType === 'game_complete') {
           const current = this.progress.get('games_completed') || 0;
-          this.progress.set('games_completed', current + 1);
-          this.saveProgress();
-          return this.progress.get('games_completed') >= condition.count;
+          return current >= condition.count;
         }
         return false;
 
       case 'consecutive_games':
         if (eventType === 'game_complete') {
           const current = this.progress.get('consecutive_games') || 0;
-          this.progress.set('consecutive_games', current + 1);
-          this.saveProgress();
-          return this.progress.get('consecutive_games') >= condition.count;
-        } else if (eventType === 'game_fail') {
-          this.progress.set('consecutive_games', 0);
-          this.saveProgress();
+          return current >= condition.count;
         }
         return false;
 
@@ -180,38 +240,32 @@ export default class AchievementManager {
         if (eventType === 'level_complete') {
           const targetLevel = condition.level || 1;
           if (data.level !== targetLevel) return false;
-          if (data.errors === 0) {
-            const key = `consecutive_perfect_level${targetLevel}`;
-            const current = this.progress.get(key) || 0;
-            this.progress.set(key, current + 1);
-          } else {
-            const key = `consecutive_perfect_level${targetLevel}`;
-            this.progress.set(key, 0);
-          }
-          this.saveProgress();
           const key = `consecutive_perfect_level${targetLevel}`;
-          return this.progress.get(key) >= condition.count;
+          const current = this.progress.get(key) || 0;
+          return current >= condition.count;
         }
         return false;
 
       case 'total_perfect_games':
-        if (eventType === 'level_complete' && data.errors === 0) {
+        if (eventType === 'level_complete') {
           const targetLevel = condition.level || 1;
           if (data.level !== targetLevel) return false;
           const key = `total_perfect_games_level${targetLevel}`;
           const current = this.progress.get(key) || 0;
-          this.progress.set(key, current + 1);
-          this.saveProgress();
-          return this.progress.get(key) >= condition.count;
+          return current >= condition.count;
         }
         return false;
 
       case 'total_numbers_found':
         if (eventType === 'level_complete') {
           const current = this.progress.get('total_numbers_found') || 0;
-          this.progress.set('total_numbers_found', current + data.totalNumbers);
-          this.saveProgress();
-          return this.progress.get('total_numbers_found') >= condition.count;
+          return current >= condition.count;
+        }
+        return false;
+
+      case 'combo':
+        if (eventType === 'combo' && data.level === condition.level) {
+          return data.count >= condition.count;
         }
         return false;
 
@@ -340,6 +394,7 @@ export default class AchievementManager {
     categories.set('progress', { name: '进度达人', icon: '🏆' });
     categories.set('mode', { name: '模式探索', icon: '🎮' });
     categories.set('persistence', { name: '坚持不懈', icon: '💪' });
+    categories.set('combo', { name: '连击大师', icon: '⭐' });
     return categories;
   }
 

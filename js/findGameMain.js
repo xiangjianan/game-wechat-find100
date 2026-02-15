@@ -353,8 +353,10 @@ export default class FindGameMain {
       mode: this.gameManager.getGameMode()
     };
     
-    const unlockedAchievements = this.achievementManager.checkAchievement('level_complete', achievementData);
-    this.achievementManager.checkAchievement('game_complete', achievementData);
+    const unlockedAchievements = [
+      ...this.achievementManager.checkAchievement('level_complete', achievementData),
+      ...this.achievementManager.checkAchievement('game_complete', achievementData)
+    ];
     
     if (unlockedAchievements.length > 0) {
       this.ui.showAchievementNotification(unlockedAchievements);
