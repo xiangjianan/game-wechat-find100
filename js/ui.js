@@ -1325,7 +1325,6 @@ export default class UI {
     this.updateMenuAnimation(deltaTime);
     this.updateAchievementNotifications(deltaTime);
     this.updateShopScrollInertia(deltaTime);
-    console.log('render game', gameState, currentNumber, totalNumbers, timeLeft);
 
     if (this.showShop) {
       this.renderMenu(ctx);
