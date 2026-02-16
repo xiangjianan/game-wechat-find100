@@ -503,20 +503,10 @@ export default class UI {
         action: () => this.onShowInstructions()
       },
       {
-        id: 'rank',
-        text: '排行榜',
-        x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 2,
-        width: buttonWidth,
-        height: buttonHeight,
-        color: this.getScheme().danger,
-        action: () => this.onOpenRank()
-      },
-      {
         id: 'shop',
         text: '商店',
         x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 3,
+        y: startY + (buttonHeight + buttonSpacing) * 2,
         width: buttonWidth,
         height: buttonHeight,
         color: '#FFD700',
@@ -527,7 +517,7 @@ export default class UI {
         id: 'achievements',
         text: '成就',
         x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 4,
+        y: startY + (buttonHeight + buttonSpacing) * 3,
         width: buttonWidth,
         height: buttonHeight,
         color: this.getScheme().buttonSecondary,
@@ -898,20 +888,10 @@ export default class UI {
         action: () => this.onShowInstructions()
       },
       {
-        id: 'rank',
-        text: '排行榜',
-        x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 2,
-        width: buttonWidth,
-        height: buttonHeight,
-        color: this.getScheme().danger,
-        action: () => this.onOpenRank()
-      },
-      {
         id: 'shop',
         text: '商店',
         x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 3,
+        y: startY + (buttonHeight + buttonSpacing) * 2,
         width: buttonWidth,
         height: buttonHeight,
         color: '#FFD700',
@@ -922,7 +902,7 @@ export default class UI {
         id: 'achievements',
         text: '成就',
         x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 4,
+        y: startY + (buttonHeight + buttonSpacing) * 3,
         width: buttonWidth,
         height: buttonHeight,
         color: this.getScheme().buttonSecondary,
