@@ -3056,9 +3056,6 @@ export default class UI {
             if (this.coins >= product.price) {
               this.clickedButton = `shop_buy_${product.id}`;
               this.clickAnimation = 1;
-              if (this.onPlayClickSound) {
-                this.onPlayClickSound();
-              }
               setTimeout(() => {
                 this.clickedButton = null;
                 this.clickAnimation = 0;
@@ -3140,9 +3137,6 @@ export default class UI {
               if (skill.canUnlock && !skill.isUnlocked) {
                 this.clickedButton = `skill_unlock_${skill.id}`;
                 this.clickAnimation = 1;
-                if (this.onPlayClickSound) {
-                  this.onPlayClickSound();
-                }
                 setTimeout(() => {
                   this.clickedButton = null;
                   this.clickAnimation = 0;
