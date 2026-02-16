@@ -2407,7 +2407,7 @@ export default class UI {
     const scheme = this.getScheme();
     const isMobile = this.width < 768;
     
-    const boxWidth = isMobile ? 100 : 120;
+    const boxWidth = isMobile ? 110 : 132;
     const boxHeight = isMobile ? 44 : 52;
     const boxX = this.width - boxWidth - (isMobile ? 16 : 24);
     const boxY = isMobile ? 24 : 36;
