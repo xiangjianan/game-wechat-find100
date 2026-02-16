@@ -2312,16 +2312,64 @@ export default class UI {
 
     if (this.showSkills) {
       const isMobile = this.width < 768;
-      const buttonWidth = isMobile ? 180 : 220;
-      const buttonHeight = isMobile ? 48 : 56;
-      const modalHeight = isMobile ? this.height - 80 : this.height - 100;
+      const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
+      const modalHeight = isMobile ? this.height - 60 : this.height - 80;
+      const modalX = (this.width - modalWidth) / 2;
       const modalY = (this.height - modalHeight) / 2;
-      const buttonX = (this.width - buttonWidth) / 2;
-      const buttonY = modalY + modalHeight - (isMobile ? 70 : 80);
 
-      if (this.mouseX >= buttonX && this.mouseX <= buttonX + buttonWidth &&
-          this.mouseY >= buttonY && this.mouseY <= buttonY + buttonHeight) {
+      const closeButtonWidth = isMobile ? 180 : 220;
+      const closeButtonHeight = isMobile ? 48 : 56;
+      const closeButtonX = (this.width - closeButtonWidth) / 2;
+      const closeButtonY = modalY + modalHeight - (isMobile ? 70 : 80);
+
+      if (this.mouseX >= closeButtonX && this.mouseX <= closeButtonX + closeButtonWidth &&
+          this.mouseY >= closeButtonY && this.mouseY <= closeButtonY + closeButtonHeight) {
         this.hoveredButton = 'skills_close';
+        return;
+      }
+
+      const listStartY = modalY + (isMobile ? 90 : 110);
+      const listEndY = modalY + modalHeight - (isMobile ? 140 : 160);
+      const itemHeight = isMobile ? 85 : 100;
+      const itemPadding = isMobile ? 10 : 12;
+      const itemWidth = modalWidth - (isMobile ? 30 : 40);
+      const itemX = modalX + (isMobile ? 15 : 20);
+
+      const categoryHeaderHeight = isMobile ? 35 : 45;
+      const categorySpacing = isMobile ? 20 : 25;
+
+      if (this.skillsData && this.mouseY >= listStartY && this.mouseY <= listEndY) {
+        let currentY = listStartY - this.skillScrollOffset;
+
+        for (const [category, skills] of this.skillsData) {
+          currentY += categoryHeaderHeight;
+
+          for (const skill of skills) {
+            if (currentY > listEndY) break;
+
+            if (currentY + itemHeight < listStartY) {
+              currentY += itemHeight + itemPadding;
+              continue;
+            }
+
+            const unlockButtonWidth = isMobile ? 50 : 70;
+            const unlockButtonHeight = isMobile ? 28 : 36;
+            const unlockButtonX = itemX + itemWidth - unlockButtonWidth - (isMobile ? 10 : 15);
+            const unlockButtonY = currentY + (itemHeight - unlockButtonHeight) / 2;
+
+            if (this.mouseX >= unlockButtonX && this.mouseX <= unlockButtonX + unlockButtonWidth &&
+                this.mouseY >= unlockButtonY && this.mouseY <= unlockButtonY + unlockButtonHeight) {
+              if (skill.canUnlock && !skill.isUnlocked) {
+                this.hoveredButton = `skill_unlock_${skill.id}`;
+                return;
+              }
+            }
+
+            currentY += itemHeight + itemPadding;
+          }
+
+          currentY += categorySpacing;
+        }
       }
       return;
     }
@@ -2742,51 +2790,90 @@ export default class UI {
         const itemWidth = modalWidth - (isMobile ? 30 : 40);
         const itemX = modalX + (isMobile ? 15 : 20);
 
-        const bgColor = skill.isUnlocked ? '#4CAF50' : (skill.canUnlock ? '#9C27B0' : scheme.cardBg);
-        const shadowOffset = skill.isUnlocked ? 4 : (skill.canUnlock ? 4 : 2);
-        const borderWidth = skill.isUnlocked ? 3 : (skill.canUnlock ? 3 : 2);
+        const bgColor = scheme.cardBg;
 
         this.drawBrutalismRect(ctx, itemX, currentY, itemWidth, itemHeight, bgColor, {
-          shadowOffset: shadowOffset,
-          borderWidth: borderWidth
+          shadowOffset: 2,
+          borderWidth: 2
         });
 
         ctx.font = `bold ${isMobile ? 32 : 40}px Arial, sans-serif`;
-        ctx.fillStyle = skill.isUnlocked || skill.canUnlock ? '#FFFFFF' : scheme.text;
+        ctx.fillStyle = skill.isUnlocked ? '#4CAF50' : scheme.text;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
         ctx.fillText(skill.icon || '⭐', itemX + (isMobile ? 12 : 15), currentY + itemHeight / 2);
 
         ctx.font = `bold ${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
+        ctx.fillStyle = scheme.text;
         ctx.fillText(skill.name, itemX + (isMobile ? 50 : 60), currentY + (isMobile ? 20 : 25));
 
         ctx.font = `${isMobile ? 11 : 13}px Arial, sans-serif`;
         ctx.fillText(skill.description, itemX + (isMobile ? 50 : 60), currentY + (isMobile ? 45 : 50));
 
-        ctx.font = `bold ${isMobile ? 14 : 16}px "Arial Black", Arial, sans-serif`;
-        ctx.textAlign = 'right';
-        
+        const costText = skill.isUnlocked ? '' : `💰 ${(skill.cost !== undefined && skill.cost !== null) ? skill.cost.toString() : '???'}`;
+        ctx.font = `bold ${isMobile ? 12 : 14}px "Arial Black", Arial, sans-serif`;
+        ctx.textAlign = 'left';
+        ctx.fillText(costText, itemX + (isMobile ? 50 : 60), currentY + (isMobile ? 70 : 78));
+
+        const unlockButtonWidth = isMobile ? 50 : 70;
+        const unlockButtonHeight = isMobile ? 28 : 36;
+        const unlockButtonX = itemX + itemWidth - unlockButtonWidth - (isMobile ? 10 : 15);
+        const unlockButtonY = currentY + (itemHeight - unlockButtonHeight) / 2;
+
+        const isUnlockButtonHovered = this.hoveredButton === `skill_unlock_${skill.id}`;
+        const isUnlockButtonClicked = this.clickedButton === `skill_unlock_${skill.id}`;
+
         if (skill.isUnlocked) {
-          ctx.fillStyle = '#FFFFFF';
-          ctx.fillText('已解锁', itemX + itemWidth - (isMobile ? 12 : 15), currentY + (isMobile ? 25 : 30));
-        } else {
-          ctx.fillStyle = skill.canUnlock ? '#FFFFFF' : scheme.text;
-          const costText = (skill.cost !== undefined && skill.cost !== null) ? skill.cost.toString() : '???';
-          ctx.fillText(`💰 ${costText}`, itemX + itemWidth - (isMobile ? 12 : 15), currentY + (isMobile ? 25 : 30));
-          
-          if (!skill.canUnlock) {
-            ctx.font = `${isMobile ? 11 : 12}px Arial, sans-serif`;
-            ctx.fillStyle = scheme.text;
-            
-            let unlockReason = '金币不足';
-            if (skill.prerequisite) {
-              const prerequisiteSkill = this.skillsData.get(skill.category)?.find(s => s.id === skill.prerequisite);
-              if (prerequisiteSkill && !prerequisiteSkill.isUnlocked) {
-                unlockReason = `需要: ${prerequisiteSkill.name}`;
-              }
-            }
-            ctx.fillText(unlockReason, itemX + itemWidth - (isMobile ? 12 : 15), currentY + itemHeight - (isMobile ? 10 : 12));
+          ctx.fillStyle = '#4CAF50';
+          ctx.font = `bold ${isMobile ? 12 : 14}px "Arial Black", Arial, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('已解锁', unlockButtonX + unlockButtonWidth / 2, unlockButtonY + unlockButtonHeight / 2);
+        } else if (skill.canUnlock) {
+          let unlockButtonColor = '#9C27B0';
+          if (isUnlockButtonHovered) {
+            unlockButtonColor = this.lightenColor('#9C27B0', 0.15);
           }
+
+          let unlockButtonScale = 1;
+          if (isUnlockButtonHovered) unlockButtonScale = 1.02;
+          if (isUnlockButtonClicked) unlockButtonScale = 0.95;
+
+          const scaledUnlockWidth = unlockButtonWidth * unlockButtonScale;
+          const scaledUnlockHeight = unlockButtonHeight * unlockButtonScale;
+          const scaledUnlockX = unlockButtonX + (unlockButtonWidth - scaledUnlockWidth) / 2;
+          const scaledUnlockY = unlockButtonY + (unlockButtonHeight - scaledUnlockHeight) / 2;
+
+          const unlockShadowOffset = isUnlockButtonClicked ? 2 : (isUnlockButtonHovered ? 6 : 4);
+          this.drawBrutalismRect(ctx, scaledUnlockX, scaledUnlockY, scaledUnlockWidth, scaledUnlockHeight, unlockButtonColor, {
+            shadowOffset: unlockShadowOffset,
+            borderWidth: 3
+          });
+
+          ctx.fillStyle = '#FFFFFF';
+          ctx.font = `bold ${isMobile ? 12 : 14}px "Arial Black", Arial, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('解锁', scaledUnlockX + scaledUnlockWidth / 2, scaledUnlockY + scaledUnlockHeight / 2);
+        } else {
+          this.drawBrutalismRect(ctx, unlockButtonX, unlockButtonY, unlockButtonWidth, unlockButtonHeight, '#CCCCCC', {
+            shadowOffset: 2,
+            borderWidth: 2
+          });
+
+          ctx.fillStyle = '#666666';
+          ctx.font = `bold ${isMobile ? 10 : 12}px "Arial Black", Arial, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+
+          let unlockReason = '金币不足';
+          if (skill.prerequisite) {
+            const prerequisiteSkill = this.skillsData.get(skill.category)?.find(s => s.id === skill.prerequisite);
+            if (prerequisiteSkill && !prerequisiteSkill.isUnlocked) {
+              unlockReason = '需前置';
+            }
+          }
+          ctx.fillText(unlockReason, unlockButtonX + unlockButtonWidth / 2, unlockButtonY + unlockButtonHeight / 2);
         }
 
         currentY += itemHeight + itemPadding;
@@ -3040,21 +3127,35 @@ export default class UI {
     if (this.skillsData) {
       const listStartY = modalY + (isMobile ? 90 : 110);
       const listEndY = modalY + modalHeight - (isMobile ? 140 : 160);
+      const categoryHeaderHeight = isMobile ? 35 : 45;
       const itemHeight = isMobile ? 85 : 100;
       const itemPadding = isMobile ? 10 : 12;
+      const categorySpacing = isMobile ? 20 : 25;
 
       if (y >= listStartY && y <= listEndY) {
-        let currentY = listStartY + (isMobile ? 35 : 45) - this.skillScrollOffset;
-        
+        let currentY = listStartY - this.skillScrollOffset;
+
         for (const [category, skills] of this.skillsData) {
+          currentY += categoryHeaderHeight;
+
           for (const skill of skills) {
-            if (currentY + itemHeight > listEndY) break;
+            if (currentY > listEndY) break;
+
+            if (currentY + itemHeight < listStartY) {
+              currentY += itemHeight + itemPadding;
+              continue;
+            }
 
             const itemWidth = modalWidth - (isMobile ? 30 : 40);
             const itemX = modalX + (isMobile ? 15 : 20);
 
-            if (y >= currentY && y <= currentY + itemHeight &&
-                x >= itemX && x <= itemX + itemWidth) {
+            const unlockButtonWidth = isMobile ? 50 : 70;
+            const unlockButtonHeight = isMobile ? 28 : 36;
+            const unlockButtonX = itemX + itemWidth - unlockButtonWidth - (isMobile ? 10 : 15);
+            const unlockButtonY = currentY + (itemHeight - unlockButtonHeight) / 2;
+
+            if (y >= unlockButtonY && y <= unlockButtonY + unlockButtonHeight &&
+                x >= unlockButtonX && x <= unlockButtonX + unlockButtonWidth) {
               if (skill.canUnlock && !skill.isUnlocked) {
                 this.clickedButton = `skill_unlock_${skill.id}`;
                 this.clickAnimation = 1;
@@ -3075,7 +3176,7 @@ export default class UI {
             currentY += itemHeight + itemPadding;
           }
 
-          currentY += (isMobile ? 20 : 25);
+          currentY += categorySpacing;
         }
       }
     }
