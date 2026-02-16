@@ -160,8 +160,7 @@ export default class GameManager {
       }
     }
 
-    // if (this.currentNumber > this.totalNumbers) {
-    if (this.currentNumber > 1) {
+    if (this.currentNumber > this.totalNumbers) {
       this.handleGameComplete();
     }
 
