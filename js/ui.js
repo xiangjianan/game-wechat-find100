@@ -1313,7 +1313,9 @@ export default class UI {
     this.updateAchievementNotifications(deltaTime);
     this.updateShopScrollInertia(deltaTime);
 
+    console.log('Rendering game...');
     if (this.showShop) {
+      console.log('Rendering shop...');
       this.renderMenu(ctx);
       this.renderShop(ctx);
       this.renderEffects(ctx);
@@ -1322,6 +1324,7 @@ export default class UI {
     }
 
     if (this.showSkills) {
+      console.log('Rendering skills...');
       this.renderMenu(ctx);
       this.renderSkills(ctx);
       this.renderEffects(ctx);
@@ -1836,7 +1839,7 @@ export default class UI {
     ctx.fillRect(0, 0, this.width, this.height);
 
     const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
-    const modalHeight = isMobile ? this.height - 80 : this.height - 100;
+    const modalHeight = isMobile ? this.height - 60 : this.height - 80;
     const modalX = (this.width - modalWidth) / 2;
     const modalY = (this.height - modalHeight) / 2;
 
@@ -2508,11 +2511,23 @@ export default class UI {
     const scheme = this.getScheme();
     const isMobile = this.width < 768;
 
+    if (!this.skillsData) {
+      ctx.fillStyle = `rgba(0, 0, 0, 0.8)`;
+      ctx.fillRect(0, 0, this.width, this.height);
+      
+      ctx.fillStyle = scheme.text;
+      ctx.font = `bold ${isMobile ? 20 : 24}px "Arial Black", Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('加载中...', this.width / 2, this.height / 2);
+      return;
+    }
+
     ctx.fillStyle = `rgba(0, 0, 0, 0.8)`;
     ctx.fillRect(0, 0, this.width, this.height);
 
     const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
-    const modalHeight = isMobile ? this.height - 80 : this.height - 100;
+    const modalHeight = isMobile ? this.height - 60 : this.height - 80;
     const modalX = (this.width - modalWidth) / 2;
     const modalY = (this.height - modalHeight) / 2;
 
@@ -2584,7 +2599,7 @@ export default class UI {
   renderSkillsCategories(ctx, modalX, modalY, modalWidth, modalHeight, isMobile) {
     const scheme = this.getScheme();
     const listStartY = modalY + (isMobile ? 90 : 110);
-    const listEndY = modalY + modalHeight - (isMobile ? 120 : 140);
+    const listEndY = modalY + modalHeight - (isMobile ? 80 : 100);
     const listHeight = listEndY - listStartY;
 
     const categoryNames = {
@@ -2593,13 +2608,14 @@ export default class UI {
     };
 
     let currentY = listStartY;
-
+    console.log('Skills data:', this.skillsData);
     for (const [category, skills] of this.skillsData) {
       ctx.fillStyle = scheme.text;
       ctx.font = `bold ${isMobile ? 20 : 24}px "Arial Black", Arial, sans-serif`;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
       ctx.fillText(categoryNames[category] || category, modalX + (isMobile ? 15 : 20), currentY);
+      console.log(`Category ${category}: ${skills.length} skills`, skills.map(s => s.id));
 
       currentY += (isMobile ? 35 : 45);
 

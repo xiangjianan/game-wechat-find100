@@ -47,6 +47,11 @@ export default class GameManager {
         this.timeLeft += timeReward;
       }
       
+      const coinBonus = this.skillManager ? this.skillManager.getComboCoinBonus() : 0;
+      if (coinBonus > 0 && count >= 5) {
+        this.coinManager.addCoins(coinBonus, 'combo');
+      }
+      
       if (this.onComboUpdate) {
         this.onComboUpdate(count, level);
       }

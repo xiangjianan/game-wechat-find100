@@ -72,6 +72,45 @@ export default class SkillManager {
       prerequisite: null,
       icon: '🔥'
     });
+
+    this.skills.set('combo_coin_1', {
+      id: 'combo_coin_1',
+      name: '连击金币 I',
+      category: 'combo',
+      description: '5连击后，每次连击获得10金币',
+      effect: { type: 'combo_coin', value: 10 },
+      maxLevel: 1,
+      currentLevel: 0,
+      cost: 2000,
+      prerequisite: null,
+      icon: '💰'
+    });
+
+    this.skills.set('combo_coin_2', {
+      id: 'combo_coin_2',
+      name: '连击金币 II',
+      category: 'combo',
+      description: '5连击后，每次连击获得30金币',
+      effect: { type: 'combo_coin', value: 30 },
+      maxLevel: 1,
+      currentLevel: 0,
+      cost: 4000,
+      prerequisite: 'combo_coin_1',
+      icon: '💰'
+    });
+
+    this.skills.set('combo_coin_3', {
+      id: 'combo_coin_3',
+      name: '连击金币 III',
+      category: 'combo',
+      description: '5连击后，每次连击获得50金币',
+      effect: { type: 'combo_coin', value: 50 },
+      maxLevel: 1,
+      currentLevel: 0,
+      cost: 6000,
+      prerequisite: 'combo_coin_2',
+      icon: '💰'
+    });
   }
 
   canUnlock(skillId) {
@@ -171,6 +210,10 @@ export default class SkillManager {
 
   getComboBonus() {
     return this.getSkillEffect('combo_bonus');
+  }
+
+  getComboCoinBonus() {
+    return this.getSkillEffect('combo_coin');
   }
 
   saveProgress() {

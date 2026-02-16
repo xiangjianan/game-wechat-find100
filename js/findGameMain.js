@@ -723,10 +723,6 @@ export default class FindGameMain {
   openSkills() {
     this.ui.skillsData = this.skillManager.getSkillProgress();
     this.ui.showSkills = true;
-    console.log('Skills data set:', this.ui.skillsData);
-    for (const [category, skills] of this.ui.skillsData) {
-      console.log(`Category ${category}:`, skills.map(s => ({ id: s.id, name: s.name, cost: s.cost })));
-    }
   }
 
   handleSkillUnlock(skillId) {
