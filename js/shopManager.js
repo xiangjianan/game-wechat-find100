@@ -11,7 +11,7 @@ export default class ShopManager {
       name: '提示道具 x1',
       description: '获得1个提示道具',
       icon: '💡',
-      price: 50,
+      price: 5,
       quantity: 1
     });
 
@@ -21,7 +21,7 @@ export default class ShopManager {
       name: '提示道具 x5',
       description: '获得5个提示道具',
       icon: '💡',
-      price: 200,
+      price: 25,
       quantity: 5
     });
 
@@ -31,7 +31,7 @@ export default class ShopManager {
       name: '提示道具 x10',
       description: '获得10个提示道具',
       icon: '💡',
-      price: 350,
+      price: 50,
       quantity: 10
     });
   }
