@@ -34,6 +34,7 @@ export default class GameManager {
     this.hintedPolygon = null;
     this.onHintUsed = null;
     this.itemManager = null;
+    this.skillManager = null;
     
     this.setupComboCallbacks();
   }
@@ -41,7 +42,8 @@ export default class GameManager {
   setupComboCallbacks() {
     this.comboManager.onComboUpdate = (count, level) => {
       if (this.gameMode === 'timed' && count >= 5) {
-        this.timeLeft += count;
+        const comboBonus = this.skillManager ? this.skillManager.getComboBonus() : 0;
+        this.timeLeft += count + comboBonus;
       }
       
       if (this.onComboUpdate) {
@@ -71,7 +73,7 @@ export default class GameManager {
     this.totalNumbers = count;
     this.gameState = 'playing';
     this.startTime = Date.now();
-    this.timeLeft = this.initialTime;
+    this.timeLeft = this.initialTime + (this.skillManager ? this.skillManager.getInitialTimeBonus() : 0);
     this.clickCount = 0;
     this.errorCount = 0;
     this.hintCount = this.itemManager ? this.itemManager.getItemCount('hint') : 0;
@@ -119,7 +121,8 @@ export default class GameManager {
       if (comboCount >= 5) {
         // 连击时不再加基础时间，时间奖励由 onComboUpdate 处理
       } else {
-        this.timeLeft += this.timeBonus;
+        const timeBonusSkill = this.skillManager ? this.skillManager.getTimeBonusPerClick() : 0;
+        this.timeLeft += this.timeBonus + timeBonusSkill;
       }
     }
 
@@ -197,6 +200,14 @@ export default class GameManager {
 
   getComboLevel() {
     return this.comboManager.getCurrentComboLevel();
+  }
+
+  setItemManager(itemManager) {
+    this.itemManager = itemManager;
+  }
+
+  setSkillManager(skillManager) {
+    this.skillManager = skillManager;
   }
 
   update() {

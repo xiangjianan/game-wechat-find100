@@ -92,6 +92,11 @@ export default class UI {
     this.onUseHint = null;
     this.hintButtonAnimation = 0;
     
+    this.showSkills = false;
+    this.skillsData = null;
+    this.skillScrollOffset = 0;
+    this.onOpenSkills = null;
+    
     this.coins = 0;
     this.onOpenShop = null;
     
@@ -473,6 +478,7 @@ export default class UI {
     this.menuTargetAnimation = 1;
     this.showAchievements = false;
     this.showShop = false;
+    this.showSkills = false;
     
     const isMobile = this.width < 768;
     const buttonWidth = isMobile ? 240 : 280;
@@ -514,10 +520,21 @@ export default class UI {
         action: () => this.onOpenShop()
       },
       {
+        id: 'skills',
+        text: '技能',
+        x: centerX - buttonWidth / 2,
+        y: startY + (buttonHeight + buttonSpacing) * 3,
+        width: buttonWidth,
+        height: buttonHeight,
+        color: '#9C27B0',
+        hoverColor: this.lightenColor('#9C27B0', 0.15),
+        action: () => this.onOpenSkills()
+      },
+      {
         id: 'achievements',
         text: '成就',
         x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 3,
+        y: startY + (buttonHeight + buttonSpacing) * 4,
         width: buttonWidth,
         height: buttonHeight,
         color: this.getScheme().buttonSecondary,
@@ -652,6 +669,10 @@ export default class UI {
 
     if (this.showShop) {
       return this.handleShopClick(x, y);
+    }
+
+    if (this.showSkills) {
+      return this.handleSkillsClick(x, y);
     }
 
     if (this.showAchievements) {
@@ -899,10 +920,21 @@ export default class UI {
         action: () => this.onOpenShop()
       },
       {
+        id: 'skills',
+        text: '技能',
+        x: centerX - buttonWidth / 2,
+        y: startY + (buttonHeight + buttonSpacing) * 3,
+        width: buttonWidth,
+        height: buttonHeight,
+        color: '#9C27B0',
+        hoverColor: this.lightenColor('#9C27B0', 0.15),
+        action: () => this.onOpenSkills()
+      },
+      {
         id: 'achievements',
         text: '成就',
         x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 3,
+        y: startY + (buttonHeight + buttonSpacing) * 4,
         width: buttonWidth,
         height: buttonHeight,
         color: this.getScheme().buttonSecondary,
@@ -932,6 +964,11 @@ export default class UI {
 
   setCoins(coins) {
     this.coins = coins;
+  }
+
+  setSkillsData(skillsData, skillPoints) {
+    this.skillsData = skillsData;
+    this.skillPoints = skillPoints;
   }
 
   updateHintButtonAnimation(deltaTime) {
@@ -1281,6 +1318,14 @@ export default class UI {
     if (this.showShop) {
       this.renderMenu(ctx);
       this.renderShop(ctx);
+      this.renderEffects(ctx);
+      this.renderAchievementNotifications(ctx);
+      return;
+    }
+
+    if (this.showSkills) {
+      this.renderMenu(ctx);
+      this.renderSkills(ctx);
       this.renderEffects(ctx);
       this.renderAchievementNotifications(ctx);
       return;
@@ -2206,6 +2251,22 @@ export default class UI {
         allButtons.push(...this.headerButtons);
       }
     
+    if (this.showSkills) {
+      const isMobile = this.width < 768;
+      const buttonWidth = isMobile ? 180 : 220;
+      const buttonHeight = isMobile ? 48 : 56;
+      const modalHeight = isMobile ? this.height - 80 : this.height - 100;
+      const modalY = (this.height - modalHeight) / 2;
+      const buttonX = (this.width - buttonWidth) / 2;
+      const buttonY = modalY + modalHeight - (isMobile ? 70 : 80);
+
+      if (this.mouseX >= buttonX && this.mouseX <= buttonX + buttonWidth &&
+          this.mouseY >= buttonY && this.mouseY <= buttonY + buttonHeight) {
+        this.hoveredButton = 'skills_close';
+      }
+      return;
+    }
+
     if (this.showAchievements) {
       const isMobile = this.width < 768;
       const buttonWidth = isMobile ? 180 : 220;
@@ -2290,6 +2351,17 @@ export default class UI {
 
   closeShop() {
     this.showShop = false;
+    this.initMenu();
+  }
+
+  openSkills() {
+    if (this.onOpenSkills) {
+      this.onOpenSkills();
+    }
+  }
+
+  closeSkills() {
+    this.showSkills = false;
     this.initMenu();
   }
 
@@ -2434,6 +2506,159 @@ export default class UI {
     ctx.restore();
   }
 
+  renderSkills(ctx) {
+    const scheme = this.getScheme();
+    const isMobile = this.width < 768;
+
+    ctx.fillStyle = `rgba(0, 0, 0, 0.8)`;
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
+    const modalHeight = isMobile ? this.height - 80 : this.height - 100;
+    const modalX = (this.width - modalWidth) / 2;
+    const modalY = (this.height - modalHeight) / 2;
+
+    this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
+      shadowOffset: 10,
+      borderWidth: 5
+    });
+
+    const titleY = modalY + (isMobile ? 40 : 50);
+    ctx.fillStyle = scheme.text;
+    ctx.font = `bold ${isMobile ? 28 : 34}px "Arial Black", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('技能', this.width / 2, titleY);
+
+    const titleWidth = ctx.measureText('技能').width;
+    ctx.strokeStyle = '#9C27B0';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(this.width / 2 - titleWidth / 2 - 20, titleY + 25);
+    ctx.lineTo(this.width / 2 + titleWidth / 2 + 20, titleY + 25);
+    ctx.stroke();
+
+    if (this.skillsData) {
+      this.renderSkillsCategories(ctx, modalX, modalY, modalWidth, modalHeight, isMobile);
+    }
+
+    const buttonWidth = isMobile ? 180 : 220;
+    const buttonHeight = isMobile ? 48 : 56;
+    const buttonX = (this.width - buttonWidth) / 2;
+    const buttonY = modalY + modalHeight - (isMobile ? 70 : 80);
+
+    const isHovered = this.hoveredButton === 'skills_close';
+    const isClicked = this.clickedButton === 'skills_close';
+
+    let fillColor = scheme.buttonPrimary;
+    if (isHovered) {
+      fillColor = this.lightenColor(scheme.buttonPrimary, 0.15);
+    }
+
+    let scale = 1;
+    if (isHovered) scale = 1.02;
+    if (isClicked) scale = 0.95;
+
+    const scaledWidth = buttonWidth * scale;
+    const scaledHeight = buttonHeight * scale;
+    const scaledX = (this.width - scaledWidth) / 2;
+    const scaledY = buttonY + (buttonHeight - scaledHeight) / 2;
+
+    const shadowOffset = isClicked ? 2 : (isHovered ? 8 : 6);
+    this.drawBrutalismRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, fillColor, {
+      shadowOffset: shadowOffset,
+      borderWidth: 4
+    });
+
+    ctx.fillStyle = scheme.textLight;
+    ctx.font = `bold ${isMobile ? 18 : 20}px "Arial Black", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('返回', this.width / 2, scaledY + scaledHeight / 2);
+
+    const skillPointsY = buttonY - (isMobile ? 20 : 25);
+    ctx.fillStyle = scheme.text;
+    ctx.font = `bold ${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(`⭐ 技能点数: ${this.skillPoints || 0}`, this.width / 2, skillPointsY);
+  }
+
+  renderSkillsCategories(ctx, modalX, modalY, modalWidth, modalHeight, isMobile) {
+    const scheme = this.getScheme();
+    const listStartY = modalY + (isMobile ? 90 : 110);
+    const listEndY = modalY + modalHeight - (isMobile ? 120 : 140);
+    const listHeight = listEndY - listStartY;
+
+    const categoryNames = {
+      'time': '时间技能',
+      'combo': '连击技能'
+    };
+
+    let currentY = listStartY;
+
+    for (const [category, skills] of this.skillsData) {
+      ctx.fillStyle = scheme.text;
+      ctx.font = `bold ${isMobile ? 20 : 24}px "Arial Black", Arial, sans-serif`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(categoryNames[category] || category, modalX + (isMobile ? 15 : 20), currentY);
+
+      currentY += (isMobile ? 35 : 45);
+
+      const itemHeight = isMobile ? 85 : 100;
+      const itemPadding = isMobile ? 10 : 12;
+
+      for (const skill of skills) {
+        if (currentY + itemHeight > listEndY) break;
+
+        const itemWidth = modalWidth - (isMobile ? 30 : 40);
+        const itemX = modalX + (isMobile ? 15 : 20);
+
+        const bgColor = skill.isUnlocked ? '#4CAF50' : (skill.canUnlock ? '#9C27B0' : scheme.cardBg);
+        const shadowOffset = skill.isUnlocked ? 4 : (skill.canUnlock ? 4 : 2);
+        const borderWidth = skill.isUnlocked ? 3 : (skill.canUnlock ? 3 : 2);
+
+        this.drawBrutalismRect(ctx, itemX, currentY, itemWidth, itemHeight, bgColor, {
+          shadowOffset: shadowOffset,
+          borderWidth: borderWidth
+        });
+
+        ctx.font = `bold ${isMobile ? 32 : 40}px Arial, sans-serif`;
+        ctx.fillStyle = skill.isUnlocked || skill.canUnlock ? '#FFFFFF' : scheme.text;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(skill.icon || '⭐', itemX + (isMobile ? 12 : 15), currentY + itemHeight / 2);
+
+        ctx.font = `bold ${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
+        ctx.fillText(skill.name, itemX + (isMobile ? 50 : 60), currentY + (isMobile ? 20 : 25));
+
+        ctx.font = `${isMobile ? 11 : 13}px Arial, sans-serif`;
+        ctx.fillText(skill.description, itemX + (isMobile ? 50 : 60), currentY + (isMobile ? 45 : 50));
+
+        ctx.font = `bold ${isMobile ? 14 : 16}px "Arial Black", Arial, sans-serif`;
+        ctx.textAlign = 'right';
+        
+        if (skill.isUnlocked) {
+          ctx.fillText('已解锁', itemX + itemWidth - (isMobile ? 12 : 15), currentY + (isMobile ? 25 : 30));
+        } else if (skill.canUnlock) {
+          ctx.fillText(`⭐ ${skill.cost}`, itemX + itemWidth - (isMobile ? 12 : 15), currentY + (isMobile ? 25 : 30));
+        } else {
+          ctx.fillText(skill.prerequisite ? '需要前置技能' : '点数不足', itemX + itemWidth - (isMobile ? 12 : 15), currentY + (isMobile ? 25 : 30));
+        }
+
+        if (skill.prerequisite && !skill.isUnlocked && !this.skillsData.get(skill.prerequisite ? this.skillsData.get(skill.category)?.find(s => s.id === skill.prerequisite)?.isUnlocked : true)) {
+          ctx.font = `${isMobile ? 11 : 12}px Arial, sans-serif`;
+          ctx.fillStyle = scheme.text;
+          ctx.fillText(`需要: ${this.skillsData.get(skill.category)?.find(s => s.id === skill.prerequisite)?.name || skill.prerequisite}`, itemX + itemWidth - (isMobile ? 12 : 15), currentY + itemHeight - (isMobile ? 10 : 12));
+        }
+
+        currentY += itemHeight + itemPadding;
+      }
+
+      currentY += (isMobile ? 20 : 25);
+    }
+  }
+
   handleShopScroll(deltaY) {
     if (!this.showShop) return;
     
@@ -2550,6 +2775,81 @@ export default class UI {
               return true;
             }
           }
+        }
+      }
+    }
+
+    return true;
+  }
+
+  handleSkillsClick(x, y) {
+    if (!this.showSkills) return false;
+    
+    const isMobile = this.width < 768;
+    const buttonWidth = isMobile ? 180 : 220;
+    const buttonHeight = isMobile ? 48 : 56;
+    const modalHeight = isMobile ? this.height - 80 : this.height - 100;
+    const modalY = (this.height - modalHeight) / 2;
+    const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
+    const modalX = (this.width - modalWidth) / 2;
+    const buttonX = (this.width - buttonWidth) / 2;
+    const buttonY = modalY + modalHeight - (isMobile ? 70 : 80);
+
+    if (x >= buttonX && x <= buttonX + buttonWidth &&
+        y >= buttonY && y <= buttonY + buttonHeight) {
+      this.clickedButton = 'skills_close';
+      this.clickAnimation = 1;
+      if (this.onPlayClickSound) {
+        this.onPlayClickSound();
+      }
+      setTimeout(() => {
+        this.clickedButton = null;
+        this.clickAnimation = 0;
+        this.closeSkills();
+        this.hoveredButton = null;
+      }, 150);
+      return true;
+    }
+
+    if (this.skillsData) {
+      const listStartY = modalY + (isMobile ? 90 : 110);
+      const listEndY = modalY + modalHeight - (isMobile ? 120 : 140);
+      const itemHeight = isMobile ? 85 : 100;
+      const itemPadding = isMobile ? 10 : 12;
+
+      if (y >= listStartY && y <= listEndY) {
+        let currentY = listStartY + (isMobile ? 35 : 45);
+        
+        for (const [category, skills] of this.skillsData) {
+          for (const skill of skills) {
+            if (currentY + itemHeight > listEndY) break;
+
+            const itemWidth = modalWidth - (isMobile ? 30 : 40);
+            const itemX = modalX + (isMobile ? 15 : 20);
+
+            if (y >= currentY && y <= currentY + itemHeight &&
+                x >= itemX && x <= itemX + itemWidth) {
+              if (skill.canUnlock && !skill.isUnlocked) {
+                this.clickedButton = `skill_unlock_${skill.id}`;
+                this.clickAnimation = 1;
+                if (this.onPlayClickSound) {
+                  this.onPlayClickSound();
+                }
+                setTimeout(() => {
+                  this.clickedButton = null;
+                  this.clickAnimation = 0;
+                  if (this.onSkillUnlock) {
+                    this.onSkillUnlock(skill.id);
+                  }
+                }, 150);
+                return true;
+              }
+            }
+
+            currentY += itemHeight + itemPadding;
+          }
+
+          currentY += (isMobile ? 20 : 25);
         }
       }
     }

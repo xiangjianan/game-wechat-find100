@@ -8,6 +8,7 @@ import AchievementManager from './achievementManager';
 import CoinManager from './coinManager';
 import ItemManager from './itemManager';
 import ShopManager from './shopManager';
+import SkillManager from './skillManager';
 import { getColorScheme } from './constants/colors';
 
 let canvas;
@@ -31,6 +32,7 @@ export default class FindGameMain {
     this.coinManager = new CoinManager();
     this.itemManager = new ItemManager();
     this.shopManager = new ShopManager();
+    this.skillManager = new SkillManager();
     this.aniId = 0;
     
     this.soundManager.init();
@@ -42,6 +44,7 @@ export default class FindGameMain {
     this.shopManager.init(this.coinManager, this.itemManager);
     
     this.gameManager.setItemManager(this.itemManager);
+    this.gameManager.setSkillManager(this.skillManager);
     this.achievementManager.setCoinManager(this.coinManager);
     
     this.loadGameProgress();
@@ -239,6 +242,14 @@ export default class FindGameMain {
       this.handleShopBuy(product);
     };
     
+    this.ui.onOpenSkills = () => {
+      this.openSkills();
+    };
+    
+    this.ui.onSkillUnlock = (skillId) => {
+      this.handleSkillUnlock(skillId);
+    };
+    
     this.coinManager.onCoinChanged = (coins, amount, type) => {
       this.ui.setCoins(coins);
     };
@@ -408,11 +419,14 @@ export default class FindGameMain {
       this.ui.showAchievementNotification(unlockedAchievements);
     }
     
+    const skillPointsReward = this.gameManager.currentLevel === 1 ? 1 : 2;
+    this.skillManager.addSkillPoints(skillPointsReward);
+    
     let message;
     if (isLevel2) {
-      message = `完成时间: ${time.toFixed(2)}秒\n得分: ${score}`;
+      message = `完成时间: ${time.toFixed(2)}秒\n得分: ${score}\n获得技能点数: +${skillPointsReward}⭐`;
     } else {
-      message = `完成时间: ${time.toFixed(2)}秒`;
+      message = `完成时间: ${time.toFixed(2)}秒\n获得技能点数: +${skillPointsReward}⭐`;
     }
     
     if (this.ui.shouldAutoAdvance()) {
@@ -704,6 +718,29 @@ export default class FindGameMain {
       if (result.reason === 'not_enough_coins') {
         this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, '金币不足!', '#FF4444');
       }
+    }
+  }
+
+  openSkills() {
+    this.ui.skillsData = this.skillManager.getSkillProgress();
+    this.ui.skillPoints = this.skillManager.getSkillPoints();
+    this.ui.showSkills = true;
+  }
+
+  handleSkillUnlock(skillId) {
+    const skill = this.skillManager.getSkill(skillId);
+    if (!skill) return;
+
+    const result = this.skillManager.unlockSkill(skillId);
+
+    if (result) {
+      this.soundManager.playClick();
+      this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `解锁 ${skill.name}!`, '#9C27B0');
+      this.ui.skillsData = this.skillManager.getSkillProgress();
+      this.ui.skillPoints = this.skillManager.getSkillPoints();
+    } else {
+      this.soundManager.playError();
+      this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, '无法解锁', '#FF4444');
     }
   }
 
