@@ -94,7 +94,6 @@ export default class UI {
     
     this.showSkills = false;
     this.skillsData = null;
-    this.skillScrollOffset = 0;
     this.onOpenSkills = null;
     
     this.coins = 0;
@@ -966,9 +965,8 @@ export default class UI {
     this.coins = coins;
   }
 
-  setSkillsData(skillsData, skillPoints) {
+  setSkillsData(skillsData) {
     this.skillsData = skillsData;
-    this.skillPoints = skillPoints;
   }
 
   updateHintButtonAnimation(deltaTime) {
@@ -2576,11 +2574,11 @@ export default class UI {
     ctx.textBaseline = 'middle';
     ctx.fillText('返回', this.width / 2, scaledY + scaledHeight / 2);
 
-    const skillPointsY = buttonY - (isMobile ? 20 : 25);
+    const coinsY = buttonY - (isMobile ? 20 : 25);
     ctx.fillStyle = scheme.text;
     ctx.font = `bold ${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
     ctx.textAlign = 'center';
-    ctx.fillText(`⭐ 技能点数: ${this.skillPoints || 0}`, this.width / 2, skillPointsY);
+    ctx.fillText(`💰 金币: ${this.coins}`, this.width / 2, coinsY);
   }
 
   renderSkillsCategories(ctx, modalX, modalY, modalWidth, modalHeight, isMobile) {
@@ -2639,17 +2637,26 @@ export default class UI {
         ctx.textAlign = 'right';
         
         if (skill.isUnlocked) {
+          ctx.fillStyle = '#FFFFFF';
           ctx.fillText('已解锁', itemX + itemWidth - (isMobile ? 12 : 15), currentY + (isMobile ? 25 : 30));
-        } else if (skill.canUnlock) {
-          ctx.fillText(`⭐ ${skill.cost}`, itemX + itemWidth - (isMobile ? 12 : 15), currentY + (isMobile ? 25 : 30));
         } else {
-          ctx.fillText(skill.prerequisite ? '需要前置技能' : '点数不足', itemX + itemWidth - (isMobile ? 12 : 15), currentY + (isMobile ? 25 : 30));
-        }
-
-        if (skill.prerequisite && !skill.isUnlocked && !this.skillsData.get(skill.prerequisite ? this.skillsData.get(skill.category)?.find(s => s.id === skill.prerequisite)?.isUnlocked : true)) {
-          ctx.font = `${isMobile ? 11 : 12}px Arial, sans-serif`;
-          ctx.fillStyle = scheme.text;
-          ctx.fillText(`需要: ${this.skillsData.get(skill.category)?.find(s => s.id === skill.prerequisite)?.name || skill.prerequisite}`, itemX + itemWidth - (isMobile ? 12 : 15), currentY + itemHeight - (isMobile ? 10 : 12));
+          ctx.fillStyle = skill.canUnlock ? '#FFFFFF' : scheme.text;
+          const costText = (skill.cost !== undefined && skill.cost !== null) ? skill.cost.toString() : '???';
+          ctx.fillText(`💰 ${costText}`, itemX + itemWidth - (isMobile ? 12 : 15), currentY + (isMobile ? 25 : 30));
+          
+          if (!skill.canUnlock) {
+            ctx.font = `${isMobile ? 11 : 12}px Arial, sans-serif`;
+            ctx.fillStyle = scheme.text;
+            
+            let unlockReason = '金币不足';
+            if (skill.prerequisite) {
+              const prerequisiteSkill = this.skillsData.get(skill.category)?.find(s => s.id === skill.prerequisite);
+              if (prerequisiteSkill && !prerequisiteSkill.isUnlocked) {
+                unlockReason = `需要: ${prerequisiteSkill.name}`;
+              }
+            }
+            ctx.fillText(unlockReason, itemX + itemWidth - (isMobile ? 12 : 15), currentY + itemHeight - (isMobile ? 10 : 12));
+          }
         }
 
         currentY += itemHeight + itemPadding;

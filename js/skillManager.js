@@ -2,7 +2,7 @@ export default class SkillManager {
   constructor() {
     this.skills = new Map();
     this.unlockedSkills = new Set();
-    this.skillPoints = 0;
+    this.coinManager = null;
     this.initSkills();
     this.loadProgress();
   }
@@ -16,7 +16,7 @@ export default class SkillManager {
       effect: { type: 'initial_time', value: 2 },
       maxLevel: 2,
       currentLevel: 0,
-      cost: 1,
+      cost: 1000,
       prerequisite: null,
       icon: '⏱️'
     });
@@ -29,7 +29,7 @@ export default class SkillManager {
       effect: { type: 'initial_time', value: 5 },
       maxLevel: 2,
       currentLevel: 0,
-      cost: 2,
+      cost: 2000,
       prerequisite: 'time_control_1',
       icon: '⏱️'
     });
@@ -42,7 +42,7 @@ export default class SkillManager {
       effect: { type: 'time_bonus', value: 1 },
       maxLevel: 2,
       currentLevel: 0,
-      cost: 2,
+      cost: 1500,
       prerequisite: null,
       icon: '⏰'
     });
@@ -55,7 +55,7 @@ export default class SkillManager {
       effect: { type: 'time_bonus', value: 2 },
       maxLevel: 2,
       currentLevel: 0,
-      cost: 3,
+      cost: 3000,
       prerequisite: 'time_reward_1',
       icon: '⏰'
     });
@@ -68,7 +68,7 @@ export default class SkillManager {
       effect: { type: 'combo_bonus', value: 5 },
       maxLevel: 1,
       currentLevel: 0,
-      cost: 3,
+      cost: 5000,
       prerequisite: null,
       icon: '🔥'
     });
@@ -80,7 +80,7 @@ export default class SkillManager {
 
     if (this.unlockedSkills.has(skillId)) return false;
     if (skill.currentLevel >= skill.maxLevel) return false;
-    if (this.skillPoints < skill.cost) return false;
+    if (!this.coinManager || !this.coinManager.hasEnoughCoins(skill.cost)) return false;
     if (skill.prerequisite && !this.unlockedSkills.has(skill.prerequisite)) return false;
 
     return true;
@@ -90,7 +90,9 @@ export default class SkillManager {
     if (!this.canUnlock(skillId)) return false;
 
     const skill = this.skills.get(skillId);
-    this.skillPoints -= skill.cost;
+    const spent = this.coinManager.spendCoins(skill.cost);
+    if (!spent) return false;
+    
     skill.currentLevel++;
     this.unlockedSkills.add(skillId);
 
@@ -119,24 +121,31 @@ export default class SkillManager {
     const categories = ['time', 'combo'];
 
     for (const category of categories) {
-      const categorySkills = this.getSkillsByCategory(category).map(skill => ({
-        ...skill,
-        canUnlock: this.canUnlock(skill.id),
-        isUnlocked: this.isUnlocked(skill.id)
-      }));
+      const categorySkills = this.getSkillsByCategory(category).map(skill => {
+        const skillData = this.skills.get(skill.id);
+        return {
+          id: skillData.id,
+          name: skillData.name,
+          category: skillData.category,
+          description: skillData.description,
+          effect: skillData.effect,
+          maxLevel: skillData.maxLevel,
+          currentLevel: skillData.currentLevel,
+          cost: skillData.cost,
+          prerequisite: skillData.prerequisite,
+          icon: skillData.icon,
+          canUnlock: this.canUnlock(skill.id),
+          isUnlocked: this.isUnlocked(skill.id)
+        };
+      });
       skillsByCategory.set(category, categorySkills);
     }
 
     return skillsByCategory;
   }
 
-  addSkillPoints(amount) {
-    this.skillPoints += amount;
-    this.saveProgress();
-  }
-
-  getSkillPoints() {
-    return this.skillPoints;
+  setCoinManager(coinManager) {
+    this.coinManager = coinManager;
   }
 
   getSkillEffect(type) {
@@ -170,7 +179,6 @@ export default class SkillManager {
     try {
       const data = {
         unlockedSkills: Array.from(this.unlockedSkills),
-        skillPoints: this.skillPoints,
         skillLevels: Array.from(this.skills.entries()).map(([id, skill]) => ({
           id,
           currentLevel: skill.currentLevel
@@ -190,7 +198,6 @@ export default class SkillManager {
       if (data) {
         const parsed = JSON.parse(data);
         this.unlockedSkills = new Set(parsed.unlockedSkills || []);
-        this.skillPoints = parsed.skillPoints || 0;
 
         if (parsed.skillLevels) {
           for (const levelData of parsed.skillLevels) {
@@ -208,7 +215,6 @@ export default class SkillManager {
 
   reset() {
     this.unlockedSkills.clear();
-    this.skillPoints = 0;
     this.skills.forEach(skill => {
       skill.currentLevel = 0;
     });

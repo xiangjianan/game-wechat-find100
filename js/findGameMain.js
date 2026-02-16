@@ -45,6 +45,8 @@ export default class FindGameMain {
     
     this.gameManager.setItemManager(this.itemManager);
     this.gameManager.setSkillManager(this.skillManager);
+    this.gameManager.setCoinManager(this.coinManager);
+    this.skillManager.setCoinManager(this.coinManager);
     this.achievementManager.setCoinManager(this.coinManager);
     
     this.loadGameProgress();
@@ -419,14 +421,11 @@ export default class FindGameMain {
       this.ui.showAchievementNotification(unlockedAchievements);
     }
     
-    const skillPointsReward = this.gameManager.currentLevel === 1 ? 1 : 2;
-    this.skillManager.addSkillPoints(skillPointsReward);
-    
     let message;
     if (isLevel2) {
-      message = `完成时间: ${time.toFixed(2)}秒\n得分: ${score}\n获得技能点数: +${skillPointsReward}⭐`;
+      message = `完成时间: ${time.toFixed(2)}秒\n得分: ${score}`;
     } else {
-      message = `完成时间: ${time.toFixed(2)}秒\n获得技能点数: +${skillPointsReward}⭐`;
+      message = `完成时间: ${time.toFixed(2)}秒`;
     }
     
     if (this.ui.shouldAutoAdvance()) {
@@ -723,8 +722,11 @@ export default class FindGameMain {
 
   openSkills() {
     this.ui.skillsData = this.skillManager.getSkillProgress();
-    this.ui.skillPoints = this.skillManager.getSkillPoints();
     this.ui.showSkills = true;
+    console.log('Skills data set:', this.ui.skillsData);
+    for (const [category, skills] of this.ui.skillsData) {
+      console.log(`Category ${category}:`, skills.map(s => ({ id: s.id, name: s.name, cost: s.cost })));
+    }
   }
 
   handleSkillUnlock(skillId) {
@@ -737,10 +739,9 @@ export default class FindGameMain {
       this.soundManager.playClick();
       this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `解锁 ${skill.name}!`, '#9C27B0');
       this.ui.skillsData = this.skillManager.getSkillProgress();
-      this.ui.skillPoints = this.skillManager.getSkillPoints();
     } else {
       this.soundManager.playError();
-      this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, '无法解锁', '#FF4444');
+      this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, '金币不足!', '#FF4444');
     }
   }
 

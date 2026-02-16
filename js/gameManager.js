@@ -42,8 +42,9 @@ export default class GameManager {
   setupComboCallbacks() {
     this.comboManager.onComboUpdate = (count, level) => {
       if (this.gameMode === 'timed' && count >= 5) {
-        const comboBonus = this.skillManager ? this.skillManager.getComboBonus() : 0;
-        this.timeLeft += count + comboBonus;
+        const isUnlocked = this.skillManager && this.skillManager.isUnlocked('combo_boost');
+        const timeReward = isUnlocked ? count + 5 : 5;
+        this.timeLeft += timeReward;
       }
       
       if (this.onComboUpdate) {
@@ -208,6 +209,10 @@ export default class GameManager {
 
   setSkillManager(skillManager) {
     this.skillManager = skillManager;
+  }
+
+  setCoinManager(coinManager) {
+    this.coinManager = coinManager;
   }
 
   update() {
