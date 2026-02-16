@@ -1059,7 +1059,7 @@ export default class UI {
     let modalHeight;
     
     if (this.modalType === 'gameComplete') {
-      modalHeight = isMobile ? 420 : 480;
+      modalHeight = isMobile ? 460 : 520;
     } else if (this.modalType === 'gameFailed') {
       modalHeight = hasScoreInMessage ? (isMobile ? 480 : 540) : (isMobile ? 380 : 420);
     } else {
@@ -1168,7 +1168,7 @@ export default class UI {
       ctx.fillText(scoreValue, centerX, scoreBoxY + scoreBoxHeight / 2);
     }
     
-    this.renderModalButtons(ctx, x, y + height - (isMobile ? 140 : 160), width, isMobile);
+    this.renderModalButtons(ctx, x, y + height - (isMobile ? 190 : 230), width, isMobile);
   }
 
   renderFailureContent(ctx, x, y, width, height, isMobile) {
