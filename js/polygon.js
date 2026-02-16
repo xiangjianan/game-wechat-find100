@@ -25,6 +25,7 @@ export default class Polygon {
     this.originalColor = color;
     this.isClicked = false;
     this.isHighlighted = false;
+    this.isEagleEyeHighlighted = false;
     this.isError = false;
     this.errorAlpha = 0;
     this.scale = 1;
@@ -79,6 +80,15 @@ export default class Polygon {
   resetHighlight() {
     this.isHighlighted = false;
     this.targetScale = 1;
+  }
+
+  setEagleEyeHighlight(enabled) {
+    this.isEagleEyeHighlighted = enabled;
+    if (enabled) {
+      this.targetScale = 1.08;
+    } else {
+      this.targetScale = 1;
+    }
   }
 
   shake() {
@@ -159,6 +169,8 @@ export default class Polygon {
     let fillColor;
     if (this.isClicked) {
       fillColor = stateColors.clicked;
+    } else if (this.isEagleEyeHighlighted) {
+      fillColor = '#FFD700';
     } else if (this.isHinted) {
       const intensity = this.hintGlowIntensity;
       fillColor = this.interpolateColor('#FFD700', '#FFA500', intensity);

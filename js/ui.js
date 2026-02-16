@@ -1323,7 +1323,7 @@ export default class UI {
     this.updateMenuAnimation(deltaTime);
     this.updateAchievementNotifications(deltaTime);
     this.updateShopScrollInertia(deltaTime);
-    console.log('render game');
+    console.log('render game', gameState, currentNumber, totalNumbers, timeLeft);
 
     if (this.showShop) {
       this.renderMenu(ctx);
@@ -2758,7 +2758,8 @@ export default class UI {
 
     const categoryNames = {
       'time': '时间技能',
-      'combo': '连击技能'
+      'combo': '连击技能',
+      'assist': '辅助技能'
     };
 
     let currentY = listStartY - this.skillScrollOffset;

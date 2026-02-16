@@ -35,7 +35,8 @@ export default class GameManager {
     this.onHintUsed = null;
     this.itemManager = null;
     this.skillManager = null;
-    
+    this.eagleEyeTimeoutId = null;
+
     this.setupComboCallbacks();
   }
 
@@ -106,9 +107,18 @@ export default class GameManager {
   }
 
   handleCorrectClick(polygon) {
+    // 如果当前多边形有鹰眼高亮，立即取消并清除定时器
+    if (polygon.isEagleEyeHighlighted) {
+      polygon.setEagleEyeHighlight(false);
+      if (this.eagleEyeTimeoutId) {
+        clearTimeout(this.eagleEyeTimeoutId);
+        this.eagleEyeTimeoutId = null;
+      }
+    }
+
     polygon.isClicked = true;
     polygon.highlight();
-    
+
     setTimeout(() => {
       polygon.resetHighlight();
     }, 200);
@@ -119,10 +129,28 @@ export default class GameManager {
 
     this.currentNumber++;
     this.clickCount++;
-    
+
+    // 鹰眼技能：高亮下一个数字
+    if (this.skillManager && this.skillManager.isUnlocked('eagle_eye') && this.currentNumber <= this.totalNumbers) {
+      const nextPolygon = this.polygons.find(p => p.number === this.currentNumber);
+      if (nextPolygon) {
+        // 清除之前的定时器
+        if (this.eagleEyeTimeoutId) {
+          clearTimeout(this.eagleEyeTimeoutId);
+          this.eagleEyeTimeoutId = null;
+        }
+
+        nextPolygon.setEagleEyeHighlight(true);
+        this.eagleEyeTimeoutId = setTimeout(() => {
+          nextPolygon.setEagleEyeHighlight(false);
+          this.eagleEyeTimeoutId = null;
+        }, 800);
+      }
+    }
+
     const comboLevel = this.comboManager.onCorrectClick();
     const comboCount = this.comboManager.getComboCount();
-    
+
     if (this.gameMode === 'timed') {
       if (comboCount >= 5) {
         // 连击时不再加基础时间，时间奖励由 onComboUpdate 处理
@@ -135,7 +163,7 @@ export default class GameManager {
     if (this.currentNumber > this.totalNumbers) {
       this.handleGameComplete();
     }
-    
+
     if (this.onCorrectClick) {
       const center = polygon.getCenter();
       this.onCorrectClick(center, comboLevel);

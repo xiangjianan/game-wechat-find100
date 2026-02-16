@@ -111,6 +111,19 @@ export default class SkillManager {
       prerequisite: 'combo_coin_2',
       icon: '💰'
     });
+
+    this.skills.set('eagle_eye', {
+      id: 'eagle_eye',
+      name: '鹰眼',
+      category: 'assist',
+      description: '点击数字后高亮下一个数字',
+      effect: { type: 'eagle_eye', value: 1 },
+      maxLevel: 1,
+      currentLevel: 0,
+      cost: 10000,
+      prerequisite: null,
+      icon: '👁️'
+    });
   }
 
   canUnlock(skillId) {
@@ -157,7 +170,7 @@ export default class SkillManager {
 
   getSkillProgress() {
     const skillsByCategory = new Map();
-    const categories = ['time', 'combo'];
+    const categories = ['time', 'combo', 'assist'];
 
     for (const category of categories) {
       const categorySkills = this.getSkillsByCategory(category).map(skill => {
