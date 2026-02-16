@@ -55,8 +55,8 @@ find100wx/
 └── audio/                  # 音频资源
     ├── bgm.mp3             # 背景音乐
     ├── click.mp3           # 点击音效
-    ├── complete.mp3        # 完成音效
-    └── error.mp3           # 错误音效
+    ├── click.mp3        # 完成音效
+    └── click.mp3           # 错误音效
 ```
 
 ### 核心模块

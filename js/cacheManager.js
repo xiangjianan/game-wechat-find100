@@ -47,7 +47,7 @@ export class CacheManager {
   }
   
   static preloadAudio() {
-    const audioFiles = ['audio/click.mp3', 'audio/complete.mp3', 'audio/error.mp3'];
+    const audioFiles = ['audio/click.mp3', 'audio/click.mp3', 'audio/click.mp3'];
     
     audioFiles.forEach(src => {
       try {

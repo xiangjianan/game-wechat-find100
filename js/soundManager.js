@@ -21,13 +21,13 @@ export default class SoundManager {
       });
       
       this.sounds.error = wx.createInnerAudioContext();
-      this.sounds.error.src = 'audio/error.mp3';
+      this.sounds.error.src = 'audio/click.mp3';
       this.sounds.error.onError(() => {
         this.useGeneratedAudio = true;
       });
       
       this.sounds.complete = wx.createInnerAudioContext();
-      this.sounds.complete.src = 'audio/complete.mp3';
+      this.sounds.complete.src = 'audio/click.mp3';
       this.sounds.complete.onError(() => {
         this.useGeneratedAudio = true;
       });

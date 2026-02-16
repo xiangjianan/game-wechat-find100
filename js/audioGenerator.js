@@ -76,7 +76,7 @@ export class AudioGenerator {
 
   static generateErrorSound() {
     if (this.isWxEnvironment()) {
-      this.playWxSound('audio/error.mp3');
+      this.playWxSound('audio/click.mp3');
       return;
     }
     
@@ -92,7 +92,7 @@ export class AudioGenerator {
 
   static generateCompleteSound() {
     if (this.isWxEnvironment()) {
-      this.playWxSound('audio/complete.mp3');
+      this.playWxSound('audio/click.mp3');
       return;
     }
     
