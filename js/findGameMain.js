@@ -123,8 +123,13 @@ export default class FindGameMain {
           const y = touch.clientY - rect.top;
           
           this.ui.updateMousePosition(x, y);
-          this.ui.handleTouchStart(y);
-          this.handleInput(x, y);
+          
+          if (this.ui.showSkills) {
+            this.ui.handleSkillsTouchStart(y);
+          } else {
+            this.ui.handleTouchStart(y);
+            this.handleInput(x, y);
+          }
         } catch (error) {
           // 静默处理错误
         }
@@ -140,7 +145,12 @@ export default class FindGameMain {
             const x = touch.clientX - rect.left;
             const y = touch.clientY - rect.top;
             this.ui.updateMousePosition(x, y);
-            this.ui.handleTouchMove(y);
+            
+            if (this.ui.showSkills) {
+              this.ui.handleSkillsTouchMove(y);
+            } else {
+              this.ui.handleTouchMove(y);
+            }
           }
         } catch (error) {
           // 静默处理错误
@@ -149,7 +159,11 @@ export default class FindGameMain {
       
       const handleTouchEndEvent = (e) => {
         try {
-          this.ui.handleTouchEnd();
+          if (this.ui.showSkills) {
+            this.ui.handleSkillsTouchEnd();
+          } else {
+            this.ui.handleTouchEnd();
+          }
         } catch (error) {
           // 静默处理错误
         }
@@ -173,12 +187,18 @@ export default class FindGameMain {
       
       const handleWheel = (e) => {
         try {
-          if (this.ui.showAchievements) {
+          if (this.ui.showShop) {
+            e.preventDefault();
+            this.ui.handleShopScroll(e.deltaY);
+          } else if (this.ui.showSkills) {
+            e.preventDefault();
+            this.ui.handleSkillsScroll(e.deltaY);
+          } else if (this.ui.showAchievements) {
             e.preventDefault();
             this.ui.handleAchievementsScroll(e.deltaY);
           }
         } catch (error) {
-          // 静默处理错误
+          console.error('Wheel error:', error);
         }
       };
       
@@ -722,6 +742,9 @@ export default class FindGameMain {
 
   openSkills() {
     this.ui.skillsData = this.skillManager.getSkillProgress();
+    this.ui.skillScrollOffset = 0;
+    this.ui.skillScrollVelocity = 0;
+    this.ui.skillIsTouching = false;
     this.ui.showSkills = true;
   }
 
@@ -733,11 +756,11 @@ export default class FindGameMain {
 
     if (result) {
       this.soundManager.playClick();
-      this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `解锁 ${skill.name}!`, '#9C27B0');
+      this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `解锁 ${skill.name}!`, '#9C27B0', 'skills');
       this.ui.skillsData = this.skillManager.getSkillProgress();
     } else {
       this.soundManager.playError();
-      this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, '金币不足!', '#FF4444');
+      this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, '金币不足!', '#FF4444', 'skills');
     }
   }
 

@@ -95,6 +95,15 @@ export default class UI {
     this.showSkills = false;
     this.skillsData = null;
     this.onOpenSkills = null;
+    this.skillScrollOffset = 0;
+    this.skillTouchStartY = 0;
+    this.skillLastTouchY = 0;
+    this.skillIsTouching = false;
+    this.skillScrollVelocity = 0;
+    this.skillScrollFriction = 0.95;
+    this.skillScrollMinVelocity = 0.5;
+    this.skillLastScrollDelta = 0;
+    this.skillLastScrollTime = 0;
     
     this.coins = 0;
     this.onOpenShop = null;
@@ -321,12 +330,13 @@ export default class UI {
     this.modeSwitcher.hoveredSegment = this.isPointInModeSwitcher(x, y);
   }
 
-  showFloatingText(x, y, text, color) {
+  showFloatingText(x, y, text, color, source = null) {
     this.floatingTexts.push({
       x, y, text, color,
       alpha: 1,
       offsetY: 0,
-      life: 1.0
+      life: 1.0,
+      source
     });
   }
 
@@ -419,6 +429,7 @@ export default class UI {
     this.updateComboEffects(deltaTime);
     this.updateScrollInertia(deltaTime);
     this.updateHintButtonAnimation(deltaTime);
+    this.updateSkillsScrollInertia(deltaTime);
     
     for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
       const ft = this.floatingTexts[i];
@@ -1312,10 +1323,9 @@ export default class UI {
     this.updateMenuAnimation(deltaTime);
     this.updateAchievementNotifications(deltaTime);
     this.updateShopScrollInertia(deltaTime);
+    console.log('render game');
 
-    console.log('Rendering game...');
     if (this.showShop) {
-      console.log('Rendering shop...');
       this.renderMenu(ctx);
       this.renderShop(ctx);
       this.renderEffects(ctx);
@@ -1324,7 +1334,6 @@ export default class UI {
     }
 
     if (this.showSkills) {
-      console.log('Rendering skills...');
       this.renderMenu(ctx);
       this.renderSkills(ctx);
       this.renderEffects(ctx);
@@ -2363,7 +2372,14 @@ export default class UI {
 
   closeSkills() {
     this.showSkills = false;
+    this.skillsData = null;
+    this.skillScrollOffset = 0;
+    this.skillScrollVelocity = 0;
+    this.skillIsTouching = false;
     this.initMenu();
+    this.menuAnimation = 1;
+    
+    this.floatingTexts = this.floatingTexts.filter(ft => ft.source !== 'skills');
   }
 
   renderShop(ctx) {
@@ -2607,15 +2623,14 @@ export default class UI {
       'combo': '连击技能'
     };
 
-    let currentY = listStartY;
-    console.log('Skills data:', this.skillsData);
+    let currentY = listStartY + this.skillScrollOffset;
+
     for (const [category, skills] of this.skillsData) {
       ctx.fillStyle = scheme.text;
       ctx.font = `bold ${isMobile ? 20 : 24}px "Arial Black", Arial, sans-serif`;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
       ctx.fillText(categoryNames[category] || category, modalX + (isMobile ? 15 : 20), currentY);
-      console.log(`Category ${category}: ${skills.length} skills`, skills.map(s => s.id));
 
       currentY += (isMobile ? 35 : 45);
 
@@ -2679,6 +2694,97 @@ export default class UI {
       }
 
       currentY += (isMobile ? 20 : 25);
+    }
+  }
+
+  handleSkillsScroll(deltaY) {
+    if (!this.showSkills) return;
+    
+    this.skillScrollOffset += deltaY;
+    this.skillScrollVelocity = deltaY;
+    this.skillLastScrollTime = Date.now();
+  }
+
+  handleSkillsTouchStart(y) {
+    if (!this.showSkills) return;
+    this.skillTouchStartY = y;
+    this.skillLastTouchY = y;
+    this.skillIsTouching = true;
+    this.skillScrollVelocity = 0;
+    this.skillLastScrollDelta = 0;
+  }
+
+  handleSkillsTouchMove(y) {
+    if (!this.showSkills || !this.skillIsTouching) return;
+    
+    const now = Date.now();
+    const deltaTime = now - this.skillLastScrollTime;
+    const deltaY = this.skillLastTouchY - y;
+    this.skillLastTouchY = y;
+    this.skillLastScrollTime = now;
+    
+    const isMobile = this.width < 768;
+    const modalHeight = isMobile ? this.height - 60 : this.height - 80;
+    const listStartY = (this.height - modalHeight) / 2 + (isMobile ? 90 : 110);
+    const listEndY = (this.height - modalHeight) / 2 + modalHeight - (isMobile ? 80 : 100);
+    
+    if (y >= listStartY && y <= listEndY) {
+      this.skillScrollOffset += deltaY;
+      this.limitSkillsScroll();
+      
+      if (deltaTime > 0) {
+        this.skillScrollVelocity = deltaY / deltaTime * 16;
+      }
+      this.skillLastScrollDelta = deltaY;
+    }
+  }
+
+  handleSkillsTouchEnd() {
+    this.skillIsTouching = false;
+  }
+
+  updateSkillsScrollInertia(deltaTime) {
+    if (!this.showSkills || this.skillIsTouching) return;
+    
+    if (Math.abs(this.skillScrollVelocity) > this.skillScrollMinVelocity) {
+      this.skillScrollOffset += this.skillScrollVelocity;
+      this.skillScrollVelocity *= this.skillScrollFriction;
+    } else {
+      this.skillScrollVelocity = 0;
+    }
+    
+    this.limitSkillsScroll();
+  }
+
+  limitSkillsScroll() {
+    if (!this.skillsData) return;
+    
+    const isMobile = this.width < 768;
+    const itemHeight = isMobile ? 85 : 100;
+    const categoryHeaderHeight = isMobile ? 35 : 45;
+    const itemPadding = isMobile ? 10 : 12;
+    
+    let totalHeight = 0;
+    for (const [category, skills] of this.skillsData) {
+      totalHeight += categoryHeaderHeight;
+      totalHeight += skills.length * (itemHeight + itemPadding);
+    }
+    
+    const isMobile2 = this.width < 768;
+    const modalHeight = isMobile2 ? this.height - 60 : this.height - 80;
+    const listStartY = (this.height - modalHeight) / 2 + (isMobile2 ? 90 : 110);
+    const listEndY = (this.height - modalHeight) / 2 + modalHeight - (isMobile2 ? 80 : 100);
+    const listHeight = listEndY - listStartY;
+    
+    const maxOffset = 0;
+    const minOffset = listHeight - totalHeight;
+    
+    if (this.skillScrollOffset < minOffset) {
+      this.skillScrollOffset = minOffset;
+      this.skillScrollVelocity = 0;
+    } else if (this.skillScrollOffset > maxOffset) {
+      this.skillScrollOffset = maxOffset;
+      this.skillScrollVelocity = 0;
     }
   }
 
@@ -2841,7 +2947,7 @@ export default class UI {
       const itemPadding = isMobile ? 10 : 12;
 
       if (y >= listStartY && y <= listEndY) {
-        let currentY = listStartY + (isMobile ? 35 : 45);
+        let currentY = listStartY + (isMobile ? 35 : 45) + this.skillScrollOffset;
         
         for (const [category, skills] of this.skillsData) {
           for (const skill of skills) {
