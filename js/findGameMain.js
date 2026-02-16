@@ -604,6 +604,7 @@ export default class FindGameMain {
     this.saveGameProgress(time);
     
     const isLevel2 = this.gameManager.currentLevel === 2;
+    const hasNextLevel = this.gameManager.hasNextLevel();
     let score = 0;
     
     if (isLevel2) {
@@ -643,59 +644,46 @@ export default class FindGameMain {
       message = `完成时间: ${time.toFixed(2)}秒`;
     }
     
-    if (this.ui.shouldAutoAdvance()) {
-      this.ui.showModalDialog(
-        'gameComplete',
-        '恭喜通关！',
-        message,
-        [
-          {
-            id: 'nextLevel',
-            text: '下一关',
-            action: () => {
-              this.ui.hideModal();
-              this.startNextLevel(2);
-            }
-          }
-        ]
-      );
-    } else {
-      this.ui.showModalDialog(
-        'gameComplete',
-        '恭喜通关！',
-        message,
-        [
-          {
-            id: 'nextLevel',
-            text: '下一关',
-            action: () => {
-              this.ui.hideModal();
-              const level = this.gameManager.currentLevel;
-              const count = this.ui.levelConfig[level].count;
-              this.startGame(count, level);
-            }
-          },
-          {
-            id: 'playAgain',
-            text: '再玩一次',
-            action: () => {
-              this.ui.hideModal();
-              const level = this.gameManager.currentLevel;
-              const count = this.ui.levelConfig[level].count;
-              this.startGame(count, level);
-            }
-          },
-          {
-            id: 'menu',
-            text: '返回首页',
-            action: () => {
-              this.ui.hideModal();
-              this.backToMenu();
-            }
-          }
-        ]
-      );
+    const buttons = [
+      {
+        id: 'playAgain',
+        text: '再玩一次',
+        action: () => {
+          this.ui.hideModal();
+          const level = this.gameManager.currentLevel;
+          const count = this.ui.levelConfig[level].count;
+          this.startGame(count, level);
+        }
+      },
+      {
+        id: 'menu',
+        text: '返回首页',
+        action: () => {
+          this.ui.hideModal();
+          this.backToMenu();
+        }
+      }
+    ];
+    
+    if (hasNextLevel) {
+      buttons.unshift({
+        id: 'nextLevel',
+        text: '下一关',
+        action: () => {
+          this.ui.hideModal();
+          this.startNextLevel(2);
+        }
+      });
     }
+    
+    setTimeout(() => {
+      this.ui.showModalDialog(
+        'gameComplete',
+        '恭喜通关！',
+        message,
+        buttons
+      );
+    }, 500);
   }
 
   handleGameFailed() {
