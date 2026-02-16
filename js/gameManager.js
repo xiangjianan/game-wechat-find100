@@ -130,7 +130,7 @@ export default class GameManager {
     this.currentNumber++;
     this.clickCount++;
 
-    // 鹰眼技能：高亮下一个数字
+    // 鹰眼技能：3秒后高亮下一个数字
     if (this.skillManager && this.skillManager.isUnlocked('eagle_eye') && this.currentNumber <= this.totalNumbers) {
       const nextPolygon = this.polygons.find(p => p.number === this.currentNumber);
       if (nextPolygon) {
@@ -140,11 +140,11 @@ export default class GameManager {
           this.eagleEyeTimeoutId = null;
         }
 
-        nextPolygon.setEagleEyeHighlight(true);
+        // 3秒后高亮下一个数字
         this.eagleEyeTimeoutId = setTimeout(() => {
-          nextPolygon.setEagleEyeHighlight(false);
+          nextPolygon.setEagleEyeHighlight(true);
           this.eagleEyeTimeoutId = null;
-        }, 800);
+        }, 3000);
       }
     }
 
@@ -248,14 +248,16 @@ export default class GameManager {
     this.coinManager = coinManager;
   }
 
-  update(deltaTime) {
+  update(_deltaTime) {
     for (const polygon of this.polygons) {
       polygon.update();
     }
     
+    // 注意：倒计时由 setInterval 在 updateTimer() 中管理
+    // 不在此处重复扣减，避免双倍计时问题
+    // 仅检查是否超时（用于处理边界情况）
     if (this.gameMode === 'timed' && this.gameState === 'playing' && !this.isPaused) {
-      this.timeLeft = Math.max(0, this.timeLeft - deltaTime);
-      if (this.timeLeft <= 0) {
+      if (this.timeLeft <= 0 && this.gameState !== 'failed') {
         this.handleTimeUp();
       }
     }

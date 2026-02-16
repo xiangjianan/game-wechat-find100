@@ -18,7 +18,7 @@ export default class SkillManager {
       currentLevel: 0,
       cost: 1000,
       prerequisite: null,
-      icon: '⏱️'
+      icon: '⏱'
     });
 
     this.skills.set('time_control_2', {
@@ -31,7 +31,7 @@ export default class SkillManager {
       currentLevel: 0,
       cost: 2000,
       prerequisite: 'time_control_1',
-      icon: '⏱️'
+      icon: '⏱'
     });
 
     this.skills.set('time_reward_1', {
@@ -116,13 +116,13 @@ export default class SkillManager {
       id: 'eagle_eye',
       name: '鹰眼',
       category: 'assist',
-      description: '点击数字后高亮下一个数字',
+      description: '点击数字3秒后高亮下一个数字',
       effect: { type: 'eagle_eye', value: 1 },
       maxLevel: 1,
       currentLevel: 0,
       cost: 10000,
       prerequisite: null,
-      icon: '👁️'
+      icon: '👁'
     });
   }
 
