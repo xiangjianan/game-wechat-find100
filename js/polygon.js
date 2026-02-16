@@ -1,21 +1,45 @@
 import { COLORS, getColorScheme, BRUTALISM_STYLES } from './constants/colors';
 
+// 缓存颜色方案，避免每帧重复计算
+let cachedScheme = null;
+let cachedStateColors = null;
+
+function getCachedScheme() {
+  if (!cachedScheme) {
+    cachedScheme = getColorScheme();
+    cachedStateColors = {
+      default: cachedScheme.cardBg,
+      clicked: cachedScheme.buttonSuccess,
+      highlighted: cachedScheme.accent,
+      error: cachedScheme.danger,
+      border: cachedScheme.border,
+      textClicked: cachedScheme.textLight,
+      textDefault: cachedScheme.text
+    };
+  }
+  return cachedScheme;
+}
+
+function getCachedStateColors() {
+  if (!cachedStateColors) {
+    getCachedScheme();
+  }
+  return cachedStateColors;
+}
+
+// 清除缓存（在主题切换时调用）
+export function clearColorCache() {
+  cachedScheme = null;
+  cachedStateColors = null;
+}
+
 export default class Polygon {
   static get NUMBER_COLORS() {
-    return getColorScheme().numberColors;
+    return getCachedScheme().numberColors;
   }
   
   static get STATE_COLORS() {
-    const scheme = getColorScheme();
-    return {
-      default: scheme.cardBg,
-      clicked: scheme.buttonSuccess,
-      highlighted: scheme.accent,
-      error: scheme.danger,
-      border: scheme.border,
-      textClicked: scheme.textLight,
-      textDefault: scheme.text
-    };
+    return getCachedStateColors();
   }
 
   constructor(vertices, number, color) {
@@ -35,18 +59,28 @@ export default class Polygon {
     this.isHinted = false;
     this.hintPulse = 0;
     this.hintGlowIntensity = 0;
+    
+    // 缓存计算结果
+    this._center = null;
+    this._area = null;
+    this._bounds = null;
   }
 
   getCenter() {
+    if (this._center) return this._center;
+    
     let x = 0, y = 0;
     for (const vertex of this.vertices) {
       x += vertex.x;
       y += vertex.y;
     }
-    return { x: x / this.vertices.length, y: y / this.vertices.length };
+    this._center = { x: x / this.vertices.length, y: y / this.vertices.length };
+    return this._center;
   }
 
   getArea() {
+    if (this._area !== null) return this._area;
+    
     let area = 0;
     const n = this.vertices.length;
     for (let i = 0; i < n; i++) {
@@ -54,7 +88,8 @@ export default class Polygon {
       area += this.vertices[i].x * this.vertices[j].y;
       area -= this.vertices[j].x * this.vertices[i].y;
     }
-    return Math.abs(area / 2);
+    this._area = Math.abs(area / 2);
+    return this._area;
   }
 
   containsPoint(point) {
@@ -144,13 +179,15 @@ export default class Polygon {
   }
 
   renderShape(ctx) {
-    const scheme = getColorScheme();
-    const stateColors = Polygon.STATE_COLORS;
-    
-    ctx.save();
+    const scheme = getCachedScheme();
+    const stateColors = cachedStateColors;
     
     const center = this.getCenter();
-    ctx.translate(center.x + this.shakeOffset.x, center.y + this.shakeOffset.y);
+    const transformX = center.x + this.shakeOffset.x;
+    const transformY = center.y + this.shakeOffset.y;
+    
+    // 使用局部变换而非save/restore
+    ctx.translate(transformX, transformY);
     ctx.scale(this.scale, this.scale);
     ctx.translate(-center.x, -center.y);
 
@@ -200,7 +237,15 @@ export default class Polygon {
       ctx.stroke();
     }
 
-    ctx.restore();
+    // 重置变换
+    ctx.translate(center.x, center.y);
+    ctx.scale(1 / this.scale, 1 / this.scale);
+    ctx.translate(-transformX, -transformY);
+    
+    // 清除阴影
+    if (this.isHinted) {
+      ctx.shadowBlur = 0;
+    }
   }
 
   interpolateColor(color1, color2, factor) {
@@ -223,13 +268,15 @@ export default class Polygon {
   }
 
   renderText(ctx) {
-    const scheme = getColorScheme();
-    const stateColors = Polygon.STATE_COLORS;
-    
-    ctx.save();
+    const scheme = getCachedScheme();
+    const stateColors = cachedStateColors;
     
     const center = this.getCenter();
-    ctx.translate(center.x + this.shakeOffset.x, center.y + this.shakeOffset.y);
+    const transformX = center.x + this.shakeOffset.x;
+    const transformY = center.y + this.shakeOffset.y;
+    
+    // 使用局部变换而非save/restore
+    ctx.translate(transformX, transformY);
     ctx.scale(this.scale, this.scale);
     ctx.translate(-center.x, -center.y);
 
@@ -261,7 +308,10 @@ export default class Polygon {
     }
     ctx.fillText(text, center.x, center.y);
 
-    ctx.restore();
+    // 重置变换
+    ctx.translate(center.x, center.y);
+    ctx.scale(1 / this.scale, 1 / this.scale);
+    ctx.translate(-transformX, -transformY);
   }
 
   render(ctx) {

@@ -11,6 +11,68 @@ import ShopManager from './shopManager';
 import SkillManager from './skillManager';
 import { getColorScheme } from './constants/colors';
 
+// 性能监控工具
+class PerformanceMonitor {
+  constructor() {
+    this.frameCount = 0;
+    this.lastFpsTime = performance.now();
+    this.fps = 60;
+    this.frameTime = 16.67;
+    this.lastFrameTime = performance.now();
+    this.enabled = false;
+  }
+
+  start() {
+    this.enabled = true;
+  }
+
+  stop() {
+    this.enabled = false;
+  }
+
+  update() {
+    if (!this.enabled) return;
+
+    const now = performance.now();
+    this.frameCount++;
+    this.frameTime = now - this.lastFrameTime;
+    this.lastFrameTime = now;
+
+    if (now - this.lastFpsTime >= 1000) {
+      this.fps = this.frameCount;
+      this.frameCount = 0;
+      this.lastFpsTime = now;
+
+      // 低帧率警告
+      if (this.fps < 30) {
+        console.warn(`[Performance] Low FPS detected: ${this.fps}`);
+      }
+
+      // 内存监控
+      if (performance.memory) {
+        const usedHeap = (performance.memory.usedJSHeapSize / 1048576).toFixed(2);
+        const totalHeap = (performance.memory.totalJSHeapSize / 1048576).toFixed(2);
+        if (performance.memory.usedJSHeapSize > 100 * 1048576) {
+          console.warn(`[Performance] High memory usage: ${usedHeap}MB / ${totalHeap}MB`);
+        }
+      }
+    }
+  }
+
+  getStats() {
+    return {
+      fps: this.fps,
+      frameTime: this.frameTime.toFixed(2),
+      memory: performance.memory ? {
+        used: (performance.memory.usedJSHeapSize / 1048576).toFixed(2),
+        total: (performance.memory.totalJSHeapSize / 1048576).toFixed(2)
+      } : null
+    };
+  }
+}
+
+const perfMonitor = new PerformanceMonitor();
+
 let canvas;
 let ctx;
 
@@ -62,6 +124,8 @@ export default class FindGameMain {
     this.setupLifecycleListeners();
     
     this.ui.initMenu();
+    
+    this.loop = this.loop.bind(this);
     this.startLoop();
   }
 
@@ -746,13 +810,17 @@ export default class FindGameMain {
     const deltaTime = this.lastFrameTime ? (now - this.lastFrameTime) / 1000 : 0.016;
     this.lastFrameTime = now;
     
+    // 更新性能监控
+    perfMonitor.update();
+    
     this.update(deltaTime);
     this.render(deltaTime);
-    this.aniId = requestAnimationFrame(this.loop.bind(this));
+    this.aniId = requestAnimationFrame(this.loop);
   }
 
   startLoop() {
-    this.aniId = requestAnimationFrame(this.loop.bind(this));
+    this.lastFrameTime = Date.now();
+    this.aniId = requestAnimationFrame(this.loop);
   }
 
   saveGameProgress(time) {

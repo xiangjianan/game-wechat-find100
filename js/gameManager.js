@@ -272,11 +272,9 @@ export default class GameManager {
   }
 
   render(ctx) {
+    // 合并渲染循环，减少遍历次数
     for (const polygon of this.polygons) {
       polygon.renderShape(ctx);
-    }
-    
-    for (const polygon of this.polygons) {
       polygon.renderText(ctx);
     }
   }

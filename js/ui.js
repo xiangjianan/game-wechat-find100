@@ -2107,8 +2107,14 @@ export default class UI {
   }
 
   createComboParticles(level, count) {
-    const particleCount = Math.min(count || 5, 20);
+    const particleCount = Math.min(count || 5, 15);
     const color = level ? level.color : '#FFD700';
+    
+    // 限制最大粒子数量
+    const maxParticles = 50;
+    if (this.comboParticles.length >= maxParticles) {
+      this.comboParticles.splice(0, particleCount);
+    }
     
     for (let i = 0; i < particleCount; i++) {
       this.comboParticles.push({

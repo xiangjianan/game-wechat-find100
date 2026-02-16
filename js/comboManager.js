@@ -59,12 +59,17 @@ export default class ComboManager {
   }
 
   resetComboTimer() {
-    if (this.comboTimer) {
-      clearTimeout(this.comboTimer);
-    }
+    this.clearComboTimer();
     this.comboTimer = setTimeout(() => {
       this.breakCombo();
     }, this.comboTimeLimit);
+  }
+
+  clearComboTimer() {
+    if (this.comboTimer) {
+      clearTimeout(this.comboTimer);
+      this.comboTimer = null;
+    }
   }
 
   breakCombo() {
@@ -78,10 +83,7 @@ export default class ComboManager {
     this.lastComboLevel = null;
     this.comboMultiplier = 1.0;
     
-    if (this.comboTimer) {
-      clearTimeout(this.comboTimer);
-      this.comboTimer = null;
-    }
+    this.clearComboTimer();
 
     if (this.onComboUpdate) {
       this.onComboUpdate(0, null);
@@ -138,8 +140,18 @@ export default class ComboManager {
   }
 
   reset() {
-    this.breakCombo();
+    this.clearComboTimer();
+    this.comboCount = 0;
+    this.lastComboLevel = null;
+    this.comboMultiplier = 1.0;
     this.maxCombo = 0;
+  }
+
+  destroy() {
+    this.clearComboTimer();
+    this.onComboUpdate = null;
+    this.onComboBreak = null;
+    this.onComboLevelUp = null;
   }
 
   setTimeLimit(ms) {

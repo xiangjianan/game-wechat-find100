@@ -5,6 +5,8 @@ export default class AchievementManager {
     this.progress = new Map();
     this.pendingNotifications = [];
     this.coinManager = null;
+    this.saveTimeout = null;
+    this.pendingSave = false;
     this.initAchievements();
     this.loadProgress();
   }
@@ -305,6 +307,39 @@ export default class AchievementManager {
   saveProgress() {
     if (typeof wx === 'undefined' || !wx.setStorageSync) return;
 
+    // 防抖：如果已有待保存的定时器，直接返回
+    if (this.pendingSave) return;
+    
+    this.pendingSave = true;
+    
+    // 延迟保存，批量处理
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+    }
+    
+    this.saveTimeout = setTimeout(() => {
+      this.pendingSave = false;
+      try {
+        const data = {
+          unlockedAchievements: Array.from(this.unlockedAchievements),
+          progress: Array.from(this.progress.entries())
+        };
+        wx.setStorageSync('achievement_progress', JSON.stringify(data));
+      } catch (error) {
+        // 静默处理错误
+      }
+    }, 500); // 500ms防抖延迟
+  }
+
+  // 立即保存（用于游戏退出等关键时机）
+  saveProgressImmediate() {
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+    }
+    this.pendingSave = false;
+    
+    if (typeof wx === 'undefined' || !wx.setStorageSync) return;
+    
     try {
       const data = {
         unlockedAchievements: Array.from(this.unlockedAchievements),
