@@ -573,6 +573,15 @@ export default class UI {
     this.modeSwitcher.width = 0;
     this.modeSwitcher.height = 0;
     this.hintButtonAnimation = 0;
+    this.comboData = {
+      count: 0,
+      level: null,
+      animation: 0,
+      scale: 1,
+      glowIntensity: 0,
+      breakAnimation: 0
+    };
+    this.comboParticles = [];
   }
 
   initCompletion(time) {

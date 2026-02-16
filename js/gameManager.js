@@ -49,7 +49,7 @@ export default class GameManager {
       }
       
       const coinBonus = this.skillManager ? this.skillManager.getComboCoinBonus() : 0;
-      if (coinBonus > 0 && count >= 5) {
+      if (coinBonus > 0 && count > 5) {
         this.coinManager.addCoins(coinBonus, 'combo');
       }
       
