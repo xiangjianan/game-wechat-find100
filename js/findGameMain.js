@@ -68,36 +68,56 @@ export default class FindGameMain {
     const handleTouchStart = (res) => {
       try {
         if (!res.touches || res.touches.length === 0) return;
-        
+
         const touch = res.touches[0];
         const x = touch.clientX;
         const y = touch.clientY;
-        
+
         this.ui.updateMousePosition(x, y);
-        this.ui.handleTouchStart(y);
-        this.handleInput(x, y);
+
+        if (this.ui.showSkills) {
+          this.ui.handleSkillsTouchStart(y);
+        } else if (this.ui.showShop) {
+          this.ui.handleShopTouchStart(y);
+        } else {
+          this.ui.handleTouchStart(y);
+          this.handleInput(x, y);
+        }
       } catch (error) {
         // 静默处理错误
       }
     };
-    
+
     const handleTouchMove = (res) => {
       try {
         if (!res.touches || res.touches.length === 0) return;
-        
+
         const touch = res.touches[0];
         const x = touch.clientX;
         const y = touch.clientY;
         this.ui.updateMousePosition(x, y);
-        this.ui.handleTouchMove(y);
+
+        if (this.ui.showSkills) {
+          this.ui.handleSkillsTouchMove(y);
+        } else if (this.ui.showShop) {
+          this.ui.handleShopTouchMove(y);
+        } else {
+          this.ui.handleTouchMove(y);
+        }
       } catch (error) {
         // 静默处理错误
       }
     };
-    
+
     const handleTouchEnd = (res) => {
       try {
-        this.ui.handleTouchEnd();
+        if (this.ui.showSkills) {
+          this.ui.handleSkillsTouchEnd();
+        } else if (this.ui.showShop) {
+          this.ui.handleShopTouchEnd();
+        } else {
+          this.ui.handleTouchEnd();
+        }
       } catch (error) {
         // 静默处理错误
       }

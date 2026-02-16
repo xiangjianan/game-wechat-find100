@@ -2378,7 +2378,7 @@ export default class UI {
     this.skillIsTouching = false;
     this.initMenu();
     this.menuAnimation = 1;
-    
+
     this.floatingTexts = this.floatingTexts.filter(ft => ft.source !== 'skills');
   }
 
@@ -2615,7 +2615,7 @@ export default class UI {
   renderSkillsCategories(ctx, modalX, modalY, modalWidth, modalHeight, isMobile) {
     const scheme = this.getScheme();
     const listStartY = modalY + (isMobile ? 90 : 110);
-    const listEndY = modalY + modalHeight - (isMobile ? 80 : 100);
+    const listEndY = modalY + modalHeight - (isMobile ? 140 : 160);
     const listHeight = listEndY - listStartY;
 
     const categoryNames = {
@@ -2623,22 +2623,31 @@ export default class UI {
       'combo': '连击技能'
     };
 
-    let currentY = listStartY + this.skillScrollOffset;
+    let currentY = listStartY - this.skillScrollOffset;
 
     for (const [category, skills] of this.skillsData) {
-      ctx.fillStyle = scheme.text;
-      ctx.font = `bold ${isMobile ? 20 : 24}px "Arial Black", Arial, sans-serif`;
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(categoryNames[category] || category, modalX + (isMobile ? 15 : 20), currentY);
+      const categoryHeaderHeight = isMobile ? 35 : 45;
+      
+      if (currentY + categoryHeaderHeight > listStartY && currentY < listEndY) {
+        ctx.fillStyle = scheme.text;
+        ctx.font = `bold ${isMobile ? 20 : 24}px "Arial Black", Arial, sans-serif`;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(categoryNames[category] || category, modalX + (isMobile ? 15 : 20), currentY);
+      }
 
-      currentY += (isMobile ? 35 : 45);
+      currentY += categoryHeaderHeight;
 
       const itemHeight = isMobile ? 85 : 100;
       const itemPadding = isMobile ? 10 : 12;
 
       for (const skill of skills) {
-        if (currentY + itemHeight > listEndY) break;
+        if (currentY > listEndY) break;
+        
+        if (currentY + itemHeight < listStartY) {
+          currentY += itemHeight + itemPadding;
+          continue;
+        }
 
         const itemWidth = modalWidth - (isMobile ? 30 : 40);
         const itemX = modalX + (isMobile ? 15 : 20);
@@ -2699,14 +2708,16 @@ export default class UI {
 
   handleSkillsScroll(deltaY) {
     if (!this.showSkills) return;
-    
+
     this.skillScrollOffset += deltaY;
     this.skillScrollVelocity = deltaY;
     this.skillLastScrollTime = Date.now();
+    this.limitSkillsScroll();
   }
 
   handleSkillsTouchStart(y) {
     if (!this.showSkills) return;
+
     this.skillTouchStartY = y;
     this.skillLastTouchY = y;
     this.skillIsTouching = true;
@@ -2716,27 +2727,20 @@ export default class UI {
 
   handleSkillsTouchMove(y) {
     if (!this.showSkills || !this.skillIsTouching) return;
-    
+
     const now = Date.now();
     const deltaTime = now - this.skillLastScrollTime;
     const deltaY = this.skillLastTouchY - y;
     this.skillLastTouchY = y;
     this.skillLastScrollTime = now;
-    
-    const isMobile = this.width < 768;
-    const modalHeight = isMobile ? this.height - 60 : this.height - 80;
-    const listStartY = (this.height - modalHeight) / 2 + (isMobile ? 90 : 110);
-    const listEndY = (this.height - modalHeight) / 2 + modalHeight - (isMobile ? 80 : 100);
-    
-    if (y >= listStartY && y <= listEndY) {
-      this.skillScrollOffset += deltaY;
-      this.limitSkillsScroll();
-      
-      if (deltaTime > 0) {
-        this.skillScrollVelocity = deltaY / deltaTime * 16;
-      }
-      this.skillLastScrollDelta = deltaY;
+
+    this.skillScrollOffset += deltaY;
+    this.limitSkillsScroll();
+
+    if (deltaTime > 0) {
+      this.skillScrollVelocity = deltaY / deltaTime * 16;
     }
+    this.skillLastScrollDelta = deltaY;
   }
 
   handleSkillsTouchEnd() {
@@ -2758,34 +2762,30 @@ export default class UI {
 
   limitSkillsScroll() {
     if (!this.skillsData) return;
-    
+
     const isMobile = this.width < 768;
     const itemHeight = isMobile ? 85 : 100;
     const categoryHeaderHeight = isMobile ? 35 : 45;
     const itemPadding = isMobile ? 10 : 12;
-    
+    const categorySpacing = isMobile ? 20 : 25;
+
     let totalHeight = 0;
+    let categoryCount = 0;
     for (const [category, skills] of this.skillsData) {
       totalHeight += categoryHeaderHeight;
       totalHeight += skills.length * (itemHeight + itemPadding);
+      categoryCount++;
     }
-    
+    totalHeight += (categoryCount - 1) * categorySpacing;
+
     const isMobile2 = this.width < 768;
     const modalHeight = isMobile2 ? this.height - 60 : this.height - 80;
     const listStartY = (this.height - modalHeight) / 2 + (isMobile2 ? 90 : 110);
-    const listEndY = (this.height - modalHeight) / 2 + modalHeight - (isMobile2 ? 80 : 100);
+    const listEndY = (this.height - modalHeight) / 2 + modalHeight - (isMobile2 ? 140 : 160);
     const listHeight = listEndY - listStartY;
-    
-    const maxOffset = 0;
-    const minOffset = listHeight - totalHeight;
-    
-    if (this.skillScrollOffset < minOffset) {
-      this.skillScrollOffset = minOffset;
-      this.skillScrollVelocity = 0;
-    } else if (this.skillScrollOffset > maxOffset) {
-      this.skillScrollOffset = maxOffset;
-      this.skillScrollVelocity = 0;
-    }
+
+    const maxScroll = Math.max(0, totalHeight - listHeight);
+    this.skillScrollOffset = Math.max(0, Math.min(this.skillScrollOffset, maxScroll));
   }
 
   handleShopScroll(deltaY) {
@@ -2942,12 +2942,12 @@ export default class UI {
 
     if (this.skillsData) {
       const listStartY = modalY + (isMobile ? 90 : 110);
-      const listEndY = modalY + modalHeight - (isMobile ? 120 : 140);
+      const listEndY = modalY + modalHeight - (isMobile ? 140 : 160);
       const itemHeight = isMobile ? 85 : 100;
       const itemPadding = isMobile ? 10 : 12;
 
       if (y >= listStartY && y <= listEndY) {
-        let currentY = listStartY + (isMobile ? 35 : 45) + this.skillScrollOffset;
+        let currentY = listStartY + (isMobile ? 35 : 45) - this.skillScrollOffset;
         
         for (const [category, skills] of this.skillsData) {
           for (const skill of skills) {
