@@ -7,17 +7,17 @@
     "minified": true,
     "newFeature": true,
     "compileWorklet": false,
-    "uglifyFileName": false,
-    "uploadWithSourceMap": true,
-    "enhance": false,
+    "uglifyFileName": true,
+    "uploadWithSourceMap": false,
+    "enhance": true,
     "packNpmManually": false,
     "packNpmRelationList": [],
     "minifyWXSS": true,
     "minifyWXML": true,
     "localPlugins": false,
     "condition": false,
-    "swc": false,
-    "disableSWC": true,
+    "swc": true,
+    "disableSWC": false,
     "babelSetting": {
       "ignore": [],
       "disablePlugins": [],
@@ -50,7 +50,52 @@
   },
   "simulatorPluginLibVersion": {},
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "type": "file",
+        "value": "*.md"
+      },
+      {
+        "type": "folder",
+        "value": ".git"
+      },
+      {
+        "type": "file",
+        "value": ".gitignore"
+      },
+      {
+        "type": "file",
+        "value": ".eslintrc.js"
+      },
+      {
+        "type": "folder",
+        "value": ".trae"
+      },
+      {
+        "type": "file",
+        "value": "ARCHITECTURE.md"
+      },
+      {
+        "type": "file",
+        "value": "ARCHITECTURE_DEFECTS_ANALYSIS.md"
+      },
+      {
+        "type": "file",
+        "value": "GAMEPLAY_PROPOSALS.md"
+      },
+      {
+        "type": "file",
+        "value": "README.md"
+      },
+      {
+        "type": "file",
+        "value": "TIMER_FIX_SUMMARY.md"
+      },
+      {
+        "type": "file",
+        "value": "TIMER_OPTIMIZATION_REPORT.md"
+      }
+    ],
     "include": []
   },
   "isGameTourist": false,

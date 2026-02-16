@@ -1,0 +1,9 @@
+# Production build ignore patterns
+*.md
+.git/
+.gitignore
+.eslintrc.js
+.trae/
+node_modules/
+*.log
+.DS_Store

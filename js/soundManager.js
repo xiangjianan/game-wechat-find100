@@ -31,11 +31,6 @@ export default class SoundManager {
       this.sounds.complete.onError(() => {
         this.useGeneratedAudio = true;
       });
-      
-      this.sounds.bg = wx.createInnerAudioContext();
-      this.sounds.bg.src = 'audio/bgm.mp3';
-      this.sounds.bg.loop = true;
-      this.sounds.bg.onError(() => {});
     } catch (e) {
       this.useGeneratedAudio = true;
     }
@@ -93,24 +88,13 @@ export default class SoundManager {
   }
 
   playBackground() {
-    if (!this.enabled || !this.sounds.bg) return;
-    try {
-      this.sounds.bg.play();
-    } catch (e) {}
   }
 
   stopBackground() {
-    if (!this.sounds.bg) return;
-    try {
-      this.sounds.bg.stop();
-    } catch (e) {}
   }
 
   setEnabled(enabled) {
     this.enabled = enabled;
-    if (!enabled) {
-      this.stopBackground();
-    }
   }
 
   setVolume(volume) {

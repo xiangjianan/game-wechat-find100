@@ -9,6 +9,7 @@ import CoinManager from './coinManager';
 import ItemManager from './itemManager';
 import ShopManager from './shopManager';
 import SkillManager from './skillManager';
+import { CacheManager } from './cacheManager';
 import { getColorScheme } from './constants/colors';
 
 // 性能监控工具 - 兼容微信小程序环境
@@ -110,6 +111,7 @@ export default class FindGameMain {
     this.aniId = 0;
     
     this.soundManager.init();
+    CacheManager.init();
     this.rankManager.init();
     this.vibrationManager.checkSupport();
     this.achievementManager.loadProgress();
