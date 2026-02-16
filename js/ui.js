@@ -107,6 +107,8 @@ export default class UI {
     
     this.coins = 0;
     this.onOpenShop = null;
+    this.onTogglePause = null;
+    this.isPaused = false;
     
     this.showShop = false;
     this.shopScrollOffset = 0;
@@ -1547,6 +1549,20 @@ export default class UI {
         action: () => this.onResetGame()
       }
     ];
+    
+    if (this.gameMode === 'timed') {
+      this.headerButtons.push({
+        id: 'pause',
+        text: this.isPaused ? '▶' : '⏸',
+        x: buttonStartX + (buttonSize + buttonSpacing) * 2,
+        y: buttonY,
+        width: buttonSize,
+        height: buttonSize,
+        color: scheme.cardBg,
+        hoverColor: scheme.accent,
+        action: () => this.onTogglePause()
+      });
+    }
 
     ctx.font = `bold ${isMobile ? 20 : 24}px "Arial Black", Arial, sans-serif`;
     ctx.textAlign = 'center';
@@ -1609,7 +1625,8 @@ export default class UI {
       ctx.fillStyle = timerColor;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(`${timeLeft.toFixed(1)}s`, centerX, timerY);
+      const displayTime = Math.max(0, timeLeft).toFixed(1);
+      ctx.fillText(`${displayTime}s`, centerX, timerY);
     }
   }
 

@@ -248,9 +248,24 @@ export default class GameManager {
     this.coinManager = coinManager;
   }
 
-  update() {
+  update(deltaTime) {
     for (const polygon of this.polygons) {
       polygon.update();
+    }
+    
+    if (this.gameMode === 'timed' && this.gameState === 'playing' && !this.isPaused) {
+      this.timeLeft = Math.max(0, this.timeLeft - deltaTime);
+      if (this.timeLeft <= 0) {
+        this.handleTimeUp();
+      }
+    }
+  }
+
+  handleTimeUp() {
+    this.stopTimer();
+    this.gameState = 'failed';
+    if (this.onGameFailed) {
+      this.onGameFailed();
     }
   }
 
@@ -280,6 +295,10 @@ export default class GameManager {
 
   startTimer() {
     this.stopTimer();
+    this.timerStartTime = Date.now();
+    this.timerLastUpdate = this.timerStartTime;
+    this.isPaused = false;
+    
     this.timerInterval = setInterval(() => {
       this.updateTimer();
     }, 100);
@@ -290,10 +309,15 @@ export default class GameManager {
       clearInterval(this.timerInterval);
       this.timerInterval = null;
     }
+    this.isPaused = false;
   }
 
   updateTimer() {
-    this.timeLeft -= 0.1;
+    const now = Date.now();
+    const elapsed = (now - this.timerLastUpdate) / 1000;
+    this.timerLastUpdate = now;
+    
+    this.timeLeft = Math.max(0, this.timeLeft - elapsed);
     
     if (this.timeLeft <= 0) {
       this.timeLeft = 0;
@@ -304,6 +328,34 @@ export default class GameManager {
         this.onGameFailed();
       }
     }
+  }
+
+  pauseTimer() {
+    if (this.gameState !== 'playing' || this.isPaused) return false;
+    this.isPaused = true;
+    this.pauseStartTime = Date.now();
+    this.stopTimer();
+    return true;
+  }
+
+  resumeTimer() {
+    if (!this.isPaused) return false;
+    this.isPaused = false;
+    this.timerLastUpdate = Date.now();
+    this.startTimer();
+    return true;
+  }
+
+  togglePause() {
+    if (this.isPaused) {
+      return this.resumeTimer();
+    } else {
+      return this.pauseTimer();
+    }
+  }
+
+  isTimerPaused() {
+    return this.isPaused;
   }
 
   getTimeLeft() {

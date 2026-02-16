@@ -59,9 +59,97 @@ export default class FindGameMain {
     
     this.setupEventListeners();
     this.setupUICallbacks();
+    this.setupLifecycleListeners();
     
     this.ui.initMenu();
     this.startLoop();
+  }
+
+  setupLifecycleListeners() {
+    if (typeof wx !== 'undefined') {
+      wx.onHide(() => {
+        if (this.gameManager.gameState === 'playing') {
+          this.gameManager.pauseTimer();
+          this.saveGameState();
+        }
+      });
+      
+      wx.onShow(() => {
+        if (this.gameManager.isTimerPaused()) {
+          this.showResumeDialog();
+        }
+      });
+    }
+  }
+
+  saveGameState() {
+    if (typeof wx === 'undefined' || !wx.setStorageSync) return;
+    
+    try {
+      const state = {
+        gameState: this.gameManager.gameState,
+        timeLeft: this.gameManager.timeLeft,
+        currentNumber: this.gameManager.currentNumber,
+        totalNumbers: this.gameManager.totalNumbers,
+        currentLevel: this.gameManager.currentLevel,
+        gameMode: this.gameManager.gameMode,
+        pausedAt: Date.now()
+      };
+      wx.setStorageSync('savedGameState', JSON.stringify(state));
+    } catch (e) {
+      // Silent fail
+    }
+  }
+
+  loadGameState() {
+    if (typeof wx === 'undefined' || !wx.getStorageSync) return null;
+    
+    try {
+      const saved = wx.getStorageSync('savedGameState');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      // Silent fail
+    }
+    return null;
+  }
+
+  clearSavedGameState() {
+    if (typeof wx === 'undefined' || !wx.removeStorageSync) return;
+    
+    try {
+      wx.removeStorageSync('savedGameState');
+    } catch (e) {
+      // Silent fail
+    }
+  }
+
+  showResumeDialog() {
+    this.ui.showModalDialog(
+      'resume',
+      '游戏暂停',
+      '是否继续上次的游戏？',
+      [
+        {
+          id: 'resume',
+          text: '继续游戏',
+          action: () => {
+            this.ui.hideModal();
+            this.gameManager.resumeTimer();
+          }
+        },
+        {
+          id: 'restart',
+          text: '重新开始',
+          action: () => {
+            this.ui.hideModal();
+            this.clearSavedGameState();
+            this.resetGame();
+          }
+        }
+      ]
+    );
   }
 
   setupEventListeners() {
@@ -296,6 +384,11 @@ export default class FindGameMain {
     
     this.ui.onSkillUnlock = (skillId) => {
       this.handleSkillUnlock(skillId);
+    };
+    
+    this.ui.onTogglePause = () => {
+      const paused = this.gameManager.togglePause();
+      this.ui.isPaused = paused;
     };
     
     this.coinManager.onCoinChanged = (coins, amount, type) => {
@@ -594,9 +687,9 @@ export default class FindGameMain {
     );
   }
 
-  update() {
-    this.gameManager.update();
-    this.ui.updateModalAnimation(0.016);
+  update(deltaTime) {
+    this.gameManager.update(deltaTime);
+    this.ui.updateModalAnimation(deltaTime);
   }
 
   renderGameBackground(ctx) {
@@ -653,7 +746,7 @@ export default class FindGameMain {
     const deltaTime = this.lastFrameTime ? (now - this.lastFrameTime) / 1000 : 0.016;
     this.lastFrameTime = now;
     
-    this.update();
+    this.update(deltaTime);
     this.render(deltaTime);
     this.aniId = requestAnimationFrame(this.loop.bind(this));
   }
