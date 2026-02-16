@@ -245,6 +245,7 @@ export default class Polygon {
     // 清除阴影
     if (this.isHinted) {
       ctx.shadowBlur = 0;
+      ctx.shadowColor = 'transparent';
     }
   }
 
