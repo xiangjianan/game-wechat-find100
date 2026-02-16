@@ -63,7 +63,6 @@ export default class Polygon {
     // 缓存计算结果
     this._center = null;
     this._area = null;
-    this._bounds = null;
   }
 
   getCenter() {

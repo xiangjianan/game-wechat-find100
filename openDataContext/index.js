@@ -37,12 +37,8 @@ function init() {
     // 监听主游戏发送的消息
     wx.onMessage(handleMessage);
 
-    // 获取排行榜数据
     fetchRankData();
-
-    console.log('开放数据域初始化成功');
   } catch (error) {
-    console.error('开放数据域初始化失败:', error);
   }
 }
 
@@ -50,8 +46,6 @@ function init() {
  * 处理来自主游戏的消息
  */
 function handleMessage(message) {
-  console.log('开放数据域收到消息:', message);
-
   switch (message.type) {
     case 'show':
       isShow = true;
@@ -77,9 +71,6 @@ function fetchRankData() {
   wx.getFriendCloudStorage({
     keyList: ['score', 'time', 'level'],
     success: (res) => {
-      console.log('获取排行榜数据成功:', res.data);
-
-      // 处理排行榜数据
       rankData = res.data.map((item, index) => {
         const scoreData = item.KVDataList.find(kv => kv.key === 'score');
         const timeData = item.KVDataList.find(kv => kv.key === 'time');
@@ -110,7 +101,6 @@ function fetchRankData() {
       render();
     },
     fail: (error) => {
-      console.error('获取排行榜数据失败:', error);
       rankData = [];
       render();
     }
@@ -230,10 +220,9 @@ function drawRankItem(item, y, width, height, isFirst) {
       ctx.clip();
       ctx.drawImage(img, avatarX, avatarY, avatarSize, avatarSize);
       ctx.restore();
-      render(); // 重新渲染以确保图片显示
-    };
+      render();
+    }
   } catch (error) {
-    console.error('绘制头像失败:', error);
   }
 
   // 昵称

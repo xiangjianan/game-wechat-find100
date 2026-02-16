@@ -8,7 +8,6 @@ export default class RankManager {
     this.sharedCanvasContext = null;
     this.isOpen = false;
     this.onCloseCallback = null;
-    this.onPlayClickSound = null;
     this.isWeChatGame = typeof wx !== 'undefined' && wx.createOpenDataContext;
   }
 
@@ -17,22 +16,15 @@ export default class RankManager {
    */
   init() {
     if (!this.isWeChatGame) {
-      console.log('非微信小游戏环境，排行榜功能不可用');
       return false;
     }
 
     try {
-      // 获取共享画布
       this.sharedCanvas = wx.getSharedCanvas();
       this.sharedCanvasContext = this.sharedCanvas.getContext('2d');
-
-      // 监听开放数据域的消息
       wx.onMessage(this.handleOpenDataMessage.bind(this));
-
-      console.log('排行榜初始化成功');
       return true;
     } catch (error) {
-      console.error('排行榜初始化失败:', error);
       return false;
     }
   }
@@ -58,7 +50,6 @@ export default class RankManager {
 
   uploadScore(time, level = 1, totalNumbers = 10) {
     if (!this.isWeChatGame) {
-      console.log('非微信小游戏环境，无法上传分数');
       return;
     }
 
@@ -83,16 +74,9 @@ export default class RankManager {
             key: 'totalNumbers',
             value: totalNumbers.toString()
           }
-        ],
-        success: () => {
-          console.log('分数上传成功:', finalScore, '数字数量:', totalNumbers, '用时:', time);
-        },
-        fail: (error) => {
-          console.error('分数上传失败:', error);
-        }
+        ]
       });
     } catch (error) {
-      console.error('上传分数时出错:', error);
     }
   }
 
@@ -102,20 +86,15 @@ export default class RankManager {
    */
   open(onClose = null) {
     if (!this.isWeChatGame) {
-      console.log('非微信小游戏环境，无法打开排行榜');
       return false;
     }
 
     this.isOpen = true;
     this.onCloseCallback = onClose;
-
-    // 通知开放数据域显示排行榜
     this.sendMessageToOpenData({
       type: 'show',
       data: {}
     });
-
-    console.log('排行榜已打开');
     return true;
   }
 
@@ -128,8 +107,6 @@ export default class RankManager {
     }
 
     this.isOpen = false;
-
-    // 通知开放数据域隐藏排行榜
     this.sendMessageToOpenData({
       type: 'hide',
       data: {}
@@ -139,8 +116,6 @@ export default class RankManager {
       this.onCloseCallback();
       this.onCloseCallback = null;
     }
-
-    console.log('排行榜已关闭');
   }
 
   /**
@@ -156,7 +131,6 @@ export default class RankManager {
       const openDataContext = wx.getOpenDataContext();
       openDataContext.postMessage(message);
     } catch (error) {
-      console.error('发送消息到开放数据域失败:', error);
     }
   }
 
@@ -165,8 +139,6 @@ export default class RankManager {
    * @param {Object} message - 消息对象
    */
   handleOpenDataMessage(message) {
-    console.log('收到开放数据域消息:', message);
-
     switch (message.type) {
       case 'close':
         this.close();
@@ -176,53 +148,18 @@ export default class RankManager {
     }
   }
 
-  /**
-   * 渲染共享画布到主画布
-   * @param {CanvasRenderingContext2D} ctx - 主画布上下文
-   * @param {number} x - x坐标
-   * @param {number} y - y坐标
-   * @param {number} width - 宽度
-   * @param {number} height - 高度
-   */
-  render(ctx, x = 0, y = 0, width = null, height = null) {
-    if (!this.isOpen || !this.sharedCanvas) {
-      return;
-    }
-
-    const drawWidth = width || ctx.canvas.width;
-    const drawHeight = height || ctx.canvas.height;
-
-    // 将共享画布绘制到主画布
-    ctx.drawImage(
-      this.sharedCanvas,
-      x, y, drawWidth, drawHeight
-    );
-  }
-
-  /**
-   * 处理排行榜区域的点击
-   * @param {number} x - x坐标
-   * @param {number} y - y坐标
-   * @param {number} width - 排行榜宽度
-   * @param {number} height - 排行榜高度
-   */
   handleClick(x, y, width, height) {
     if (!this.isOpen) {
       return false;
     }
 
-    // 检查是否点击了关闭按钮区域（右上角）
     const closeBtnSize = 40;
     if (x >= width - closeBtnSize && x <= width &&
         y >= 0 && y <= closeBtnSize) {
-      if (this.onPlayClickSound) {
-        this.onPlayClickSound();
-      }
       this.close();
       return true;
     }
 
-    // 其他点击事件转发到开放数据域
     this.sendMessageToOpenData({
       type: 'click',
       data: { x, y }

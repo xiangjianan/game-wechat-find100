@@ -55,20 +55,6 @@ class PerformanceMonitor {
       this.fps = this.frameCount;
       this.frameCount = 0;
       this.lastFpsTime = now;
-
-      // 低帧率警告
-      if (this.fps < 30) {
-        console.warn(`[Performance] Low FPS detected: ${this.fps}`);
-      }
-
-      // 内存监控
-      if (performance.memory) {
-        const usedHeap = (performance.memory.usedJSHeapSize / 1048576).toFixed(2);
-        const totalHeap = (performance.memory.totalJSHeapSize / 1048576).toFixed(2);
-        if (performance.memory.usedJSHeapSize > 100 * 1048576) {
-          console.warn(`[Performance] High memory usage: ${usedHeap}MB / ${totalHeap}MB`);
-        }
-      }
     }
   }
 
@@ -390,7 +376,6 @@ export default class FindGameMain {
             this.ui.handleAchievementsScroll(e.deltaY);
           }
         } catch (error) {
-          console.error('Wheel error:', error);
         }
       };
       

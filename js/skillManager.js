@@ -242,7 +242,6 @@ export default class SkillManager {
       };
       wx.setStorageSync('skill_progress', JSON.stringify(data));
     } catch (error) {
-      console.error('Failed to save skill progress:', error);
     }
   }
 
@@ -265,7 +264,6 @@ export default class SkillManager {
         }
       }
     } catch (error) {
-      console.error('Failed to load skill progress:', error);
     }
   }
 
