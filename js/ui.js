@@ -39,6 +39,8 @@ export default class UI {
     this.showRank = false;
     this.onOpenRank = null;
     this.onCloseRank = null;
+    
+    this.gameState = 'menu';
 
     this.menuAnimation = 0;
     this.menuTargetAnimation = 1;
@@ -751,7 +753,7 @@ export default class UI {
     }
     
     const allButtons = [...this.buttons];
-    if (this.headerButtons) {
+    if (this.headerButtons && this.gameState !== 'menu') {
       allButtons.push(...this.headerButtons);
     }
     
@@ -1289,6 +1291,8 @@ export default class UI {
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
 
+    this.gameState = gameState;
+    
     this.updateEffects(deltaTime);
     this.updateMenuAnimation(deltaTime);
     this.updateAchievementNotifications(deltaTime);
@@ -2217,10 +2221,10 @@ export default class UI {
     if (this.showModal) {
       allButtons.push(...this.modalButtons);
     }
-    
-    if (this.headerButtons) {
-      allButtons.push(...this.headerButtons);
-    }
+      
+      if (this.headerButtons && this.gameState !== 'menu') {
+        allButtons.push(...this.headerButtons);
+      }
     
     if (this.showAchievements) {
       const isMobile = this.width < 768;
