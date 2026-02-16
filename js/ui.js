@@ -2261,6 +2261,55 @@ export default class UI {
         allButtons.push(...this.headerButtons);
       }
     
+    if (this.showShop) {
+      const isMobile = this.width < 768;
+      const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
+      const modalHeight = isMobile ? this.height - 80 : this.height - 100;
+      const modalX = (this.width - modalWidth) / 2;
+      const modalY = (this.height - modalHeight) / 2;
+
+      const closeButtonWidth = isMobile ? 180 : 220;
+      const closeButtonHeight = isMobile ? 48 : 56;
+      const closeButtonX = (this.width - closeButtonWidth) / 2;
+      const closeButtonY = modalY + modalHeight - (isMobile ? 70 : 80);
+
+      if (this.mouseX >= closeButtonX && this.mouseX <= closeButtonX + closeButtonWidth &&
+          this.mouseY >= closeButtonY && this.mouseY <= closeButtonY + closeButtonHeight) {
+        this.hoveredButton = 'shop_close';
+        return;
+      }
+
+      const listStartY = modalY + (isMobile ? 90 : 110);
+      const listEndY = modalY + modalHeight - (isMobile ? 120 : 140);
+      const itemHeight = isMobile ? 100 : 120;
+      const itemPadding = isMobile ? 12 : 15;
+      const itemWidth = modalWidth - (isMobile ? 20 : 30);
+      const itemX = modalX + (isMobile ? 10 : 15);
+
+      if (this.shopProducts && this.mouseY >= listStartY && this.mouseY <= listEndY) {
+        for (let i = 0; i < this.shopProducts.length; i++) {
+          const product = this.shopProducts[i];
+          const itemY = listStartY + i * (itemHeight + itemPadding) - this.shopScrollOffset;
+
+          if (itemY + itemHeight < listStartY || itemY > listEndY) continue;
+
+          const buyButtonWidth = isMobile ? 60 : 80;
+          const buyButtonHeight = isMobile ? 32 : 40;
+          const buyButtonX = itemX + itemWidth - buyButtonWidth - (isMobile ? 10 : 15);
+          const buyButtonY = itemY + (itemHeight - buyButtonHeight) / 2;
+
+          if (this.mouseX >= buyButtonX && this.mouseX <= buyButtonX + buyButtonWidth &&
+              this.mouseY >= buyButtonY && this.mouseY <= buyButtonY + buyButtonHeight) {
+            if (this.coins >= product.price) {
+              this.hoveredButton = `shop_buy_${product.id}`;
+              return;
+            }
+          }
+        }
+      }
+      return;
+    }
+
     if (this.showSkills) {
       const isMobile = this.width < 768;
       const buttonWidth = isMobile ? 180 : 220;
@@ -2462,7 +2511,7 @@ export default class UI {
   renderShopProducts(ctx, modalX, modalY, modalWidth, modalHeight, isMobile) {
     const scheme = this.getScheme();
     const products = this.shopProducts;
-    
+
     if (!products || products.length === 0) return;
 
     const listStartY = modalY + (isMobile ? 90 : 110);
@@ -2484,19 +2533,19 @@ export default class UI {
 
     products.forEach((product, index) => {
       const itemY = listStartY + index * (itemHeight + itemPadding) - this.shopScrollOffset;
-      
+
       if (itemY + itemHeight < listStartY || itemY > listEndY) return;
 
       const canBuy = this.coins >= product.price;
-      const bgColor = canBuy ? '#FFD700' : scheme.cardBg;
+      const bgColor = scheme.cardBg;
 
       this.drawBrutalismRect(ctx, itemX, itemY, itemWidth, itemHeight, bgColor, {
-        shadowOffset: canBuy ? 4 : 2,
-        borderWidth: canBuy ? 3 : 2
+        shadowOffset: 2,
+        borderWidth: 2
       });
 
       ctx.font = `bold ${isMobile ? 36 : 44}px Arial, sans-serif`;
-      ctx.fillStyle = canBuy ? '#000000' : scheme.text;
+      ctx.fillStyle = scheme.text;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
       ctx.fillText(product.icon, itemX + (isMobile ? 12 : 15), itemY + itemHeight / 2);
@@ -2505,18 +2554,59 @@ export default class UI {
       ctx.fillText(product.name, itemX + (isMobile ? 55 : 65), itemY + (isMobile ? 25 : 30));
 
       ctx.font = `${isMobile ? 12 : 14}px Arial, sans-serif`;
-      ctx.fillStyle = canBuy ? '#000000' : scheme.text;
+      ctx.fillStyle = scheme.text;
       ctx.fillText(product.description, itemX + (isMobile ? 55 : 65), itemY + (isMobile ? 50 : 55));
 
       const priceText = `💰 ${product.price}`;
-      ctx.font = `bold ${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
-      ctx.textAlign = 'right';
-      ctx.fillText(priceText, itemX + itemWidth - (isMobile ? 12 : 15), itemY + itemHeight / 2);
+      ctx.font = `bold ${isMobile ? 14 : 16}px "Arial Black", Arial, sans-serif`;
+      ctx.textAlign = 'left';
+      ctx.fillText(priceText, itemX + (isMobile ? 55 : 65), itemY + (isMobile ? 75 : 85));
 
-      if (!canBuy) {
-        ctx.font = `bold ${isMobile ? 14 : 16}px Arial, sans-serif`;
-        ctx.fillStyle = scheme.danger;
-        ctx.fillText('金币不足', itemX + itemWidth - (isMobile ? 12 : 15), itemY + itemHeight - (isMobile ? 12 : 15));
+      const buyButtonWidth = isMobile ? 60 : 80;
+      const buyButtonHeight = isMobile ? 32 : 40;
+      const buyButtonX = itemX + itemWidth - buyButtonWidth - (isMobile ? 10 : 15);
+      const buyButtonY = itemY + (itemHeight - buyButtonHeight) / 2;
+
+      const isBuyButtonHovered = this.hoveredButton === `shop_buy_${product.id}`;
+      const isBuyButtonClicked = this.clickedButton === `shop_buy_${product.id}`;
+
+      if (canBuy) {
+        let buyButtonColor = scheme.buttonPrimary;
+        if (isBuyButtonHovered) {
+          buyButtonColor = this.lightenColor(scheme.buttonPrimary, 0.15);
+        }
+
+        let buyButtonScale = 1;
+        if (isBuyButtonHovered) buyButtonScale = 1.02;
+        if (isBuyButtonClicked) buyButtonScale = 0.95;
+
+        const scaledBuyWidth = buyButtonWidth * buyButtonScale;
+        const scaledBuyHeight = buyButtonHeight * buyButtonScale;
+        const scaledBuyX = buyButtonX + (buyButtonWidth - scaledBuyWidth) / 2;
+        const scaledBuyY = buyButtonY + (buyButtonHeight - scaledBuyHeight) / 2;
+
+        const buyShadowOffset = isBuyButtonClicked ? 2 : (isBuyButtonHovered ? 6 : 4);
+        this.drawBrutalismRect(ctx, scaledBuyX, scaledBuyY, scaledBuyWidth, scaledBuyHeight, buyButtonColor, {
+          shadowOffset: buyShadowOffset,
+          borderWidth: 3
+        });
+
+        ctx.fillStyle = scheme.textLight;
+        ctx.font = `bold ${isMobile ? 14 : 16}px "Arial Black", Arial, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('购买', scaledBuyX + scaledBuyWidth / 2, scaledBuyY + scaledBuyHeight / 2);
+      } else {
+        this.drawBrutalismRect(ctx, buyButtonX, buyButtonY, buyButtonWidth, buyButtonHeight, '#CCCCCC', {
+          shadowOffset: 2,
+          borderWidth: 2
+        });
+
+        ctx.fillStyle = '#666666';
+        ctx.font = `bold ${isMobile ? 12 : 14}px "Arial Black", Arial, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('金币不足', buyButtonX + buyButtonWidth / 2, buyButtonY + buyButtonHeight / 2);
       }
     });
 
@@ -2886,8 +2976,15 @@ export default class UI {
           const product = this.shopProducts[i];
           const itemY = listStartY + i * (itemHeight + itemPadding) - this.shopScrollOffset;
 
-          if (y >= itemY && y <= itemY + itemHeight &&
-              x >= itemX && x <= itemX + itemWidth) {
+          if (itemY + itemHeight < listStartY || itemY > listEndY) continue;
+
+          const buyButtonWidth = isMobile ? 60 : 80;
+          const buyButtonHeight = isMobile ? 32 : 40;
+          const buyButtonX = itemX + itemWidth - buyButtonWidth - (isMobile ? 10 : 15);
+          const buyButtonY = itemY + (itemHeight - buyButtonHeight) / 2;
+
+          if (y >= buyButtonY && y <= buyButtonY + buyButtonHeight &&
+              x >= buyButtonX && x <= buyButtonX + buyButtonWidth) {
             if (this.coins >= product.price) {
               this.clickedButton = `shop_buy_${product.id}`;
               this.clickAnimation = 1;

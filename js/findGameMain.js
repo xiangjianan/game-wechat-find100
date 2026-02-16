@@ -77,8 +77,10 @@ export default class FindGameMain {
 
         if (this.ui.showSkills) {
           this.ui.handleSkillsTouchStart(y);
+          this.handleInput(x, y);
         } else if (this.ui.showShop) {
           this.ui.handleShopTouchStart(y);
+          this.handleInput(x, y);
         } else {
           this.ui.handleTouchStart(y);
           this.handleInput(x, y);
@@ -134,18 +136,22 @@ export default class FindGameMain {
         try {
           e.preventDefault();
           e.stopPropagation();
-          
+
           if (!e.touches || e.touches.length === 0) return;
-          
+
           const touch = e.touches[0];
           const rect = canvas.getBoundingClientRect();
           const x = touch.clientX - rect.left;
           const y = touch.clientY - rect.top;
-          
+
           this.ui.updateMousePosition(x, y);
-          
+
           if (this.ui.showSkills) {
             this.ui.handleSkillsTouchStart(y);
+            this.handleInput(x, y);
+          } else if (this.ui.showShop) {
+            this.ui.handleShopTouchStart(y);
+            this.handleInput(x, y);
           } else {
             this.ui.handleTouchStart(y);
             this.handleInput(x, y);
