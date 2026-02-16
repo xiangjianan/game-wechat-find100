@@ -21,7 +21,7 @@ export default class GameManager {
     this.onComboUpdate = null;
     this.onComboLevelUp = null;
     this.onComboBreak = null;
-    
+
     this.timeLeft = 5.0;
     this.initialTime = 5.0;
     this.timeBonus = 5.0;
@@ -151,6 +151,11 @@ export default class GameManager {
     const comboLevel = this.comboManager.onCorrectClick();
     const comboCount = this.comboManager.getComboCount();
 
+    if (this.onCorrectClick) {
+      const center = polygon.getCenter();
+      this.onCorrectClick(center, comboLevel);
+    }
+
     if (this.gameMode === 'timed') {
       if (comboCount >= 5) {
         // 连击时不再加基础时间，时间奖励由 onComboUpdate 处理
@@ -161,12 +166,9 @@ export default class GameManager {
     }
 
     if (this.currentNumber > this.totalNumbers) {
-      this.handleGameComplete();
-    }
-
-    if (this.onCorrectClick) {
-      const center = polygon.getCenter();
-      this.onCorrectClick(center, comboLevel);
+      setTimeout(() => {
+        this.handleGameComplete();
+      }, 300);
     }
   }
 

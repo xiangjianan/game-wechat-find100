@@ -587,7 +587,6 @@ export default class FindGameMain {
   }
 
   handleGameComplete(time) {
-    this.soundManager.playComplete();
     this.saveGameProgress(time);
     
     const isLevel2 = this.gameManager.currentLevel === 2;
@@ -663,19 +662,15 @@ export default class FindGameMain {
       });
     }
     
-    setTimeout(() => {
-      this.ui.showModalDialog(
-        'gameComplete',
-        '恭喜通关！',
-        message,
-        buttons
-      );
-    }, 500);
+    this.ui.showModalDialog(
+      'gameComplete',
+      '恭喜通关！',
+      message,
+      buttons
+    );
   }
 
-  handleGameFailed() {
-    this.soundManager.playError();
-    
+  handleGameFailed() {   
     const isLevel2 = this.gameManager.currentLevel === 2;
     
     if (isLevel2) {
