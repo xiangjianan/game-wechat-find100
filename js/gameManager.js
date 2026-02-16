@@ -272,9 +272,12 @@ export default class GameManager {
   }
 
   render(ctx) {
-    // 合并渲染循环，减少遍历次数
+    // 先绘制所有多边形的形状（底层）
     for (const polygon of this.polygons) {
       polygon.renderShape(ctx);
+    }
+    // 再绘制所有文字（顶层），确保文字不被其他图形的线条遮挡
+    for (const polygon of this.polygons) {
       polygon.renderText(ctx);
     }
   }
