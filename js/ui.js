@@ -1590,10 +1590,10 @@ export default class UI {
         timerBgColor = scheme.danger;
       } else if (timeLeft <= 10.0) {
         timerColor = scheme.textLight;
-        timerBgColor = scheme.accent;
+        timerBgColor = scheme.buttonPrimary;
       } else {
         timerColor = scheme.textLight;
-        timerBgColor = scheme.buttonPrimary;
+        timerBgColor = scheme.accent;
       }
       
       const timerWidth = isMobile ? 100 : 120;
