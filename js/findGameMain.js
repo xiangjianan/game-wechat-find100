@@ -11,15 +11,27 @@ import ShopManager from './shopManager';
 import SkillManager from './skillManager';
 import { getColorScheme } from './constants/colors';
 
-// 性能监控工具
+// 性能监控工具 - 兼容微信小程序环境
 class PerformanceMonitor {
   constructor() {
     this.frameCount = 0;
-    this.lastFpsTime = performance.now();
+    this.lastFpsTime = this.now();
     this.fps = 60;
     this.frameTime = 16.67;
-    this.lastFrameTime = performance.now();
+    this.lastFrameTime = this.now();
     this.enabled = false;
+    this.isSupported = this.checkSupport();
+  }
+
+  checkSupport() {
+    return typeof performance !== 'undefined' && typeof performance.now === 'function';
+  }
+
+  now() {
+    if (this.isSupported) {
+      return performance.now();
+    }
+    return Date.now();
   }
 
   start() {
@@ -31,9 +43,9 @@ class PerformanceMonitor {
   }
 
   update() {
-    if (!this.enabled) return;
+    if (!this.enabled || !this.isSupported) return;
 
-    const now = performance.now();
+    const now = this.now();
     this.frameCount++;
     this.frameTime = now - this.lastFrameTime;
     this.lastFrameTime = now;
@@ -63,7 +75,7 @@ class PerformanceMonitor {
     return {
       fps: this.fps,
       frameTime: this.frameTime.toFixed(2),
-      memory: performance.memory ? {
+      memory: (this.isSupported && performance.memory) ? {
         used: (performance.memory.usedJSHeapSize / 1048576).toFixed(2),
         total: (performance.memory.totalJSHeapSize / 1048576).toFixed(2)
       } : null
