@@ -1296,7 +1296,7 @@ export default class UI {
     ctx.font = `bold ${isMobile ? 48 : 56}px "Arial Black", Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('⚠️', centerX, y + (isMobile ? 50 : 60));
+    ctx.fillText('⚠', centerX, y + (isMobile ? 50 : 60));
 
     ctx.fillStyle = scheme.text;
     ctx.font = `bold ${isMobile ? 32 : 40}px "Arial Black", Arial, sans-serif`;

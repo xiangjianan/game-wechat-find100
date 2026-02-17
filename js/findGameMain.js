@@ -907,7 +907,7 @@ export default class FindGameMain {
 
       this.ui.showModalDialog(
         'resetConfirm',
-        '⚠️ 时光倒流',
+        '⚠ 时光倒流',
         '此操作将清除所有游戏数据：\n\n• 金币归零\n• 技能归零\n• 道具归零\n• 成就归零\n• 游戏进度清空\n\n此操作不可恢复，确定要继续吗？',
         [
           {

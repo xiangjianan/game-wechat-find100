@@ -40,7 +40,7 @@ export default class ShopManager {
       itemId: 'reset',
       name: '时光倒流',
       description: '清除所有游戏数据，回到初始状态',
-      icon: '⏪',
+      icon: '🎭',
       price: 1,
       quantity: 1
     });
