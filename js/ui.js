@@ -507,7 +507,13 @@ export default class UI {
 
   renderEggEffect(ctx) {
     const progress = this.eggTriggerTime / this.eggTriggerDuration;
-    const alpha = Math.max(0, 1 - progress);
+    let alpha;
+
+    if (progress < 0.8) {
+      alpha = 1;
+    } else {
+      alpha = Math.max(0, 1 - (progress - 0.8) / 0.2);
+    }
 
     ctx.save();
     ctx.globalAlpha = alpha;
