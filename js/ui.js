@@ -1660,6 +1660,17 @@ export default class UI {
         color: scheme.cardBg,
         hoverColor: scheme.buttonSecondary,
         action: () => this.onBackToMenu()
+      },
+      {
+        id: 'refresh',
+        text: '↻',
+        x: buttonStartX + buttonSize + buttonSpacing,
+        y: buttonY,
+        width: buttonSize,
+        height: buttonSize,
+        color: scheme.cardBg,
+        hoverColor: scheme.buttonPrimary,
+        action: () => this.onRefreshGame()
       }
     ];
 

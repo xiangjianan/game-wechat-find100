@@ -459,7 +459,11 @@ export default class FindGameMain {
       const paused = this.gameManager.togglePause();
       this.ui.isPaused = paused;
     };
-    
+
+    this.ui.onRefreshGame = () => {
+      this.resetGame();
+    };
+
     this.coinManager.onCoinChanged = (coins, amount, type) => {
       this.ui.setCoins(coins);
     };
