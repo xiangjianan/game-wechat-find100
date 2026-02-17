@@ -1,5 +1,6 @@
 import LineDividerGenerator from './lineDividerGenerator';
 import ComboManager from './comboManager';
+import EggManager from './eggManager';
 
 export default class GameManager {
   constructor(width, height) {
@@ -7,6 +8,7 @@ export default class GameManager {
     this.height = height;
     this.generator = new LineDividerGenerator(width, height);
     this.comboManager = new ComboManager();
+    this.eggManager = new EggManager();
     this.polygons = [];
     this.currentNumber = 1;
     this.totalNumbers = 0;
@@ -21,6 +23,7 @@ export default class GameManager {
     this.onComboUpdate = null;
     this.onComboLevelUp = null;
     this.onComboBreak = null;
+    this.onEggTriggered = null;
 
     this.timeLeft = 5.0;
     this.initialTime = 5.0;
@@ -38,6 +41,7 @@ export default class GameManager {
     this.eagleEyeTimeoutId = null;
 
     this.setupComboCallbacks();
+    this.eggManager.init();
   }
 
   setupComboCallbacks() {
@@ -101,6 +105,20 @@ export default class GameManager {
         } else {
           this.handleWrongClick(polygon);
         }
+
+        const triggeredEgg = this.eggManager.checkClick(
+          polygon.number,
+          this.gameMode,
+          this.currentLevel,
+          this.totalNumbers
+        );
+
+        if (triggeredEgg) {
+          if (this.onEggTriggered) {
+            this.onEggTriggered(triggeredEgg);
+          }
+        }
+
         return;
       }
     }
@@ -218,6 +236,7 @@ export default class GameManager {
     this.clickCount = 0;
     this.errorCount = 0;
     this.comboManager.reset();
+    this.eggManager.resetSequence();
     this.hintCount = this.itemManager ? this.itemManager.getItemCount('hint') : 0;
     this.hintedPolygon = null;
   }
@@ -248,6 +267,10 @@ export default class GameManager {
 
   setCoinManager(coinManager) {
     this.coinManager = coinManager;
+  }
+
+  setEggManager(eggManager) {
+    this.eggManager = eggManager;
   }
 
   update(_deltaTime) {

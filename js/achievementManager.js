@@ -12,6 +12,7 @@ export default class AchievementManager {
   }
 
   initAchievements() {
+    console.log('[AchievementManager] Initializing achievements...');
     const achievements = [
       {
         id: 'A002',
@@ -147,12 +148,25 @@ export default class AchievementManager {
         condition: { type: 'combo', count: 20, level: 2 },
         reward: { type: 'coins', amount: 3000 },
         icon: '🔥'
+      },
+      {
+        id: 'EGG001',
+        name: '倒序之王',
+        description: '发现逆向思维彩蛋',
+        category: 'hidden',
+        condition: { type: 'egg_triggered', eggId: 'reverse_king' },
+        reward: { type: 'coins', amount: 100000 },
+        icon: '🔄',
+        hidden: true
       }
     ];
 
     achievements.forEach(achievement => {
       this.achievements.set(achievement.id, achievement);
     });
+
+    console.log('[AchievementManager] Initialized', this.achievements.size, 'achievements');
+    console.log('[AchievementManager] Hidden achievements:', Array.from(this.achievements.values()).filter(a => a.hidden).map(a => a.id));
   }
 
   checkAchievement(eventType, data) {
@@ -286,11 +300,39 @@ export default class AchievementManager {
 
     this.unlockedAchievements.add(id);
     this.pendingNotifications.push(achievement);
-    
+
     if (achievement.reward && achievement.reward.type === 'coins' && this.coinManager) {
       this.coinManager.addCoins(achievement.reward.amount);
     }
-    
+
+    this.saveProgress();
+  }
+
+  unlockHiddenAchievement(id, name, description, icon, reward, hidden) {
+    const achievement = this.achievements.get(id);
+
+    if (!achievement) {
+      this.achievements.set(id, {
+        id: id,
+        name: name,
+        description: description,
+        category: 'hidden',
+        condition: { type: 'egg_triggered', eggId: id },
+        reward: reward,
+        icon: icon,
+        hidden: hidden
+      });
+    }
+
+    if (this.unlockedAchievements.has(id)) return;
+
+    this.unlockedAchievements.add(id);
+    this.pendingNotifications.push(this.achievements.get(id));
+
+    if (reward && reward.type === 'coins' && this.coinManager) {
+      this.coinManager.addCoins(reward.amount);
+    }
+
     this.saveProgress();
   }
 
@@ -419,7 +461,8 @@ export default class AchievementManager {
       ...achievement,
       unlocked: this.unlockedAchievements.has(achievement.id),
       progress: this.getProgressValue(achievement.condition),
-      target: this.getProgressTarget(achievement.condition)
+      target: this.getProgressTarget(achievement.condition),
+      hidden: achievement.hidden || false
     }));
   }
 

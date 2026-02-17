@@ -39,7 +39,11 @@ export default class UI {
     this.showRank = false;
     this.onOpenRank = null;
     this.onCloseRank = null;
-    
+
+    this.eggTriggered = false;
+    this.eggTriggerTime = 0;
+    this.eggTriggerDuration = 2.0;
+
     this.gameState = 'menu';
 
     this.menuAnimation = 0;
@@ -350,6 +354,11 @@ export default class UI {
     this.shakeTime = 10;
   }
 
+  triggerEggEffect() {
+    this.eggTriggered = true;
+    this.eggTriggerTime = 0;
+  }
+
   showAchievementNotification(achievements) {
     if (!achievements || achievements.length === 0) return;
     
@@ -432,13 +441,14 @@ export default class UI {
     this.updateScrollInertia(deltaTime);
     this.updateHintButtonAnimation(deltaTime);
     this.updateSkillsScrollInertia(deltaTime);
-    
+    this.updateEggEffect(deltaTime);
+
     for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
       const ft = this.floatingTexts[i];
       ft.life -= deltaTime * 1.5;
       ft.offsetY -= deltaTime * 100;
       ft.alpha = Math.max(0, ft.life);
-      
+
       if (ft.life <= 0) {
         this.floatingTexts.splice(i, 1);
       }
@@ -462,6 +472,17 @@ export default class UI {
     }
   }
 
+  updateEggEffect(deltaTime) {
+    if (!this.eggTriggered) return;
+
+    this.eggTriggerTime += deltaTime;
+
+    if (this.eggTriggerTime >= this.eggTriggerDuration) {
+      this.eggTriggered = false;
+      this.eggTriggerTime = 0;
+    }
+  }
+
   renderEffects(ctx) {
     if (this.flashAlpha > 0) {
       ctx.fillStyle = `rgba(255, 0, 0, ${this.flashAlpha})`;
@@ -478,6 +499,57 @@ export default class UI {
       ctx.fillText(ft.text, ft.x, ft.y + ft.offsetY);
       ctx.restore();
     }
+
+    if (this.eggTriggered) {
+      this.renderEggEffect(ctx);
+    }
+  }
+
+  renderEggEffect(ctx) {
+    const progress = this.eggTriggerTime / this.eggTriggerDuration;
+    const alpha = Math.max(0, 1 - progress);
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    const centerX = this.width / 2;
+    const centerY = this.height / 2;
+
+    const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.min(this.width, this.height) / 2);
+    gradient.addColorStop(0, `rgba(255, 215, 0, ${alpha * 0.8})`);
+    gradient.addColorStop(0.5, `rgba(255, 215, 0, ${alpha * 0.4})`);
+    gradient.addColorStop(1, `rgba(255, 215, 0, 0)`);
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    const starCount = 20;
+    for (let i = 0; i < starCount; i++) {
+      const angle = (i / starCount) * Math.PI * 2 + this.eggTriggerTime * 2;
+      const radius = 100 + Math.sin(this.eggTriggerTime * 5 + i) * 30;
+      const x = centerX + Math.cos(angle) * radius;
+      const y = centerY + Math.sin(angle) * radius;
+      const size = 3 + Math.sin(this.eggTriggerTime * 3 + i * 2) * 2;
+
+      ctx.fillStyle = '#FFD700';
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 48px "Arial Black", Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.globalAlpha = alpha * 0.9;
+    ctx.fillText('🎉 逆向思维大师！', centerX, centerY - 80);
+    ctx.font = 'bold 24px "Arial Black", Arial, sans-serif';
+    ctx.fillText('你发现了隐藏彩蛋！', centerX, centerY - 30);
+    ctx.font = 'bold 32px "Arial Black", Arial, sans-serif';
+    ctx.fillStyle = '#FFD700';
+    ctx.fillText('+100,000 💰', centerX, centerY + 30);
+
+    ctx.restore();
   }
 
   initMenu() {
@@ -1888,7 +1960,7 @@ export default class UI {
   renderAchievementsList(ctx, modalX, modalY, modalWidth, modalHeight, isMobile) {
     const scheme = this.getScheme();
     const achievements = this.achievementsData;
-    
+
     if (!achievements || achievements.length === 0) return;
 
     const listStartY = modalY + (isMobile ? 90 : 110);
@@ -1910,9 +1982,10 @@ export default class UI {
 
     achievements.forEach((achievement, index) => {
       const itemY = listStartY + index * (itemHeight + itemPadding) - this.achievementScrollOffset;
-      
+
       if (itemY + itemHeight < listStartY || itemY > listEndY) return;
 
+      const isHidden = achievement.hidden && !achievement.unlocked;
       const bgColor = achievement.unlocked ? scheme.buttonSuccess : scheme.cardBg;
       const alpha = achievement.unlocked ? 1 : 0.6;
 
@@ -1928,17 +2001,24 @@ export default class UI {
       ctx.fillStyle = achievement.unlocked ? scheme.textLight : scheme.text;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      ctx.fillText(achievement.icon, itemX + (isMobile ? 12 : 15), itemY + itemHeight / 2);
+      ctx.fillText(isHidden ? '❓' : achievement.icon, itemX + (isMobile ? 12 : 15), itemY + itemHeight / 2);
 
       ctx.font = `bold ${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
-      ctx.fillText(achievement.name, itemX + (isMobile ? 55 : 65), itemY + (isMobile ? 22 : 25));
+      ctx.fillText(isHidden ? '？？？' : achievement.name, itemX + (isMobile ? 55 : 65), itemY + (isMobile ? 22 : 25));
 
-      ctx.font = `${isMobile ? 12 : 14}px Arial, sans-serif`;
-      ctx.fillStyle = achievement.unlocked ? scheme.textLight : scheme.text;
-      ctx.globalAlpha = achievement.unlocked ? 0.9 : 0.5;
-      ctx.fillText(achievement.description, itemX + (isMobile ? 55 : 65), itemY + (isMobile ? 45 : 50));
+      if (!isHidden) {
+        ctx.font = `${isMobile ? 12 : 14}px Arial, sans-serif`;
+        ctx.fillStyle = achievement.unlocked ? scheme.textLight : scheme.text;
+        ctx.globalAlpha = achievement.unlocked ? 0.9 : 0.5;
+        ctx.fillText(achievement.description, itemX + (isMobile ? 55 : 65), itemY + (isMobile ? 45 : 50));
+      } else {
+        ctx.font = `${isMobile ? 12 : 14}px Arial, sans-serif`;
+        ctx.fillStyle = scheme.text;
+        ctx.globalAlpha = 0.5;
+        ctx.fillText('完成神秘挑战解锁', itemX + (isMobile ? 55 : 65), itemY + (isMobile ? 45 : 50));
+      }
 
-      if (!achievement.unlocked && achievement.progress !== undefined && achievement.target !== undefined) {
+      if (!achievement.unlocked && achievement.progress !== undefined && achievement.target !== undefined && !isHidden) {
         const progressText = `${achievement.progress}/${achievement.target}`;
         ctx.font = `bold ${isMobile ? 12 : 14}px Arial, sans-serif`;
         ctx.fillStyle = scheme.accent;
@@ -1964,7 +2044,7 @@ export default class UI {
     const unlockedCount = achievements.filter(a => a.unlocked).length;
     const totalCount = achievements.length;
     const progressText = `已解锁: ${unlockedCount}/${totalCount}`;
-    
+
     ctx.fillStyle = scheme.text;
     ctx.font = `bold ${isMobile ? 14 : 16}px Arial, sans-serif`;
     ctx.textAlign = 'center';

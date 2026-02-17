@@ -9,6 +9,7 @@ import CoinManager from './coinManager';
 import ItemManager from './itemManager';
 import ShopManager from './shopManager';
 import SkillManager from './skillManager';
+import EggManager from './eggManager';
 import { CacheManager } from './cacheManager';
 import { getColorScheme } from './constants/colors';
 
@@ -79,11 +80,11 @@ export default class FindGameMain {
   constructor() {
     canvas = getCanvas();
     ctx = getContext();
-    
+
     if (!canvas || !ctx) {
       return;
     }
-    
+
     this.gameManager = new GameManager(SCREEN_WIDTH, SCREEN_HEIGHT);
     this.ui = new UI(SCREEN_WIDTH, SCREEN_HEIGHT);
     this.soundManager = new SoundManager();
@@ -94,8 +95,9 @@ export default class FindGameMain {
     this.itemManager = new ItemManager();
     this.shopManager = new ShopManager();
     this.skillManager = new SkillManager();
+    this.eggManager = new EggManager();
     this.aniId = 0;
-    
+
     this.soundManager.init();
     CacheManager.init();
     this.rankManager.init();
@@ -104,27 +106,31 @@ export default class FindGameMain {
     this.coinManager.init();
     this.itemManager.init();
     this.shopManager.init(this.coinManager, this.itemManager);
-    
+    this.eggManager.init();
+
     this.gameManager.setItemManager(this.itemManager);
     this.gameManager.setSkillManager(this.skillManager);
     this.gameManager.setCoinManager(this.coinManager);
+    this.gameManager.setEggManager(this.eggManager);
     this.skillManager.setCoinManager(this.coinManager);
     this.achievementManager.setCoinManager(this.coinManager);
-    
+    this.eggManager.setCoinManager(this.coinManager);
+    this.eggManager.setAchievementManager(this.achievementManager);
+
     this.loadGameProgress();
-    
+
     const savedMode = this.loadGameMode();
     this.ui.setGameMode(savedMode);
     this.gameManager.setGameMode(savedMode);
-    
+
     this.ui.setCoins(this.coinManager.getCoins());
-    
+
     this.setupEventListeners();
     this.setupUICallbacks();
     this.setupLifecycleListeners();
-    
+
     this.ui.initMenu();
-    
+
     this.loop = this.loop.bind(this);
     this.startLoop();
   }
@@ -532,6 +538,10 @@ export default class FindGameMain {
       this.ui.onComboBreak(count, level);
     };
 
+    this.gameManager.onEggTriggered = (egg) => {
+      this.handleEggTriggered(egg);
+    };
+
     this.ui.onUseHint = () => {
       this.useHint();
     };
@@ -540,6 +550,20 @@ export default class FindGameMain {
       this.ui.setHintCount(count);
       this.ui.triggerHintButtonAnimation();
     };
+  }
+
+  handleEggTriggered(egg) {
+    this.soundManager.playClick();
+    this.vibrationManager.vibrateCorrect();
+    this.ui.triggerEggEffect();
+    this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `+${egg.reward.amount} 💰`, '#FFD700');
+
+    this.ui.achievementsData = this.achievementManager.getAllAchievements();
+
+    if (this.achievementManager.hasPendingNotifications()) {
+      const unlockedAchievements = this.achievementManager.getPendingNotifications();
+      this.ui.showAchievementNotification(unlockedAchievements);
+    }
   }
 
   handleInput(x, y) {
