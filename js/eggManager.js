@@ -72,10 +72,6 @@ export default class EggManager {
     this.triggeredEggs.add(eggId);
     this.saveTriggeredEggs();
 
-    if (egg.reward && egg.reward.type === 'coins' && this.coinManager) {
-      this.coinManager.addCoins(egg.reward.amount);
-    }
-
     if (egg.achievementId && this.achievementManager) {
       this.achievementManager.unlockAchievement(egg.achievementId);
     }
