@@ -107,6 +107,14 @@ export default class EggManager {
   reset() {
     this.triggeredEggs = new Set();
     this.reverseSequence = [];
+    
+    if (typeof wx !== 'undefined' && wx.removeStorageSync) {
+      try {
+        wx.removeStorageSync('triggered_eggs');
+      } catch (error) {
+      }
+    }
+    
     this.saveTriggeredEggs();
   }
 

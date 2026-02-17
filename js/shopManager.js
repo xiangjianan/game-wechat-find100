@@ -34,6 +34,16 @@ export default class ShopManager {
       price: 50,
       quantity: 10
     });
+
+    this.products.set('reset_game', {
+      id: 'reset_game',
+      itemId: 'reset',
+      name: '时光倒流',
+      description: '清除所有游戏数据，回到初始状态',
+      icon: '⏪',
+      price: 1,
+      quantity: 1
+    });
   }
 
   init(coinManager, itemManager) {

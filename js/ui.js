@@ -766,6 +766,10 @@ export default class UI {
       return false;
     }
 
+    if (this.showModal) {
+      return this.handleModalClick(x, y);
+    }
+
     if (this.showShop) {
       return this.handleShopClick(x, y);
     }
@@ -912,11 +916,7 @@ export default class UI {
     }
   }
 
-  onResetGame() {
-    if (this.onGameReset) {
-      this.onGameReset();
-    }
-  }
+
 
   onBackToMenu() {
     this.showCompletion = false;
@@ -1135,11 +1135,13 @@ export default class UI {
     const modalWidth = isMobile ? Math.min(360, this.width - 40) : 440;
     const hasScoreInMessage = this.modalMessage && this.modalMessage.includes('得分');
     let modalHeight;
-    
+
     if (this.modalType === 'gameComplete') {
       modalHeight = isMobile ? 460 : 520;
     } else if (this.modalType === 'gameFailed') {
       modalHeight = hasScoreInMessage ? (isMobile ? 480 : 540) : (isMobile ? 380 : 420);
+    } else if (this.modalType === 'resetConfirm') {
+      modalHeight = isMobile ? 520 : 580;
     } else {
       modalHeight = isMobile ? 380 : 420;
     }
@@ -1161,6 +1163,8 @@ export default class UI {
       this.renderCompletionContent(ctx, modalX, modalY, modalWidth, modalHeight, isMobile);
     } else if (this.modalType === 'gameFailed') {
       this.renderFailureContent(ctx, modalX, modalY, modalWidth, modalHeight, isMobile);
+    } else if (this.modalType === 'resetConfirm') {
+      this.renderResetConfirmContent(ctx, modalX, modalY, modalWidth, modalHeight, isMobile);
     } else {
       this.renderDefaultModalContent(ctx, modalX, modalY, modalWidth, modalHeight, isMobile);
     }
@@ -1284,6 +1288,34 @@ export default class UI {
     this.renderModalButtons(ctx, x, y + height - (isMobile ? 130 : 150), width, isMobile);
   }
 
+  renderResetConfirmContent(ctx, x, y, width, height, isMobile) {
+    const scheme = this.getScheme();
+    const centerX = x + width / 2;
+
+    ctx.fillStyle = '#FF6B6B';
+    ctx.font = `bold ${isMobile ? 48 : 56}px "Arial Black", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('⚠️', centerX, y + (isMobile ? 50 : 60));
+
+    ctx.fillStyle = scheme.text;
+    ctx.font = `bold ${isMobile ? 32 : 40}px "Arial Black", Arial, sans-serif`;
+    ctx.fillText('重置游戏数据', centerX, y + (isMobile ? 110 : 130));
+
+    const messageLines = this.modalMessage.split('\n');
+    ctx.fillStyle = scheme.text;
+    ctx.font = `bold ${isMobile ? 16 : 18}px Arial, sans-serif`;
+    const lineHeight = isMobile ? 26 : 30;
+    const messageY = y + (isMobile ? 170 : 200);
+
+    messageLines.forEach((line, index) => {
+      ctx.fillText(line, centerX, messageY + index * lineHeight);
+    });
+
+    const buttonsY = messageY + messageLines.length * lineHeight + (isMobile ? 40 : 50);
+    this.renderModalButtons(ctx, x, buttonsY, width, isMobile);
+  }
+
   renderDefaultModalContent(ctx, x, y, width, height, isMobile) {
     const scheme = this.getScheme();
     const centerX = x + width / 2;
@@ -1314,53 +1346,84 @@ export default class UI {
     const buttonHeight = isMobile ? 48 : 56;
     const buttonSpacing = isMobile ? 14 : 18;
     const centerX = x + width / 2;
-    
+
     this.modalButtons.forEach((button, index) => {
       const buttonY = y + index * (buttonHeight + buttonSpacing);
       const buttonX = centerX - buttonWidth / 2;
-      
+
       button.x = buttonX;
       button.y = buttonY;
       button.width = buttonWidth;
       button.height = buttonHeight;
-      
+
       const isHovered = this.hoveredButton === button.id;
       const isClicked = this.clickedButton === button.id;
-      
+
       let fillColor;
       if (button.id === 'nextLevel' || button.id === 'restart') {
         fillColor = scheme.buttonSuccess;
       } else if (button.id === 'playAgain' || button.id === 'tryAgain') {
         fillColor = scheme.buttonPrimary;
+      } else if (button.id === 'confirm') {
+        fillColor = button.color || '#FF6B6B';
+      } else if (button.id === 'cancel') {
+        fillColor = '#888888';
       } else {
         fillColor = scheme.cardBg;
       }
-      
+
       if (isHovered) {
         fillColor = this.lightenColor(fillColor, 0.15);
       }
-      
+
       let scale = 1;
       if (isHovered) scale = 1.02;
       if (isClicked) scale = 0.95;
-      
+
       const scaledWidth = buttonWidth * scale;
       const scaledHeight = buttonHeight * scale;
       const scaledX = centerX - scaledWidth / 2;
       const scaledY = buttonY + (buttonHeight - scaledHeight) / 2;
-      
+
       const shadowOffset = isClicked ? 2 : (isHovered ? 8 : 6);
       this.drawBrutalismRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, fillColor, {
         shadowOffset: shadowOffset,
         borderWidth: 4
       });
-      
+
       ctx.fillStyle = button.id === 'menu' ? scheme.text : scheme.textLight;
       ctx.font = `bold ${isMobile ? 18 : 20}px "Arial Black", Arial, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(button.text, centerX, scaledY + scaledHeight / 2);
     });
+  }
+
+  handleModalClick(x, y) {
+    if (!this.modalButtons || this.modalButtons.length === 0) {
+      return false;
+    }
+
+    for (const button of this.modalButtons) {
+      if (x >= button.x && x <= button.x + button.width &&
+          y >= button.y && y <= button.y + button.height) {
+        this.clickedButton = button.id;
+        this.clickAnimation = 1;
+        if (this.onPlayClickSound) {
+          this.onPlayClickSound();
+        }
+        setTimeout(() => {
+          this.clickedButton = null;
+          this.clickAnimation = 0;
+          if (button.action) {
+            button.action();
+          }
+        }, 150);
+        return true;
+      }
+    }
+
+    return false;
   }
 
   render(ctx, gameState, currentNumber, totalNumbers, timeLeft = 5.0, deltaTime = 0.016) {
@@ -1381,6 +1444,9 @@ export default class UI {
       this.renderShop(ctx);
       this.renderEffects(ctx);
       this.renderAchievementNotifications(ctx);
+      if (this.showModal) {
+        this.renderModal(ctx);
+      }
       return;
     }
 
@@ -1389,6 +1455,9 @@ export default class UI {
       this.renderSkills(ctx);
       this.renderEffects(ctx);
       this.renderAchievementNotifications(ctx);
+      if (this.showModal) {
+        this.renderModal(ctx);
+      }
       return;
     }
 
@@ -1397,6 +1466,9 @@ export default class UI {
       this.renderAchievements(ctx);
       this.renderEffects(ctx);
       this.renderAchievementNotifications(ctx);
+      if (this.showModal) {
+        this.renderModal(ctx);
+      }
       return;
     }
 
@@ -1404,6 +1476,9 @@ export default class UI {
       this.renderInstructions(ctx);
       this.renderEffects(ctx);
       this.renderAchievementNotifications(ctx);
+      if (this.showModal) {
+        this.renderModal(ctx);
+      }
       return;
     }
 
@@ -1451,7 +1526,7 @@ export default class UI {
 
     ctx.fillStyle = scheme.background;
     ctx.fillRect(0, 0, this.width, this.height);
-    
+
     this.renderBrutalismPattern(ctx);
 
     const titleY = isMobile ? this.height * 0.18 : this.height * 0.15;
@@ -1469,19 +1544,19 @@ export default class UI {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('找回消失的专注，从找到第一个 1 开始...', this.width / 2, sloganY);
-    
+
     ctx.restore();
-    
+
     const switcherWidth = isMobile ? 260 : 300;
     const switcherHeight = isMobile ? 44 : 50;
     const switcherX = (this.width - switcherWidth) / 2;
     const switcherY = sloganY + (isMobile ? 35 : 45);
-    
+
     ctx.save();
     ctx.globalAlpha = Math.min(1, this.menuAnimation * 2);
     this.drawModeSwitcher(ctx, switcherX, switcherY, switcherWidth, switcherHeight);
     ctx.restore();
-    
+
     this.renderCoinsDisplay(ctx);
   }
 
@@ -1585,17 +1660,6 @@ export default class UI {
         color: scheme.cardBg,
         hoverColor: scheme.buttonSecondary,
         action: () => this.onBackToMenu()
-      },
-      {
-        id: 'reset',
-        text: '↻',
-        x: buttonStartX + buttonSize + buttonSpacing,
-        y: buttonY,
-        width: buttonSize,
-        height: buttonSize,
-        color: scheme.cardBg,
-        hoverColor: scheme.buttonPrimary,
-        action: () => this.onResetGame()
       }
     ];
 
@@ -2317,16 +2381,24 @@ export default class UI {
 
   updateHoveredButton() {
     this.hoveredButton = null;
-    
-    const allButtons = [...this.buttons];
-    if (this.showModal) {
-      allButtons.push(...this.modalButtons);
-    }
-      
-      if (this.headerButtons && this.gameState !== 'menu') {
-        allButtons.push(...this.headerButtons);
+
+    if (this.showModal && this.modalButtons) {
+      for (const button of this.modalButtons) {
+        if (this.mouseX >= button.x && this.mouseX <= button.x + button.width &&
+            this.mouseY >= button.y && this.mouseY <= button.y + button.height) {
+          this.hoveredButton = button.id;
+          return;
+        }
       }
-    
+      return;
+    }
+
+    const allButtons = [...this.buttons];
+
+    if (this.headerButtons && this.gameState !== 'menu') {
+      allButtons.push(...this.headerButtons);
+    }
+
     if (this.showShop) {
       const isMobile = this.width < 768;
       const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
@@ -2492,23 +2564,23 @@ export default class UI {
   renderCoinsDisplay(ctx) {
     const scheme = this.getScheme();
     const isMobile = this.width < 768;
-    
+
     const boxWidth = isMobile ? 110 : 132;
     const boxHeight = isMobile ? 44 : 52;
     const boxX = this.width - boxWidth - (isMobile ? 16 : 24);
     const boxY = isMobile ? 24 : 36;
-    
+
     this.drawBrutalismRect(ctx, boxX, boxY, boxWidth, boxHeight, '#FFD700', {
       shadowOffset: 4,
       borderWidth: 3
     });
-    
+
     ctx.fillStyle = '#000000';
     ctx.font = `bold ${isMobile ? 18 : 22}px "Arial Black", Arial, sans-serif`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillText('💰', boxX + (isMobile ? 12 : 16), boxY + boxHeight / 2);
-    
+
     ctx.textAlign = 'right';
     ctx.fillText(`${this.coins}`, boxX + boxWidth - (isMobile ? 12 : 16), boxY + boxHeight / 2);
   }

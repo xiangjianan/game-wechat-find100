@@ -552,6 +552,30 @@ export default class FindGameMain {
     };
   }
 
+  handleResetGame() {
+    this.achievementManager.reset();
+    this.coinManager.reset();
+    this.skillManager.reset();
+    this.itemManager.reset();
+
+    if (typeof wx !== 'undefined' && wx.removeStorageSync) {
+      try {
+        wx.removeStorageSync('gameProgress');
+        wx.removeStorageSync('gameMode');
+        wx.removeStorageSync('triggered_eggs');
+      } catch (error) {
+      }
+    }
+
+    this.eggManager.reset();
+
+    this.ui.setCoins(this.coinManager.getCoins());
+    this.ui.setSkillsData(this.skillManager.getSkillProgress());
+    this.ui.setHintCount(this.itemManager.getItemCount('hint'));
+    this.ui.achievementsData = this.achievementManager.getAllAchievements();
+    this.ui.initMenu();
+  }
+
   handleEggTriggered(egg) {
     this.soundManager.playClick();
     this.vibrationManager.vibrateCorrect();
@@ -874,8 +898,41 @@ export default class FindGameMain {
   }
 
   handleShopBuy(product) {
+    if (product.id === 'reset_game') {
+      if (this.coinManager.getCoins() < product.price) {
+        this.soundManager.playError();
+        this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, '金币不足!', '#FF4444');
+        return;
+      }
+
+      this.ui.showModalDialog(
+        'resetConfirm',
+        '⚠️ 时光倒流',
+        '此操作将清除所有游戏数据：\n\n• 金币归零\n• 技能归零\n• 道具归零\n• 成就归零\n• 游戏进度清空\n\n此操作不可恢复，确定要继续吗？',
+        [
+          {
+            id: 'cancel',
+            text: '取消',
+            action: () => {
+              this.ui.hideModal();
+            }
+          },
+          {
+            id: 'confirm',
+            text: '确认重置',
+            color: '#FF6B6B',
+            action: () => {
+              this.ui.hideModal();
+              this.handleResetGame();
+            }
+          }
+        ]
+      );
+      return;
+    }
+
     const result = this.shopManager.buy(product.id);
-    
+
     if (result.success) {
       this.soundManager.playClick();
       this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `+${result.itemsAdded} 💡`, '#44FF44');
