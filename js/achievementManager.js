@@ -12,7 +12,6 @@ export default class AchievementManager {
   }
 
   initAchievements() {
-    console.log('[AchievementManager] Initializing achievements...');
     const achievements = [
       {
         id: 'A002',
@@ -152,7 +151,7 @@ export default class AchievementManager {
       {
         id: 'EGG001',
         name: '倒序之王',
-        description: '发现逆向思维彩蛋',
+        description: '“谢谢你玩我的游戏”',
         category: 'hidden',
         condition: { type: 'egg_triggered', eggId: 'reverse_king' },
         reward: { type: 'coins', amount: 100000 },
@@ -164,9 +163,6 @@ export default class AchievementManager {
     achievements.forEach(achievement => {
       this.achievements.set(achievement.id, achievement);
     });
-
-    console.log('[AchievementManager] Initialized', this.achievements.size, 'achievements');
-    console.log('[AchievementManager] Hidden achievements:', Array.from(this.achievements.values()).filter(a => a.hidden).map(a => a.id));
   }
 
   checkAchievement(eventType, data) {
