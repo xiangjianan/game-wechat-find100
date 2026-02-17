@@ -42,7 +42,7 @@ export default class UI {
 
     this.eggTriggered = false;
     this.eggTriggerTime = 0;
-    this.eggTriggerDuration = 2.0;
+    this.eggTriggerDuration = 5.0;
 
     this.gameState = 'menu';
 
@@ -537,7 +537,7 @@ export default class UI {
       ctx.fill();
     }
 
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillStyle = '#FFD700';
     ctx.font = 'bold 48px "Arial Black", Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
