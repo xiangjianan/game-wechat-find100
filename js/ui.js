@@ -1141,7 +1141,7 @@ export default class UI {
     } else if (this.modalType === 'gameFailed') {
       modalHeight = hasScoreInMessage ? (isMobile ? 480 : 540) : (isMobile ? 380 : 420);
     } else if (this.modalType === 'resetConfirm') {
-      modalHeight = isMobile ? 520 : 580;
+      modalHeight = isMobile ? 580 : 650;
     } else {
       modalHeight = isMobile ? 380 : 420;
     }

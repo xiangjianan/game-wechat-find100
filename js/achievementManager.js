@@ -55,7 +55,7 @@ export default class AchievementManager {
         description: '300秒内完成第二关',
         category: 'speed',
         condition: { type: 'fast_complete', level: 2, maxTime: 300 },
-        reward: { type: 'coins', amount: 800 },
+        reward: { type: 'coins', amount: 1000 },
         icon: '💨'
       },
       {

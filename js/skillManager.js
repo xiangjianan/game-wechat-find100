@@ -42,7 +42,7 @@ export default class SkillManager {
       effect: { type: 'time_bonus', value: 1 },
       maxLevel: 2,
       currentLevel: 0,
-      cost: 1500,
+      cost: 1000,
       prerequisite: null,
       icon: '⏰'
     });
@@ -55,7 +55,7 @@ export default class SkillManager {
       effect: { type: 'time_bonus', value: 2 },
       maxLevel: 2,
       currentLevel: 0,
-      cost: 3000,
+      cost: 2000,
       prerequisite: 'time_reward_1',
       icon: '⏰'
     });
@@ -68,7 +68,7 @@ export default class SkillManager {
       effect: { type: 'combo_bonus', value: 5 },
       maxLevel: 1,
       currentLevel: 0,
-      cost: 5000,
+      cost: 3000,
       prerequisite: null,
       icon: '🔥'
     });
@@ -81,7 +81,7 @@ export default class SkillManager {
       effect: { type: 'combo_coin', value: 10 },
       maxLevel: 1,
       currentLevel: 0,
-      cost: 2000,
+      cost: 1000,
       prerequisite: null,
       icon: '💰'
     });
@@ -94,7 +94,7 @@ export default class SkillManager {
       effect: { type: 'combo_coin', value: 30 },
       maxLevel: 1,
       currentLevel: 0,
-      cost: 4000,
+      cost: 1500,
       prerequisite: 'combo_coin_1',
       icon: '💰'
     });
@@ -107,7 +107,7 @@ export default class SkillManager {
       effect: { type: 'combo_coin', value: 50 },
       maxLevel: 1,
       currentLevel: 0,
-      cost: 6000,
+      cost: 2500,
       prerequisite: 'combo_coin_2',
       icon: '💰'
     });
