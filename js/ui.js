@@ -543,16 +543,16 @@ export default class UI {
       ctx.fill();
     }
 
-    ctx.fillStyle = '#FFD700';
+    ctx.fillStyle = '#FF6B35';
     ctx.font = 'bold 48px "Arial Black", Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.globalAlpha = alpha * 0.9;
     ctx.fillText('🎉 逆向思维大师！', centerX, centerY - 80);
     ctx.font = 'bold 24px "Arial Black", Arial, sans-serif';
-    ctx.fillText('你发现了隐藏彩蛋！', centerX, centerY - 30);
+    ctx.fillText('谢谢你玩我的游戏！', centerX, centerY - 30);
     ctx.font = 'bold 32px "Arial Black", Arial, sans-serif';
-    ctx.fillStyle = '#FFD700';
+    ctx.fillStyle = '#FF6B35';
     ctx.fillText('+100,000 💰', centerX, centerY + 30);
 
     ctx.restore();
