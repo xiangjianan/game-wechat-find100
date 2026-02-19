@@ -22,6 +22,7 @@ export default class UI {
     this.modalButtons = [];
     this.modalAnimation = 0;
     this.modalTargetAnimation = 1;
+    this.modalSoundPlayed = false;
     
     this.mouseX = 0;
     this.mouseY = 0;
@@ -1069,6 +1070,10 @@ export default class UI {
     this.skillsData = skillsData;
   }
 
+  setSoundManager(soundManager) {
+    this.soundManager = soundManager;
+  }
+
   updateHintButtonAnimation(deltaTime) {
     if (this.hintButtonAnimation > 0) {
       this.hintButtonAnimation = Math.max(0, this.hintButtonAnimation - deltaTime * 5);
@@ -1097,6 +1102,7 @@ export default class UI {
     this.showModal = true;
     this.modalAnimation = 0;
     this.modalTargetAnimation = 1;
+    this.modalSoundPlayed = false;
   }
 
   hideModal() {
@@ -1173,6 +1179,10 @@ export default class UI {
   }
 
   renderCompletionContent(ctx, x, y, width, height, isMobile) {
+    if (!this.modalSoundPlayed && this.soundManager) {
+      this.soundManager.playComplete();
+      this.modalSoundPlayed = true;
+    }
     const scheme = this.getScheme();
     const centerX = x + width / 2;
     

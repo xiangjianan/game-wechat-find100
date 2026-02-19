@@ -116,6 +116,7 @@ export default class FindGameMain {
     this.achievementManager.setCoinManager(this.coinManager);
     this.eggManager.setCoinManager(this.coinManager);
     this.eggManager.setAchievementManager(this.achievementManager);
+    this.ui.setSoundManager(this.soundManager);
 
     this.loadGameProgress();
 
@@ -908,7 +909,7 @@ export default class FindGameMain {
         this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, '金币不足!', '#FF4444');
         return;
       }
-
+      this.soundManager.playClick();
       this.ui.showModalDialog(
         'resetConfirm',
         '⚠ 时光倒流',

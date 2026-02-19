@@ -52,48 +52,48 @@
   "packOptions": {
     "ignore": [
       {
-        "type": "file",
-        "value": "*.md"
+        "value": "*.md",
+        "type": "file"
       },
       {
-        "type": "folder",
-        "value": ".git"
+        "value": ".git",
+        "type": "folder"
       },
       {
-        "type": "file",
-        "value": ".gitignore"
+        "value": ".gitignore",
+        "type": "file"
       },
       {
-        "type": "file",
-        "value": ".eslintrc.js"
+        "value": ".eslintrc.js",
+        "type": "file"
       },
       {
-        "type": "folder",
-        "value": ".trae"
+        "value": ".trae",
+        "type": "folder"
       },
       {
-        "type": "file",
-        "value": "ARCHITECTURE.md"
+        "value": "ARCHITECTURE.md",
+        "type": "file"
       },
       {
-        "type": "file",
-        "value": "ARCHITECTURE_DEFECTS_ANALYSIS.md"
+        "value": "ARCHITECTURE_DEFECTS_ANALYSIS.md",
+        "type": "file"
       },
       {
-        "type": "file",
-        "value": "GAMEPLAY_PROPOSALS.md"
+        "value": "GAMEPLAY_PROPOSALS.md",
+        "type": "file"
       },
       {
-        "type": "file",
-        "value": "README.md"
+        "value": "README.md",
+        "type": "file"
       },
       {
-        "type": "file",
-        "value": "TIMER_FIX_SUMMARY.md"
+        "value": "TIMER_FIX_SUMMARY.md",
+        "type": "file"
       },
       {
-        "type": "file",
-        "value": "TIMER_OPTIMIZATION_REPORT.md"
+        "value": "TIMER_OPTIMIZATION_REPORT.md",
+        "type": "file"
       }
     ],
     "include": []
