@@ -108,4 +108,23 @@ export class AudioGenerator {
       // 静默处理错误
     }
   }
+
+  static generateEggSound() {
+    if (this.isWxEnvironment()) {
+      this.playWxSound('audio/egg.mp3');
+      return;
+    }
+    
+    const audioContext = this.getAudioContext();
+    if (!audioContext || !audioContext.destination) return;
+    
+    try {
+      const notes = [880, 1108.73, 1318.51, 1760];
+      notes.forEach((frequency, index) => {
+        this.createTone(audioContext, frequency, 'sine', 0.3, index * 0.1);
+      });
+    } catch (e) {
+      // 静默处理错误
+    }
+  }
 }

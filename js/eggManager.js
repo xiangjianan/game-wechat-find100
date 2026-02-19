@@ -73,7 +73,14 @@ export default class EggManager {
     this.saveTriggeredEggs();
 
     if (egg.achievementId && this.achievementManager) {
-      this.achievementManager.unlockAchievement(egg.achievementId);
+      this.achievementManager.unlockHiddenAchievement(
+        egg.achievementId,
+        egg.achievementName || egg.name,
+        egg.achievementDescription || egg.description,
+        egg.achievementIcon || '🥚',
+        egg.achievementReward || egg.reward,
+        egg.achievementHidden !== false
+      );
     }
 
     return egg;

@@ -331,7 +331,7 @@ export default class AchievementManager {
     this.pendingNotifications.push(this.achievements.get(id));
 
     if (this.soundManager) {
-      this.soundManager.playComplete();
+      this.soundManager.playEgg();
     }
 
     if (reward && reward.type === 'coins' && this.coinManager) {
