@@ -114,6 +114,7 @@ export default class FindGameMain {
     this.gameManager.setEggManager(this.eggManager);
     this.skillManager.setCoinManager(this.coinManager);
     this.achievementManager.setCoinManager(this.coinManager);
+    this.achievementManager.setSoundManager(this.soundManager);
     this.eggManager.setCoinManager(this.coinManager);
     this.eggManager.setAchievementManager(this.achievementManager);
     this.ui.setSoundManager(this.soundManager);

@@ -5,6 +5,7 @@ export default class AchievementManager {
     this.progress = new Map();
     this.pendingNotifications = [];
     this.coinManager = null;
+    this.soundManager = null;
     this.saveTimeout = null;
     this.pendingSave = false;
     this.initAchievements();
@@ -297,6 +298,10 @@ export default class AchievementManager {
     this.unlockedAchievements.add(id);
     this.pendingNotifications.push(achievement);
 
+    if (this.soundManager) {
+      this.soundManager.playComplete();
+    }
+
     if (achievement.reward && achievement.reward.type === 'coins' && this.coinManager) {
       this.coinManager.addCoins(achievement.reward.amount);
     }
@@ -324,6 +329,10 @@ export default class AchievementManager {
 
     this.unlockedAchievements.add(id);
     this.pendingNotifications.push(this.achievements.get(id));
+
+    if (this.soundManager) {
+      this.soundManager.playComplete();
+    }
 
     if (reward && reward.type === 'coins' && this.coinManager) {
       this.coinManager.addCoins(reward.amount);
@@ -480,6 +489,10 @@ export default class AchievementManager {
 
   setCoinManager(coinManager) {
     this.coinManager = coinManager;
+  }
+
+  setSoundManager(soundManager) {
+    this.soundManager = soundManager;
   }
 
   reset() {
