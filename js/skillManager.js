@@ -124,6 +124,46 @@ export default class SkillManager {
       prerequisite: null,
       icon: '👁'
     });
+
+    // 幸运之星技能
+    this.skills.set('lucky_star_1', {
+      id: 'lucky_star_1',
+      name: '幸运之星 I',
+      category: 'luck',
+      description: '奖励触发概率+5%',
+      effect: { type: 'lucky_bonus', value: 0.05 },
+      maxLevel: 1,
+      currentLevel: 0,
+      cost: 500,
+      prerequisite: null,
+      icon: '⭐'
+    });
+
+    this.skills.set('lucky_star_2', {
+      id: 'lucky_star_2',
+      name: '幸运之星 II',
+      category: 'luck',
+      description: '奖励触发概率+10%',
+      effect: { type: 'lucky_bonus', value: 0.10 },
+      maxLevel: 1,
+      currentLevel: 0,
+      cost: 1000,
+      prerequisite: 'lucky_star_1',
+      icon: '⭐'
+    });
+
+    this.skills.set('lucky_star_3', {
+      id: 'lucky_star_3',
+      name: '幸运之星 III',
+      category: 'luck',
+      description: '奖励触发概率+20%',
+      effect: { type: 'lucky_bonus', value: 0.20 },
+      maxLevel: 1,
+      currentLevel: 0,
+      cost: 2000,
+      prerequisite: 'lucky_star_2',
+      icon: '⭐'
+    });
   }
 
   canUnlock(skillId) {
@@ -170,7 +210,7 @@ export default class SkillManager {
 
   getSkillProgress() {
     const skillsByCategory = new Map();
-    const categories = ['time', 'combo', 'assist'];
+    const categories = ['time', 'combo', 'assist', 'luck'];
 
     for (const category of categories) {
       const categorySkills = this.getSkillsByCategory(category).map(skill => {
@@ -227,6 +267,10 @@ export default class SkillManager {
 
   getComboCoinBonus() {
     return this.getSkillEffect('combo_coin');
+  }
+
+  getLuckyBonus() {
+    return this.getSkillEffect('lucky_bonus');
   }
 
   saveProgress() {

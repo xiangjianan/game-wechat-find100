@@ -10,6 +10,7 @@ import ItemManager from './itemManager';
 import ShopManager from './shopManager';
 import SkillManager from './skillManager';
 import EggManager from './eggManager';
+import RewardManager from './rewardManager';
 import { CacheManager } from './cacheManager';
 import { getColorScheme } from './constants/colors';
 
@@ -96,6 +97,7 @@ export default class FindGameMain {
     this.shopManager = new ShopManager();
     this.skillManager = new SkillManager();
     this.eggManager = new EggManager();
+    this.rewardManager = new RewardManager();
     this.aniId = 0;
 
     this.soundManager.init();
@@ -112,6 +114,8 @@ export default class FindGameMain {
     this.gameManager.setSkillManager(this.skillManager);
     this.gameManager.setCoinManager(this.coinManager);
     this.gameManager.setEggManager(this.eggManager);
+    this.gameManager.setRewardManager(this.rewardManager);
+    this.rewardManager.setSkillManager(this.skillManager);
     this.skillManager.setCoinManager(this.coinManager);
     this.achievementManager.setCoinManager(this.coinManager);
     this.achievementManager.setSoundManager(this.soundManager);
@@ -546,6 +550,11 @@ export default class FindGameMain {
 
     this.gameManager.onEggTriggered = (egg) => {
       this.handleEggTriggered(egg);
+    };
+
+    this.gameManager.onRewardTriggered = (reward) => {
+      this.ui.showRewardNotification(reward);
+      this.soundManager.playClick && this.soundManager.playClick();
     };
 
     this.ui.onUseHint = () => {

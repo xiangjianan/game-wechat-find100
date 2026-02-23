@@ -70,6 +70,10 @@ export default class UI {
     this.achievementNotifications = [];
     this.achievementNotificationDuration = 3000;
     
+    // 奖励通知
+    this.rewardNotifications = [];
+    this.rewardNotificationDuration = 2000;
+    
     this.showAchievements = false;
     this.achievementsData = null;
     this.achievementScrollOffset = 0;
@@ -437,12 +441,97 @@ export default class UI {
     }
   }
 
+  showRewardNotification(reward) {
+    if (!reward) return;
+    
+    this.rewardNotifications.push({
+      reward,
+      startTime: Date.now(),
+      animation: 0,
+      targetAnimation: 1,
+      offsetY: 0
+    });
+  }
+
+  updateRewardNotifications(deltaTime) {
+    const now = Date.now();
+    
+    for (let i = this.rewardNotifications.length - 1; i >= 0; i--) {
+      const notification = this.rewardNotifications[i];
+      const elapsed = now - notification.startTime;
+      
+      // 入场动画
+      if (elapsed < 200) {
+        notification.animation = Math.min(1, notification.animation + deltaTime * 8);
+      } else if (elapsed > this.rewardNotificationDuration - 300) {
+        notification.animation = Math.max(0, notification.animation - deltaTime * 5);
+      }
+      
+      // 向上飘动
+      notification.offsetY -= deltaTime * 50;
+      
+      if (elapsed > this.rewardNotificationDuration) {
+        this.rewardNotifications.splice(i, 1);
+      }
+    }
+  }
+
+  renderRewardNotifications(ctx) {
+    const scheme = this.getScheme();
+    const isMobile = this.width < 768;
+    
+    for (const notification of this.rewardNotifications) {
+      if (notification.animation <= 0) continue;
+      
+      const reward = notification.reward;
+      const alpha = notification.animation;
+      
+      const baseY = this.height / 3;
+      const notificationY = baseY + notification.offsetY;
+      
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      
+      // 绘制奖励背景
+      const notificationWidth = isMobile ? 180 : 220;
+      const notificationHeight = isMobile ? 50 : 60;
+      const notificationX = (this.width - notificationWidth) / 2;
+      
+      // 根据奖励类型选择颜色
+      let bgColor = scheme.accent;
+      if (reward.type === 'hint') {
+        bgColor = '#FFD700';
+      } else if (reward.type === 'coin') {
+        bgColor = '#FFA500';
+      } else if (reward.type === 'time') {
+        bgColor = '#00BFFF';
+      }
+      
+      this.drawBrutalismRect(ctx, notificationX, notificationY, notificationWidth, notificationHeight, bgColor, {
+        shadowOffset: 6,
+        borderWidth: 3
+      });
+      
+      // 绘制奖励文字
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = `bold ${isMobile ? 20 : 24}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      const text = `${reward.icon} ${reward.name} +${reward.amount}`;
+      ctx.fillText(text, this.width / 2, notificationY + notificationHeight / 2);
+      
+      ctx.restore();
+    }
+  }
+
   updateEffects(deltaTime) {
     this.updateComboEffects(deltaTime);
     this.updateScrollInertia(deltaTime);
     this.updateHintButtonAnimation(deltaTime);
     this.updateSkillsScrollInertia(deltaTime);
     this.updateEggEffect(deltaTime);
+    this.updateRewardNotifications(deltaTime);
 
     for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
       const ft = this.floatingTexts[i];
@@ -504,6 +593,8 @@ export default class UI {
     if (this.eggTriggered) {
       this.renderEggEffect(ctx);
     }
+
+    this.renderRewardNotifications(ctx);
   }
 
   renderEggEffect(ctx) {

@@ -38,7 +38,10 @@ export default class GameManager {
     this.onHintUsed = null;
     this.itemManager = null;
     this.skillManager = null;
+    this.coinManager = null;
+    this.rewardManager = null;
     this.eagleEyeTimeoutId = null;
+    this.onRewardTriggered = null;
 
     this.setupComboCallbacks();
     this.eggManager.init();
@@ -180,6 +183,19 @@ export default class GameManager {
       } else {
         const timeBonusSkill = this.skillManager ? this.skillManager.getTimeBonusPerClick() : 0;
         this.timeLeft += this.timeBonus + timeBonusSkill;
+      }
+    }
+
+    // 检查奖励触发
+    if (this.rewardManager && this.gameMode === 'timed') {
+      const reward = this.rewardManager.checkReward({
+        itemManager: this.itemManager,
+        coinManager: this.coinManager,
+        gameManager: this
+      });
+      
+      if (reward && this.onRewardTriggered) {
+        this.onRewardTriggered(reward);
       }
     }
 
@@ -412,6 +428,18 @@ export default class GameManager {
 
   setItemManager(itemManager) {
     this.itemManager = itemManager;
+  }
+
+  setCoinManager(coinManager) {
+    this.coinManager = coinManager;
+  }
+
+  setRewardManager(rewardManager) {
+    this.rewardManager = rewardManager;
+  }
+
+  addTime(seconds) {
+    this.timeLeft += seconds;
   }
 
   useHint() {
