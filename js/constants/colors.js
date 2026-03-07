@@ -9,6 +9,7 @@ export const COLOR_SCHEME = {
   text: '#1A1A2E',
   textLight: '#FFFFFF',
   border: '#1A1A2E',
+  borderSubtle: 'rgba(26, 26, 46, 0.25)',
   shadow: '#1A1A2E',
   cardBg: '#FFFFFF',
   buttonPrimary: '#FF6B35',

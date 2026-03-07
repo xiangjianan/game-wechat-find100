@@ -12,7 +12,7 @@ function getCachedScheme() {
       clicked: cachedScheme.buttonSuccess,
       highlighted: cachedScheme.accent,
       error: cachedScheme.danger,
-      border: cachedScheme.border,
+      border: cachedScheme.borderSubtle,
       textClicked: cachedScheme.textLight,
       textDefault: cachedScheme.text
     };
@@ -224,8 +224,8 @@ export default class Polygon {
       ctx.fill();
     }
 
-    ctx.strokeStyle = scheme.border;
-    ctx.lineWidth = this.isHinted ? 4 : 2;
+    ctx.strokeStyle = scheme.borderSubtle;
+    ctx.lineWidth = this.isHinted ? 4 : 1.5;
     ctx.lineCap = 'square';
     ctx.lineJoin = 'miter';
     ctx.stroke();
