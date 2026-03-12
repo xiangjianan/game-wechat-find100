@@ -1,10 +1,12 @@
 import Polygon from './polygon';
 import { COLORS } from './constants/colors';
+import { SAFE_AREA } from './render';
 
 export default class LineDividerGenerator {
   constructor(width, height) {
     this.width = width;
     this.height = height;
+    this.safeArea = SAFE_AREA || { top: 0, bottom: 0, left: 0, right: 0 };
     this.colors = COLORS.POLYGON_COLORS;
     this.minArea = 400;
     this.minWidth = 30;
@@ -12,14 +14,17 @@ export default class LineDividerGenerator {
 
   generatePolygons(count, difficulty = 'normal') {
     const isMobile = this.width < 768;
-    const headerHeight = isMobile ? 110 : 130;
-    const footerHeight = isMobile ? 50 : 60;
+    const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
+    const bottomSafeArea = Math.max(this.safeArea.bottom, isMobile ? 34 : 0);
+    const headerHeight = isMobile ? Math.max(100, topSafeArea + 56) : 130;
+    const footerHeight = isMobile ? Math.max(80, bottomSafeArea + 46) : 60;
     
+    const borderPadding = 12;
     const bounds = {
-      x: 0,
-      y: headerHeight,
-      width: this.width,
-      height: this.height - headerHeight - footerHeight
+      x: borderPadding,
+      y: headerHeight + borderPadding,
+      width: this.width - borderPadding * 2,
+      height: this.height - headerHeight - footerHeight - borderPadding * 2
     };
 
     const totalArea = bounds.width * bounds.height;

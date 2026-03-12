@@ -1,4 +1,4 @@
-import { SCREEN_WIDTH, SCREEN_HEIGHT, getContext, getCanvas } from './render';
+import { SCREEN_WIDTH, SCREEN_HEIGHT, getContext, getCanvas, SAFE_AREA } from './render';
 import GameManager from './gameManager';
 import UI from './ui';
 import SoundManager from './soundManager';
@@ -783,11 +783,59 @@ export default class FindGameMain {
     ctx.globalAlpha = 1;
   }
 
+  renderGameAreaBorder(ctx) {
+    if (this.gameManager.gameState !== 'playing' && 
+        this.gameManager.gameState !== 'completed' && 
+        this.gameManager.gameState !== 'failed') {
+      return;
+    }
+
+    const isMobile = SCREEN_WIDTH < 768;
+    const safeArea = SAFE_AREA || { top: 0, bottom: 0, left: 0, right: 0 };
+    const topSafeArea = Math.max(safeArea.top, isMobile ? 44 : 0);
+    const bottomSafeArea = Math.max(safeArea.bottom, isMobile ? 34 : 0);
+    const headerHeight = isMobile ? Math.max(100, topSafeArea + 56) : 130;
+    const footerHeight = isMobile ? Math.max(80, bottomSafeArea + 46) : 60;
+    
+    const borderPadding = 12;
+    const borderX = borderPadding - 4;
+    const borderY = headerHeight + borderPadding - 4;
+    const borderWidth = SCREEN_WIDTH - borderPadding * 2 + 8;
+    const borderHeight = SCREEN_HEIGHT - headerHeight - footerHeight - borderPadding * 2 + 8;
+    const borderRadius = 12;
+    
+    ctx.strokeStyle = 'rgba(26, 26, 46, 0.15)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    this.drawRoundedRect(ctx, borderX, borderY, borderWidth, borderHeight, borderRadius);
+    ctx.stroke();
+    
+    ctx.strokeStyle = 'rgba(26, 26, 46, 0.08)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    this.drawRoundedRect(ctx, borderX + 4, borderY + 4, borderWidth - 8, borderHeight - 8, 10);
+    ctx.stroke();
+  }
+
+  drawRoundedRect(ctx, x, y, width, height, radius) {
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+  }
+
   render(deltaTime = 0.016) {
     this.renderGameBackground(ctx);
 
     if (this.gameManager.gameState === 'playing' || this.gameManager.gameState === 'completed' || this.gameManager.gameState === 'failed') {
       this.gameManager.render(ctx);
+      this.renderGameAreaBorder(ctx);
     }
 
     if (this.rankManager.isRankOpen()) {

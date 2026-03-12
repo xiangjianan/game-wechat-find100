@@ -1,6 +1,7 @@
 let canvas;
 let ctx;
 let devicePixelRatio = 1;
+let safeArea = { top: 0, bottom: 0, left: 0, right: 0 };
 
 if (typeof wx !== 'undefined' && typeof wx.createCanvas === 'function') {
   try {
@@ -24,6 +25,36 @@ const windowInfo = (typeof wx !== 'undefined' && typeof wx.getWindowInfo === 'fu
   : (typeof wx !== 'undefined' && typeof wx.getSystemInfoSync === 'function') 
     ? wx.getSystemInfoSync() 
     : { screenWidth: window.innerWidth, screenHeight: window.innerHeight };
+
+if (typeof wx !== 'undefined' && typeof wx.getWindowInfo === 'function') {
+  const info = wx.getWindowInfo();
+  if (info.safeArea) {
+    safeArea = {
+      top: info.safeArea.top || 0,
+      bottom: info.screenHeight - (info.safeArea.bottom || info.screenHeight),
+      left: info.safeArea.left || 0,
+      right: info.screenWidth - (info.safeArea.right || info.screenWidth)
+    };
+  }
+} else if (typeof wx !== 'undefined' && typeof wx.getSystemInfoSync === 'function') {
+  const info = wx.getSystemInfoSync();
+  if (info.safeArea) {
+    safeArea = {
+      top: info.safeArea.top || 0,
+      bottom: info.screenHeight - (info.safeArea.bottom || info.screenHeight),
+      left: info.safeArea.left || 0,
+      right: info.screenWidth - (info.safeArea.right || info.screenWidth)
+    };
+  }
+} else if (typeof window !== 'undefined') {
+  const style = getComputedStyle(document.documentElement);
+  safeArea = {
+    top: parseInt(style.getPropertyValue('--sat') || '0'),
+    bottom: parseInt(style.getPropertyValue('--sab') || '0'),
+    left: parseInt(style.getPropertyValue('--sal') || '0'),
+    right: parseInt(style.getPropertyValue('--sar') || '0')
+  };
+}
 
 if (typeof window !== 'undefined' && typeof window.devicePixelRatio !== 'undefined') {
   devicePixelRatio = window.devicePixelRatio || 1;
@@ -67,6 +98,7 @@ if (ctx) {
 
 export const SCREEN_WIDTH = logicalWidth;
 export const SCREEN_HEIGHT = logicalHeight;
+export const SAFE_AREA = safeArea;
 export const GAME_WIDTH_PERCENT = 1.0;
 export const GAME_WIDTH = Math.floor(SCREEN_WIDTH * GAME_WIDTH_PERCENT);
 export const GAME_HEIGHT = SCREEN_HEIGHT;
@@ -83,4 +115,8 @@ export function getContext() {
 
 export function getDevicePixelRatio() {
   return devicePixelRatio;
+}
+
+export function getSafeArea() {
+  return safeArea;
 }

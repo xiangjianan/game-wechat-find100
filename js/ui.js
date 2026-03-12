@@ -1,9 +1,11 @@
 import { COLORS, getColorScheme, BRUTALISM_STYLES } from './constants/colors';
+import { SAFE_AREA } from './render';
 
 export default class UI {
   constructor(width, height) {
     this.width = width;
     this.height = height;
+    this.safeArea = SAFE_AREA || { top: 0, bottom: 0, left: 0, right: 0 };
     this.buttons = [];
     this.showInstructions = false;
     this.showCompletion = false;
@@ -1724,10 +1726,10 @@ export default class UI {
 
   renderGameUI(ctx, gameState, currentNumber, totalNumbers, timeLeft) {
     const isMobile = this.width < 768;
-    const headerHeight = isMobile ? 100 : 120;
-    const topSafeArea = isMobile ? 44 : 0;
-    const footerHeight = isMobile ? 50 : 60;
-    const bottomSafeArea = isMobile ? 34 : 0;
+    const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
+    const bottomSafeArea = Math.max(this.safeArea.bottom, isMobile ? 34 : 0);
+    const headerHeight = isMobile ? Math.max(100, topSafeArea + 56) : 120;
+    const footerHeight = isMobile ? Math.max(80, bottomSafeArea + 46) : 60;
     
     this.renderHeader(ctx, headerHeight, topSafeArea, isMobile, timeLeft, currentNumber, totalNumbers);
     
