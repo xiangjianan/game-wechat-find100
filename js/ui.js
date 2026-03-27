@@ -1813,6 +1813,16 @@ export default class UI {
     ctx.restore();
 
     this.renderCoinsDisplay(ctx);
+
+    const badgeY = this.height - (isMobile ? 30 : 40);
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, this.menuAnimation * 2) * 0.3;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `${isMobile ? 10 : 11}px Arial, sans-serif`;
+    ctx.fillStyle = scheme.textSecondary;
+    ctx.fillText('Designed by xiangjianan · 100% AI Developed', this.width / 2, badgeY);
+    ctx.restore();
   }
 
   renderModernBackground(ctx) {
