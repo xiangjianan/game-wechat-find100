@@ -2178,10 +2178,13 @@ export default class UI {
     ctx.fillText(instructions.common.text, this.width / 2, commonY);
 
     const modeY = commonY + (isMobile ? 60 : 80);
-    const modeWidth = (this.width - modalX * 2 - (isMobile ? 20 : 40)) / 2;
+    const modeGap = isMobile ? 12 : 16;
+    const modePadding = isMobile ? 16 : 24;
+    const modalWidth = isMobile ? Math.min(360, this.width - 40) : 480;
+    const modeWidth = (modalWidth - modePadding * 2 - modeGap) / 2;
     const modeHeight = isMobile ? 80 : 100;
-    const leftModeX = modalX + (isMobile ? 10 : 20);
-    const rightModeX = leftModeX + modeWidth + (isMobile ? 20 : 40);
+    const leftModeX = modalX + modePadding;
+    const rightModeX = leftModeX + modeWidth + modeGap;
 
     const modes = [
       { key: 'timed', x: leftModeX },
