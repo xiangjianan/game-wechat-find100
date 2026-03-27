@@ -185,7 +185,7 @@ export default class Polygon {
     const transformX = center.x + this.shakeOffset.x;
     const transformY = center.y + this.shakeOffset.y;
     
-    // 使用局部变换而非save/restore
+    ctx.save();
     ctx.translate(transformX, transformY);
     ctx.scale(this.scale, this.scale);
     ctx.translate(-center.x, -center.y);
@@ -224,6 +224,9 @@ export default class Polygon {
       ctx.fill();
     }
 
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0)';
+
     ctx.strokeStyle = scheme.borderSubtle;
     ctx.lineWidth = this.isHinted ? 4 : 1.5;
     ctx.lineCap = 'square';
@@ -235,17 +238,8 @@ export default class Polygon {
       ctx.lineWidth = 3;
       ctx.stroke();
     }
-
-    // 重置变换
-    ctx.translate(center.x, center.y);
-    ctx.scale(1 / this.scale, 1 / this.scale);
-    ctx.translate(-transformX, -transformY);
     
-    // 清除阴影
-    if (this.isHinted) {
-      ctx.shadowBlur = 0;
-      ctx.shadowColor = 'transparent';
-    }
+    ctx.restore();
   }
 
   interpolateColor(color1, color2, factor) {
