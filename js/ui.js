@@ -132,6 +132,8 @@ export default class UI {
     this.shopLastScrollDelta = 0;
     this.shopLastScrollTime = 0;
     this.shopProducts = null;
+
+    this.shimmerTime = 0;
   }
 
   getScheme() {
@@ -197,6 +199,7 @@ export default class UI {
 
   drawPrimaryButton(ctx, button, isHovered, isClicked, alpha = 1) {
     const isMobile = this.width < 768;
+    const isStartButton = button.id === 'start';
 
     let scale = 1;
     if (isClicked) scale = 0.97;
@@ -213,14 +216,19 @@ export default class UI {
     ctx.save();
     ctx.globalAlpha = alpha;
 
-    // 阴影
-    ctx.shadowColor = isHovered
-      ? (button.glowColor || 'rgba(26, 26, 46, 0.2)')
-      : 'rgba(0, 0, 0, 0.08)';
-    ctx.shadowBlur = isHovered ? 20 : 10;
-    ctx.shadowOffsetY = isHovered ? 4 : 3;
+    if (isStartButton) {
+      ctx.shadowColor = isHovered ? 'rgba(99, 102, 241, 0.35)' : 'rgba(26, 26, 46, 0.25)';
+      ctx.shadowBlur = isHovered ? 28 : 16;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = isHovered ? 6 : 4;
+    } else {
+      ctx.shadowColor = isHovered
+        ? (button.glowColor || 'rgba(26, 26, 46, 0.2)')
+        : 'rgba(0, 0, 0, 0.08)';
+      ctx.shadowBlur = isHovered ? 20 : 10;
+      ctx.shadowOffsetY = isHovered ? 4 : 3;
+    }
 
-    // 深色渐变背景
     const gradient = ctx.createLinearGradient(scaledX, scaledY, scaledX + scaledWidth, scaledY + scaledHeight);
     gradient.addColorStop(0, button.color || '#1A1A2E');
     gradient.addColorStop(1, button.colorEnd || '#16213E');
@@ -230,29 +238,105 @@ export default class UI {
 
     ctx.shadowBlur = 0;
     ctx.shadowOffsetY = 0;
+    ctx.shadowOffsetX = 0;
     ctx.shadowColor = 'transparent';
 
-    // 顶部高光
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-    this.roundRect(ctx, scaledX + 2, scaledY + 2, scaledWidth - 4, scaledHeight * 0.4, [radius - 2, radius - 2, 0, 0]);
-    ctx.fill();
+    if (isStartButton) {
+      ctx.save();
+      this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
+      ctx.clip();
 
-    // 文字
+      const bodyGrad = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight);
+      bodyGrad.addColorStop(0, 'rgba(255, 255, 255, 0.18)');
+      bodyGrad.addColorStop(0.35, 'rgba(255, 255, 255, 0.06)');
+      bodyGrad.addColorStop(0.65, 'rgba(0, 0, 0, 0.0)');
+      bodyGrad.addColorStop(1, 'rgba(0, 0, 0, 0.12)');
+      ctx.fillStyle = bodyGrad;
+      ctx.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
+
+      const topHighlight = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.35);
+      topHighlight.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
+      topHighlight.addColorStop(0.6, 'rgba(255, 255, 255, 0.12)');
+      topHighlight.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = topHighlight;
+      ctx.fillRect(scaledX + 2, scaledY + 1, scaledWidth - 4, scaledHeight * 0.38);
+
+      const innerBorderGrad = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight);
+      innerBorderGrad.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
+      innerBorderGrad.addColorStop(0.15, 'rgba(255, 255, 255, 0.08)');
+      innerBorderGrad.addColorStop(0.85, 'rgba(0, 0, 0, 0.0)');
+      innerBorderGrad.addColorStop(1, 'rgba(0, 0, 0, 0.15)');
+      ctx.strokeStyle = innerBorderGrad;
+      ctx.lineWidth = 1.5;
+      this.roundRect(ctx, scaledX + 1, scaledY + 1, scaledWidth - 2, scaledHeight - 2, radius - 1);
+      ctx.stroke();
+
+      const shimmerPeriod = 3.0;
+      const shimmerProgress = (this.shimmerTime % shimmerPeriod) / shimmerPeriod;
+      const shimmerX = scaledX - scaledWidth * 0.4 + shimmerProgress * scaledWidth * 1.8;
+      const shimmerWidth = scaledWidth * 0.3;
+      const shimmerGrad = ctx.createLinearGradient(
+        shimmerX - shimmerWidth / 2, scaledY,
+        shimmerX + shimmerWidth / 2, scaledY
+      );
+      shimmerGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+      shimmerGrad.addColorStop(0.3, 'rgba(255, 255, 255, 0.08)');
+      shimmerGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.18)');
+      shimmerGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.08)');
+      shimmerGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = shimmerGrad;
+      ctx.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
+
+      const specGrad = ctx.createRadialGradient(
+        centerX - scaledWidth * 0.15, scaledY + scaledHeight * 0.2, 0,
+        centerX - scaledWidth * 0.15, scaledY + scaledHeight * 0.2, scaledWidth * 0.35
+      );
+      specGrad.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
+      specGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.04)');
+      specGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = specGrad;
+      ctx.fillRect(scaledX, scaledY, scaledWidth, scaledHeight * 0.6);
+
+      ctx.restore();
+    } else {
+      const shineGradient = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.5);
+      shineGradient.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
+      shineGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.05)');
+      shineGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = shineGradient;
+      this.roundRect(ctx, scaledX + 1, scaledY + 1, scaledWidth - 2, scaledHeight * 0.55, [radius - 1, radius - 1, 0, 0]);
+      ctx.fill();
+
+      const bottomShine = ctx.createLinearGradient(scaledX, scaledY + scaledHeight * 0.7, scaledX, scaledY + scaledHeight);
+      bottomShine.addColorStop(0, 'rgba(255, 255, 255, 0)');
+      bottomShine.addColorStop(1, 'rgba(255, 255, 255, 0.06)');
+      ctx.fillStyle = bottomShine;
+      this.roundRect(ctx, scaledX + 1, scaledY + scaledHeight * 0.7, scaledWidth - 2, scaledHeight * 0.3 - 1, [0, 0, radius - 1, radius - 1]);
+      ctx.fill();
+    }
+
     ctx.fillStyle = '#FFFFFF';
     ctx.font = `600 ${isMobile ? 16 : 18}px Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    // 如果有播放图标
     if (button.icon === 'play') {
       const textWidth = ctx.measureText(button.text).width;
-      const totalWidth = textWidth + 24 + 8; // 文字 + 图标 + 间距
       const textX = centerX - 12;
       const iconX = centerX + textWidth / 2 + 8;
 
+      if (isStartButton) {
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetY = 1;
+      }
+
       ctx.fillText(button.text, textX, centerY);
 
-      // 绘制播放三角形
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.shadowColor = 'transparent';
+
       ctx.beginPath();
       ctx.moveTo(iconX, centerY - 6);
       ctx.lineTo(iconX + 10, centerY);
@@ -296,6 +380,15 @@ export default class UI {
     ctx.shadowBlur = 0;
     ctx.shadowOffsetY = 0;
     ctx.shadowColor = 'transparent';
+
+    // 光泽效果 - 顶部高光
+    const cardShine = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.4);
+    cardShine.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+    cardShine.addColorStop(0.4, 'rgba(255, 255, 255, 0.3)');
+    cardShine.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = cardShine;
+    this.roundRect(ctx, scaledX + 1, scaledY + 1, scaledWidth - 2, scaledHeight * 0.45, [radius - 1, radius - 1, 0, 0]);
+    ctx.fill();
 
     // 边框
     ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
@@ -639,6 +732,7 @@ export default class UI {
   }
 
   updateEffects(deltaTime) {
+    this.shimmerTime += deltaTime;
     this.updateComboEffects(deltaTime);
     this.updateScrollInertia(deltaTime);
     this.updateHintButtonAnimation(deltaTime);
@@ -1723,11 +1817,31 @@ export default class UI {
     this.renderModernTitle(ctx, this.width / 2, titleY, titleSize);
 
     const sloganY = titleY + (isMobile ? 80 : 100);
-    ctx.font = `${subtitleSize}px Arial, sans-serif`;
-    ctx.fillStyle = scheme.textSecondary;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('找回消失的专注，从找到第一个 1 开始', this.width / 2, sloganY);
+
+    const sloganBefore = '找回消失的专注，从找到第一个 ';
+    const sloganHighlight = '1';
+    const sloganAfter = ' 开始';
+
+    ctx.font = `${subtitleSize}px Arial, sans-serif`;
+    ctx.fillStyle = scheme.textSecondary;
+    const wBefore = ctx.measureText(sloganBefore).width;
+    const wHighlight = ctx.measureText(sloganHighlight).width;
+    const wAfter = ctx.measureText(sloganAfter).width;
+    const totalW = wBefore + wHighlight + wAfter;
+    const sloganStartX = this.width / 2 - totalW / 2;
+
+    ctx.textAlign = 'left';
+    ctx.fillText(sloganBefore, sloganStartX, sloganY);
+
+    ctx.fillStyle = '#EF4444';
+    ctx.font = `bold ${subtitleSize}px Arial, sans-serif`;
+    ctx.fillText(sloganHighlight, sloganStartX + wBefore, sloganY);
+
+    ctx.fillStyle = scheme.textSecondary;
+    ctx.font = `${subtitleSize}px Arial, sans-serif`;
+    ctx.fillText(sloganAfter, sloganStartX + wBefore + wHighlight, sloganY);
 
     ctx.restore();
 
@@ -2776,7 +2890,6 @@ export default class UI {
   }
 
   renderCoinsDisplay(ctx) {
-    const scheme = this.getScheme();
     const isMobile = this.width < 768;
 
     const boxWidth = isMobile ? 100 : 120;
@@ -2786,28 +2899,42 @@ export default class UI {
     const radius = boxHeight / 2;
 
     ctx.save();
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.06)';
-    ctx.shadowBlur = 8;
-    ctx.shadowOffsetY = 2;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetY = 3;
     ctx.fillStyle = '#FFFFFF';
     this.roundRect(ctx, boxX, boxY, boxWidth, boxHeight, radius);
     ctx.fill();
     ctx.restore();
 
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.12)';
     ctx.lineWidth = 1;
     this.roundRect(ctx, boxX, boxY, boxWidth, boxHeight, radius);
     ctx.stroke();
 
-    ctx.fillStyle = '#F59E0B';
-    ctx.font = `bold ${isMobile ? 14 : 16}px Arial, sans-serif`;
-    ctx.textAlign = 'left';
+    const coinSize = isMobile ? 24 : 28;
+    const coinX = boxX + (isMobile ? 10 : 12);
+    const coinY = boxY + (boxHeight - coinSize) / 2;
+
+    ctx.save();
+    ctx.shadowColor = 'rgba(245, 158, 11, 0.3)';
+    ctx.shadowBlur = 6;
+    ctx.fillStyle = '#FACC15';
+    ctx.beginPath();
+    ctx.arc(coinX + coinSize / 2, coinY + coinSize / 2, coinSize / 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.fillStyle = '#1F2937';
+    ctx.font = `bold ${isMobile ? 13 : 15}px Arial, sans-serif`;
+    ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('\u25CF', boxX + (isMobile ? 12 : 14), boxY + boxHeight / 2);
+    ctx.fillText('¥', coinX + coinSize / 2, coinY + coinSize / 2 + 1);
 
     ctx.fillStyle = '#0F172A';
-    ctx.font = `600 ${isMobile ? 14 : 16}px Arial, sans-serif`;
+    ctx.font = `600 ${isMobile ? 15 : 17}px Arial, sans-serif`;
     ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
     ctx.fillText(`${this.coins}`, boxX + boxWidth - (isMobile ? 12 : 14), boxY + boxHeight / 2);
   }
 
