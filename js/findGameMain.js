@@ -756,31 +756,12 @@ export default class FindGameMain {
   }
 
   renderGameBackground(ctx) {
-    const scheme = getColorScheme();
-    
-    ctx.fillStyle = scheme.background;
+    const gradient = ctx.createLinearGradient(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    gradient.addColorStop(0, '#F8FAFC');
+    gradient.addColorStop(0.5, '#EFF6FF');
+    gradient.addColorStop(1, '#F5F3FF');
+    ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    
-    ctx.strokeStyle = scheme.border;
-    ctx.lineWidth = 1;
-    ctx.globalAlpha = 0.03;
-    const gridSize = 50;
-    
-    for (let x = 0; x < SCREEN_WIDTH; x += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, SCREEN_HEIGHT);
-      ctx.stroke();
-    }
-    
-    for (let y = 0; y < SCREEN_HEIGHT; y += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(SCREEN_WIDTH, y);
-      ctx.stroke();
-    }
-    
-    ctx.globalAlpha = 1;
   }
 
   renderGameAreaBorder(ctx) {
@@ -804,13 +785,13 @@ export default class FindGameMain {
     const borderHeight = SCREEN_HEIGHT - headerHeight - footerHeight - borderPadding * 2 + 8;
     const borderRadius = 12;
     
-    ctx.strokeStyle = 'rgba(26, 26, 46, 0.15)';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.2)';
+    ctx.lineWidth = 1;
     ctx.beginPath();
     this.drawRoundedRect(ctx, borderX, borderY, borderWidth, borderHeight, borderRadius);
     ctx.stroke();
-    
-    ctx.strokeStyle = 'rgba(26, 26, 46, 0.08)';
+
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.1)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     this.drawRoundedRect(ctx, borderX + 4, borderY + 4, borderWidth - 8, borderHeight - 8, 10);

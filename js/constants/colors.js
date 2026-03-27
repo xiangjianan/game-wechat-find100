@@ -1,30 +1,45 @@
 export const COLOR_SCHEME = {
-  name: '经典',
-  id: 'classic',
-  background: '#FFF5E1',
-  primary: '#FF6B35',
-  secondary: '#FFD93D',
-  accent: '#6BCB77',
-  danger: '#FF4757',
-  text: '#1A1A2E',
+  name: '清新白色',
+  id: 'clean-white',
+  background: '#F8FAFC',
+  backgroundEnd: '#EFF6FF',
+  primary: '#6366F1',
+  secondary: '#8B5CF6',
+  accent: '#3B82F6',
+  danger: '#EF4444',
+  text: '#0F172A',
+  textSecondary: '#64748B',
   textLight: '#FFFFFF',
-  border: '#1A1A2E',
-  borderSubtle: 'rgba(26, 26, 46, 0.25)',
-  shadow: '#1A1A2E',
-  cardBg: '#FFFFFF',
-  buttonPrimary: '#FF6B35',
-  buttonSecondary: '#4D96FF',
-  buttonSuccess: '#6BCB77',
-  buttonDanger: '#FF4757',
+  border: 'rgba(148, 163, 184, 0.15)',
+  borderActive: 'rgba(99, 102, 241, 0.4)',
+  shadow: 'rgba(0, 0, 0, 0.08)',
+  cardBg: 'rgba(255, 255, 255, 0.85)',
+  cardBgSolid: '#FFFFFF',
+  buttonPrimary: '#6366F1',
+  buttonPrimaryEnd: '#818CF8',
+  buttonSecondary: '#8B5CF6',
+  buttonSuccess: '#10B981',
+  buttonDanger: '#EF4444',
   numberColors: [
-    '#FF6B35', '#4D96FF', '#6BCB77', '#FFD93D', '#FF4757',
-    '#9B59B6', '#00CEC9', '#FD79A8', '#FDCB6E', '#E17055'
+    '#6366F1', '#3B82F6', '#10B981', '#F59E0B', '#EF4444',
+    '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#06B6D4'
   ],
   polygonColors: [
-    '#FFEAA7', '#DFE6E9', '#FFEAA7', '#DFE6E9', '#FFEAA7',
-    '#DFE6E9', '#FFEAA7', '#DFE6E9', '#FFEAA7', '#DFE6E9',
-    '#FFEAA7', '#DFE6E9', '#FFEAA7', '#DFE6E9', '#FFEAA7'
-  ]
+    'rgba(99, 102, 241, 0.06)', 'rgba(59, 130, 246, 0.06)',
+    'rgba(139, 92, 246, 0.06)', 'rgba(16, 185, 129, 0.06)',
+    'rgba(249, 115, 22, 0.06)', 'rgba(99, 102, 241, 0.06)',
+    'rgba(59, 130, 246, 0.06)', 'rgba(139, 92, 246, 0.06)',
+    'rgba(16, 185, 129, 0.06)', 'rgba(249, 115, 22, 0.06)',
+    'rgba(99, 102, 241, 0.06)', 'rgba(59, 130, 246, 0.06)',
+    'rgba(139, 92, 246, 0.06)', 'rgba(16, 185, 129, 0.06)',
+    'rgba(249, 115, 22, 0.06)'
+  ],
+  gradientStart: '#6366F1',
+  gradientEnd: '#3B82F6',
+  glowPrimary: 'rgba(99, 102, 241, 0.2)',
+  glowAccent: 'rgba(59, 130, 246, 0.15)',
+  glassBg: 'rgba(255, 255, 255, 0.7)',
+  glassBorder: 'rgba(148, 163, 184, 0.12)'
 };
 
 export function getColorScheme() {
@@ -35,7 +50,7 @@ export const COLORS = {
   get NUMBER_COLORS() {
     return COLOR_SCHEME.numberColors;
   },
-  
+
   get STATE_COLORS() {
     return {
       default: COLOR_SCHEME.cardBg,
@@ -47,20 +62,20 @@ export const COLORS = {
       textDefault: COLOR_SCHEME.text
     };
   },
-  
+
   get POLYGON_COLORS() {
     return COLOR_SCHEME.polygonColors;
   },
-  
+
   get SCHEME() {
     return COLOR_SCHEME;
   }
 };
 
 export const BRUTALISM_STYLES = {
-  borderWidth: 4,
-  shadowOffset: 6,
-  borderRadius: 0,
+  borderWidth: 0,
+  shadowOffset: 0,
+  borderRadius: 16,
   fontSize: {
     title: 48,
     subtitle: 24,
@@ -68,9 +83,9 @@ export const BRUTALISM_STYLES = {
     body: 16
   },
   fontWeight: {
-    title: '900',
-    subtitle: '800',
-    button: '700',
-    body: '600'
+    title: '800',
+    subtitle: '700',
+    button: '600',
+    body: '400'
   }
 };

@@ -163,149 +163,260 @@ export default class UI {
 
   drawBrutalismRect(ctx, x, y, width, height, fillColor, options = {}) {
     const scheme = this.getScheme();
-    const borderWidth = options.borderWidth !== undefined ? options.borderWidth : BRUTALISM_STYLES.borderWidth;
-    const shadowOffset = options.shadowOffset !== undefined ? options.shadowOffset : BRUTALISM_STYLES.shadowOffset;
-    const borderColor = options.borderColor || scheme.border;
-    const shadowColor = options.shadowColor || scheme.shadow;
-    const radius = options.radius !== undefined ? options.radius : 0;
-    
-    if (shadowOffset > 0) {
-      ctx.fillStyle = shadowColor;
-      this.roundRect(ctx, x + shadowOffset, y + shadowOffset, width, height, radius);
-      ctx.fill();
+    const radius = options.radius !== undefined ? options.radius : 12;
+
+    if (options.shadowOffset > 0) {
+      ctx.shadowColor = scheme.shadow;
+      ctx.shadowBlur = options.shadowOffset * 2;
+      ctx.shadowOffsetY = options.shadowOffset;
     }
-    
+
     ctx.fillStyle = fillColor;
     this.roundRect(ctx, x, y, width, height, radius);
     ctx.fill();
-    
-    if (borderWidth > 0) {
-      ctx.strokeStyle = borderColor;
-      ctx.lineWidth = borderWidth;
+
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.shadowColor = 'transparent';
+
+    if (options.borderWidth > 0) {
+      ctx.strokeStyle = scheme.glassBorder;
+      ctx.lineWidth = options.borderWidth;
       this.roundRect(ctx, x, y, width, height, radius);
       ctx.stroke();
     }
   }
 
   drawBrutalismButton(ctx, button, isHovered, isClicked, alpha = 1) {
-    const scheme = this.getScheme();
+    if (button.type === 'card') {
+      this.drawCardButton(ctx, button, isHovered, isClicked, alpha);
+    } else {
+      this.drawPrimaryButton(ctx, button, isHovered, isClicked, alpha);
+    }
+  }
+
+  drawPrimaryButton(ctx, button, isHovered, isClicked, alpha = 1) {
     const isMobile = this.width < 768;
-    
+
     let scale = 1;
-    if (isClicked) scale = 0.95;
-    else if (isHovered) scale = 1.02;
-    
+    if (isClicked) scale = 0.97;
+    else if (isHovered) scale = 1.01;
+
     const centerX = button.x + button.width / 2;
     const centerY = button.y + button.height / 2;
     const scaledWidth = button.width * scale;
     const scaledHeight = button.height * scale;
     const scaledX = centerX - scaledWidth / 2;
     const scaledY = centerY - scaledHeight / 2;
-    
-    let fillColor = button.color || scheme.buttonPrimary;
-    if (isHovered && button.hoverColor) {
-      fillColor = button.hoverColor;
-    }
-    
+    const radius = 16;
+
     ctx.save();
     ctx.globalAlpha = alpha;
-    
-    const shadowOffset = isClicked ? 2 : (isHovered ? 8 : 6);
-    this.drawBrutalismRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, fillColor, {
-      shadowOffset: shadowOffset,
-      borderWidth: 4
-    });
-    
-    ctx.fillStyle = scheme.textLight;
-    ctx.font = `bold ${isMobile ? 18 : 22}px "Arial Black", "Helvetica Neue", Arial, sans-serif`;
+
+    // 阴影
+    ctx.shadowColor = isHovered
+      ? (button.glowColor || 'rgba(26, 26, 46, 0.2)')
+      : 'rgba(0, 0, 0, 0.08)';
+    ctx.shadowBlur = isHovered ? 20 : 10;
+    ctx.shadowOffsetY = isHovered ? 4 : 3;
+
+    // 深色渐变背景
+    const gradient = ctx.createLinearGradient(scaledX, scaledY, scaledX + scaledWidth, scaledY + scaledHeight);
+    gradient.addColorStop(0, button.color || '#1A1A2E');
+    gradient.addColorStop(1, button.colorEnd || '#16213E');
+    ctx.fillStyle = gradient;
+    this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.shadowColor = 'transparent';
+
+    // 顶部高光
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+    this.roundRect(ctx, scaledX + 2, scaledY + 2, scaledWidth - 4, scaledHeight * 0.4, [radius - 2, radius - 2, 0, 0]);
+    ctx.fill();
+
+    // 文字
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = `600 ${isMobile ? 16 : 18}px Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(button.text, centerX, centerY);
-    
+
+    // 如果有播放图标
+    if (button.icon === 'play') {
+      const textWidth = ctx.measureText(button.text).width;
+      const totalWidth = textWidth + 24 + 8; // 文字 + 图标 + 间距
+      const textX = centerX - 12;
+      const iconX = centerX + textWidth / 2 + 8;
+
+      ctx.fillText(button.text, textX, centerY);
+
+      // 绘制播放三角形
+      ctx.beginPath();
+      ctx.moveTo(iconX, centerY - 6);
+      ctx.lineTo(iconX + 10, centerY);
+      ctx.lineTo(iconX, centerY + 6);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.fill();
+    } else {
+      ctx.fillText(button.text, centerX, centerY);
+    }
+
     ctx.restore();
+  }
+
+  drawCardButton(ctx, button, isHovered, isClicked, alpha = 1) {
+    const isMobile = this.width < 768;
+
+    let scale = 1;
+    if (isClicked) scale = 0.97;
+    else if (isHovered) scale = 1.02;
+
+    const scaledWidth = button.width * scale;
+    const scaledHeight = button.height * scale;
+    const scaledX = button.x + (button.width - scaledWidth) / 2;
+    const scaledY = button.y + (button.height - scaledHeight) / 2;
+    const radius = 16;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    // 卡片阴影
+    ctx.shadowColor = isHovered ? 'rgba(0, 0, 0, 0.1)' : 'rgba(0, 0, 0, 0.05)';
+    ctx.shadowBlur = isHovered ? 16 : 8;
+    ctx.shadowOffsetY = isHovered ? 4 : 2;
+
+    // 白色卡片背景
+    ctx.fillStyle = '#FFFFFF';
+    this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.shadowColor = 'transparent';
+
+    // 边框
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
+    ctx.lineWidth = 1;
+    this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
+    ctx.stroke();
+
+    // 图标背景
+    const iconSize = isMobile ? 36 : 44;
+    const iconX = scaledX + (isMobile ? 14 : 18);
+    const iconY = scaledY + (isMobile ? 14 : 18);
+
+    ctx.fillStyle = button.iconBg || '#F3F4F6';
+    this.roundRect(ctx, iconX, iconY, iconSize, iconSize, 10);
+    ctx.fill();
+
+    // 绘制图标
+    ctx.fillStyle = button.iconColor || '#6366F1';
+    ctx.font = `bold ${isMobile ? 18 : 22}px Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    const iconCenterX = iconX + iconSize / 2;
+    const iconCenterY = iconY + iconSize / 2;
+
+    if (button.icon === 'book') {
+      ctx.fillText('\u25A1', iconCenterX, iconCenterY);
+    } else if (button.icon === 'cart') {
+      ctx.fillText('\u2630', iconCenterX, iconCenterY);
+    } else if (button.icon === 'lightning') {
+      ctx.fillText('\u26A1', iconCenterX, iconCenterY);
+    } else if (button.icon === 'trophy') {
+      ctx.fillText('\u263C', iconCenterX, iconCenterY);
+    }
+
+    // 标题文字
+    ctx.fillStyle = '#0F172A';
+    ctx.font = `600 ${isMobile ? 15 : 17}px Arial, sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(button.text, iconX, iconY + iconSize + (isMobile ? 16 : 20));
+
+    // 副标题
+    if (button.subtitle) {
+      ctx.fillStyle = '#64748B';
+      ctx.font = `${isMobile ? 11 : 13}px Arial, sans-serif`;
+      ctx.fillText(button.subtitle, iconX, iconY + iconSize + (isMobile ? 32 : 38));
+    }
+
+    ctx.restore();
+  }
+
+  darkenColor(color, amount) {
+    const hex = color.replace('#', '');
+    const r = Math.max(0, parseInt(hex.substr(0, 2), 16) - Math.floor(255 * amount));
+    const g = Math.max(0, parseInt(hex.substr(2, 2), 16) - Math.floor(255 * amount));
+    const b = Math.max(0, parseInt(hex.substr(4, 2), 16) - Math.floor(255 * amount));
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
   }
 
   drawModeSwitcher(ctx, x, y, width, height) {
     const scheme = this.getScheme();
     const isMobile = this.width < 768;
-    
+
     this.modeSwitcher.x = x;
     this.modeSwitcher.y = y;
     this.modeSwitcher.width = width;
     this.modeSwitcher.height = height;
-    
+
     const segmentWidth = width / 2;
-    const borderWidth = 4;
-    const shadowOffset = 6;
-    
-    ctx.fillStyle = scheme.shadow;
-    this.roundRect(ctx, x + shadowOffset, y + shadowOffset, width, height, 0);
+    const radius = height / 2;
+
+    ctx.save();
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.06)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetY = 2;
+    ctx.fillStyle = '#FFFFFF';
+    this.roundRect(ctx, x, y, width, height, radius);
     ctx.fill();
-    
-    ctx.fillStyle = scheme.cardBg;
-    ctx.fillRect(x, y, width, height);
-    
-    ctx.strokeStyle = scheme.border;
-    ctx.lineWidth = borderWidth;
-    ctx.strokeRect(x, y, width, height);
-    
+    ctx.restore();
+
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.2)';
+    ctx.lineWidth = 1;
+    this.roundRect(ctx, x, y, width, height, radius);
+    ctx.stroke();
+
     const isTimedActive = this.gameMode === 'timed';
     const isTimedClicked = this.modeSwitcher.clickedSegment === 'timed';
     const isUntimedClicked = this.modeSwitcher.clickedSegment === 'untimed';
-    
-    if (isTimedActive) {
-      let offsetX = 0;
-      let offsetY = 0;
-      if (isTimedClicked) {
-        offsetX = 2;
-        offsetY = 2;
-      }
-      
-      ctx.fillStyle = scheme.shadow;
-      ctx.fillRect(x + borderWidth + offsetX + 2, y + borderWidth + offsetY + 2, segmentWidth - borderWidth * 2, height - borderWidth * 2);
-      
-      ctx.fillStyle = scheme.buttonPrimary;
-      ctx.fillRect(x + borderWidth + offsetX, y + borderWidth + offsetY, segmentWidth - borderWidth * 2, height - borderWidth * 2);
-    } else {
-      let offsetX = 0;
-      let offsetY = 0;
-      if (isUntimedClicked) {
-        offsetX = 2;
-        offsetY = 2;
-      }
-      
-      ctx.fillStyle = scheme.shadow;
-      ctx.fillRect(x + segmentWidth + borderWidth + offsetX + 2, y + borderWidth + offsetY + 2, segmentWidth - borderWidth * 2, height - borderWidth * 2);
-      
-      ctx.fillStyle = scheme.accent;
-      ctx.fillRect(x + segmentWidth + borderWidth + offsetX, y + borderWidth + offsetY, segmentWidth - borderWidth * 2, height - borderWidth * 2);
+
+    const activeX = isTimedActive ? x : x + segmentWidth;
+    let offsetX = 0;
+    let offsetY = 0;
+    if ((isTimedActive && isTimedClicked) || (!isTimedActive && isUntimedClicked)) {
+      offsetX = 1;
+      offsetY = 1;
     }
-    
-    ctx.strokeStyle = scheme.border;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(x + segmentWidth, y);
-    ctx.lineTo(x + segmentWidth, y + height);
-    ctx.stroke();
-    
-    const fontSize = isMobile ? 16 : 18;
-    ctx.font = `bold ${fontSize}px "Arial Black", Arial, sans-serif`;
+
+    ctx.save();
+    ctx.shadowColor = 'rgba(99, 102, 241, 0.2)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 2;
+
+    const activeGradient = ctx.createLinearGradient(activeX, y, activeX + segmentWidth, y + height);
+    activeGradient.addColorStop(0, '#6366F1');
+    activeGradient.addColorStop(1, '#3B82F6');
+    ctx.fillStyle = activeGradient;
+    this.roundRect(ctx, activeX + 3 + offsetX, y + 3 + offsetY, segmentWidth - 6, height - 6, radius - 3);
+    ctx.fill();
+    ctx.restore();
+
+    const fontSize = isMobile ? 13 : 15;
+    ctx.font = `600 ${fontSize}px Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    
-    if (isTimedActive) {
-      ctx.fillStyle = scheme.textLight;
-    } else {
-      ctx.fillStyle = scheme.text;
-    }
-    ctx.fillText(`限时模式`, x + segmentWidth / 2, y + height / 2);
-    
-    if (!isTimedActive) {
-      ctx.fillStyle = scheme.textLight;
-    } else {
-      ctx.fillStyle = scheme.text;
-    }
-    ctx.fillText(`自由模式`, x + segmentWidth + segmentWidth / 2, y + height / 2);
+
+    ctx.fillStyle = isTimedActive ? '#FFFFFF' : '#64748B';
+    ctx.fillText('限时模式', x + segmentWidth / 2, y + height / 2);
+
+    ctx.fillStyle = !isTimedActive ? '#FFFFFF' : '#64748B';
+    ctx.fillText('自由模式', x + segmentWidth + segmentWidth / 2, y + height / 2);
   }
 
   isPointInModeSwitcher(x, y) {
@@ -663,69 +774,103 @@ export default class UI {
     this.showAchievements = false;
     this.showShop = false;
     this.showSkills = false;
-    
+
+    this.buttons = this._buildMenuButtons();
+  }
+
+  _buildMenuButtons() {
     const isMobile = this.width < 768;
-    const buttonWidth = isMobile ? 240 : 280;
-    const buttonHeight = isMobile ? 60 : 70;
-    const buttonSpacing = isMobile ? 20 : 24;
-    const centerX = this.width / 2;
-    const startY = this.height * 0.48;
-    
-    this.buttons = [
+    const margin = isMobile ? 20 : 40;
+    const startY = this.height * 0.44;
+
+    // 开始游戏按钮 - 全宽大按钮
+    const startButtonWidth = this.width - margin * 2;
+    const startButtonHeight = isMobile ? 56 : 64;
+
+    // 功能卡片网格 - 2x2布局
+    const cardGap = isMobile ? 12 : 16;
+    const cardWidth = (this.width - margin * 2 - cardGap) / 2;
+    const cardHeight = isMobile ? 100 : 120;
+
+    const buttons = [
+      // 开始游戏 - 全宽大按钮
       {
         id: 'start',
         text: '开始游戏',
-        x: centerX - buttonWidth / 2,
+        type: 'primary',
+        x: margin,
         y: startY,
-        width: buttonWidth,
-        height: buttonHeight,
-        color: this.getScheme().accent,
+        width: startButtonWidth,
+        height: startButtonHeight,
+        color: '#1A1A2E',
+        colorEnd: '#16213E',
+        glowColor: 'rgba(26, 26, 46, 0.3)',
+        icon: 'play',
         action: () => this.onStartGame()
       },
+      // 游戏规则 - 卡片
       {
         id: 'instructions',
         text: '游戏规则',
-        x: centerX - buttonWidth / 2,
-        y: startY + buttonHeight + buttonSpacing,
-        width: buttonWidth,
-        height: buttonHeight,
-        color: this.getScheme().buttonPrimary,
+        subtitle: '了解玩法说明',
+        type: 'card',
+        x: margin,
+        y: startY + startButtonHeight + cardGap + 40,
+        width: cardWidth,
+        height: cardHeight,
+        icon: 'book',
+        iconBg: '#FEF3C7',
+        iconColor: '#F59E0B',
         action: () => this.onShowInstructions()
       },
+      // 商店 - 卡片
       {
         id: 'shop',
         text: '商店',
-        x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 2,
-        width: buttonWidth,
-        height: buttonHeight,
-        color: '#FFD700',
-        hoverColor: this.lightenColor('#FFD700', 0.15),
+        subtitle: '道具 & 皮肤',
+        type: 'card',
+        x: margin + cardWidth + cardGap,
+        y: startY + startButtonHeight + cardGap + 40,
+        width: cardWidth,
+        height: cardHeight,
+        icon: 'cart',
+        iconBg: '#DBEAFE',
+        iconColor: '#3B82F6',
         action: () => this.onOpenShop()
       },
+      // 技能 - 卡片
       {
         id: 'skills',
         text: '技能',
-        x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 3,
-        width: buttonWidth,
-        height: buttonHeight,
-        color: '#9C27B0',
-        hoverColor: this.lightenColor('#9C27B0', 0.15),
+        subtitle: '解锁特殊能力',
+        type: 'card',
+        x: margin,
+        y: startY + startButtonHeight + cardGap + 40 + cardHeight + cardGap,
+        width: cardWidth,
+        height: cardHeight,
+        icon: 'lightning',
+        iconBg: '#D1FAE5',
+        iconColor: '#10B981',
         action: () => this.onOpenSkills()
       },
+      // 成就 - 卡片
       {
         id: 'achievements',
         text: '成就',
-        x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 4,
-        width: buttonWidth,
-        height: buttonHeight,
-        color: this.getScheme().buttonSecondary,
-        hoverColor: this.lightenColor(this.getScheme().buttonSecondary, 0.15),
+        subtitle: '查看你的战绩',
+        type: 'card',
+        x: margin + cardWidth + cardGap,
+        y: startY + startButtonHeight + cardGap + 40 + cardHeight + cardGap,
+        width: cardWidth,
+        height: cardHeight,
+        icon: 'trophy',
+        iconBg: '#FCE7F3',
+        iconColor: '#EC4899',
         action: () => this.onOpenAchievements()
       }
     ];
+
+    return buttons;
   }
 
   lightenColor(color, amount) {
@@ -1073,68 +1218,7 @@ export default class UI {
   }
 
   refreshMenuButtons() {
-    const isMobile = this.width < 768;
-    const buttonWidth = isMobile ? 240 : 280;
-    const buttonHeight = isMobile ? 60 : 70;
-    const buttonSpacing = isMobile ? 20 : 24;
-    const centerX = this.width / 2;
-    const startY = this.height * 0.48;
-    
-    this.buttons = [
-      {
-        id: 'start',
-        text: '开始游戏',
-        x: centerX - buttonWidth / 2,
-        y: startY,
-        width: buttonWidth,
-        height: buttonHeight,
-        color: this.getScheme().accent,
-        action: () => this.onStartGame()
-      },
-      {
-        id: 'instructions',
-        text: '游戏规则',
-        x: centerX - buttonWidth / 2,
-        y: startY + buttonHeight + buttonSpacing,
-        width: buttonWidth,
-        height: buttonHeight,
-        color: this.getScheme().buttonPrimary,
-        action: () => this.onShowInstructions()
-      },
-      {
-        id: 'shop',
-        text: '商店',
-        x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 2,
-        width: buttonWidth,
-        height: buttonHeight,
-        color: '#FFD700',
-        hoverColor: this.lightenColor('#FFD700', 0.15),
-        action: () => this.onOpenShop()
-      },
-      {
-        id: 'skills',
-        text: '技能',
-        x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 3,
-        width: buttonWidth,
-        height: buttonHeight,
-        color: '#9C27B0',
-        hoverColor: this.lightenColor('#9C27B0', 0.15),
-        action: () => this.onOpenSkills()
-      },
-      {
-        id: 'achievements',
-        text: '成就',
-        x: centerX - buttonWidth / 2,
-        y: startY + (buttonHeight + buttonSpacing) * 4,
-        width: buttonWidth,
-        height: buttonHeight,
-        color: this.getScheme().buttonSecondary,
-        hoverColor: this.lightenColor(this.getScheme().buttonSecondary, 0.15),
-        action: () => this.onOpenAchievements()
-      }
-    ];
+    this.buttons = this._buildMenuButtons();
   }
 
   onToggleMode() {
@@ -1627,33 +1711,30 @@ export default class UI {
     const scheme = this.getScheme();
     const isMobile = this.width < 768;
 
-    ctx.fillStyle = scheme.background;
-    ctx.fillRect(0, 0, this.width, this.height);
+    this.renderModernBackground(ctx);
 
-    this.renderBrutalismPattern(ctx);
-
-    const titleY = isMobile ? this.height * 0.18 : this.height * 0.15;
-    const titleSize = isMobile ? 64 : 84;
-    const subtitleSize = isMobile ? 15 : 18;
+    const titleY = isMobile ? this.height * 0.2 : this.height * 0.18;
+    const titleSize = isMobile ? 56 : 72;
+    const subtitleSize = isMobile ? 14 : 16;
 
     ctx.save();
     ctx.globalAlpha = Math.min(1, this.menuAnimation * 1.5);
 
-    this.renderBrutalismTitle(ctx, this.width / 2, titleY, titleSize);
+    this.renderModernTitle(ctx, this.width / 2, titleY, titleSize);
 
-    const sloganY = titleY + (isMobile ? 110 : 140);
-    ctx.font = `bold ${subtitleSize}px Arial, sans-serif`;
-    ctx.fillStyle = scheme.text;
+    const sloganY = titleY + (isMobile ? 80 : 100);
+    ctx.font = `${subtitleSize}px Arial, sans-serif`;
+    ctx.fillStyle = scheme.textSecondary;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('找回消失的专注，从找到第一个 1 开始...', this.width / 2, sloganY);
+    ctx.fillText('找回消失的专注，从找到第一个 1 开始', this.width / 2, sloganY);
 
     ctx.restore();
 
-    const switcherWidth = isMobile ? 260 : 300;
-    const switcherHeight = isMobile ? 44 : 50;
+    const switcherWidth = isMobile ? 240 : 280;
+    const switcherHeight = isMobile ? 42 : 48;
     const switcherX = (this.width - switcherWidth) / 2;
-    const switcherY = sloganY + (isMobile ? 35 : 45);
+    const switcherY = sloganY + (isMobile ? 30 : 38);
 
     ctx.save();
     ctx.globalAlpha = Math.min(1, this.menuAnimation * 2);
@@ -1663,64 +1744,83 @@ export default class UI {
     this.renderCoinsDisplay(ctx);
   }
 
-  renderBrutalismPattern(ctx) {
+  renderModernBackground(ctx) {
     const scheme = this.getScheme();
-    const gridSize = 40;
-    
-    ctx.strokeStyle = scheme.border;
-    ctx.lineWidth = 1;
-    ctx.globalAlpha = 0.05;
-    
-    for (let x = 0; x < this.width; x += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, this.height);
-      ctx.stroke();
-    }
-    
-    for (let y = 0; y < this.height; y += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(this.width, y);
-      ctx.stroke();
-    }
-    
-    ctx.globalAlpha = 1;
+
+    const gradient = ctx.createLinearGradient(0, 0, this.width, this.height);
+    gradient.addColorStop(0, '#F8FAFC');
+    gradient.addColorStop(0.5, '#EFF6FF');
+    gradient.addColorStop(1, '#F5F3FF');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    this.renderFloatingOrbs(ctx);
   }
 
-  renderBrutalismTitle(ctx, x, y, size) {
+  renderFloatingOrbs(ctx) {
+    const t = Date.now() / 1000;
+    const orbs = [
+      { x: this.width * 0.1, y: this.height * 0.15, r: 140, color: 'rgba(99, 102, 241, 0.06)' },
+      { x: this.width * 0.9, y: this.height * 0.25, r: 180, color: 'rgba(59, 130, 246, 0.05)' },
+      { x: this.width * 0.5, y: this.height * 0.55, r: 160, color: 'rgba(139, 92, 246, 0.04)' },
+      { x: this.width * 0.15, y: this.height * 0.75, r: 120, color: 'rgba(16, 185, 129, 0.04)' },
+      { x: this.width * 0.8, y: this.height * 0.7, r: 150, color: 'rgba(236, 72, 153, 0.03)' }
+    ];
+
+    orbs.forEach((orb, i) => {
+      const offsetX = Math.sin(t * 0.4 + i * 1.5) * 20;
+      const offsetY = Math.cos(t * 0.25 + i * 1.0) * 15;
+      const gradient = ctx.createRadialGradient(
+        orb.x + offsetX, orb.y + offsetY, 0,
+        orb.x + offsetX, orb.y + offsetY, orb.r
+      );
+      gradient.addColorStop(0, orb.color);
+      gradient.addColorStop(1, 'transparent');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(orb.x - orb.r + offsetX, orb.y - orb.r + offsetY, orb.r * 2, orb.r * 2);
+    });
+  }
+
+  renderModernTitle(ctx, x, y, size) {
     const scheme = this.getScheme();
     const title = '数一数噻';
-    
+
     ctx.save();
-    
-    ctx.font = `bold ${size}px "Arial Black", Arial, sans-serif`;
+
+    ctx.font = `800 ${size}px "Arial Black", Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    
+
     const textWidth = ctx.measureText(title).width;
-    const paddingX = 40;
-    const paddingY = 25;
+    const paddingX = 36;
+    const paddingY = 20;
     const boxWidth = textWidth + paddingX * 2;
     const boxHeight = size + paddingY * 2;
     const boxX = x - boxWidth / 2;
     const boxY = y - boxHeight / 2;
-    
-    ctx.fillStyle = scheme.shadow;
-    ctx.fillRect(boxX + 12, boxY + 12, boxWidth, boxHeight);
-    
-    ctx.fillStyle = scheme.buttonPrimary;
-    ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
-    
-    ctx.fillStyle = scheme.border;
-    ctx.fillRect(boxX, boxY, boxWidth, 6);
-    ctx.fillRect(boxX, boxY + boxHeight - 6, boxWidth, 6);
-    ctx.fillRect(boxX, boxY, 6, boxHeight);
-    ctx.fillRect(boxX + boxWidth - 6, boxY, 6, boxHeight);
-    
-    ctx.fillStyle = scheme.textLight;
-    ctx.fillText(title, x, y);
-    
+    const radius = 24;
+
+    ctx.shadowColor = 'rgba(99, 102, 241, 0.25)';
+    ctx.shadowBlur = 40;
+    ctx.shadowOffsetY = 8;
+    const boxGradient = ctx.createLinearGradient(boxX, boxY, boxX + boxWidth, boxY + boxHeight);
+    boxGradient.addColorStop(0, '#6366F1');
+    boxGradient.addColorStop(1, '#3B82F6');
+    ctx.fillStyle = boxGradient;
+    this.roundRect(ctx, boxX, boxY, boxWidth, boxHeight, radius);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.shadowColor = 'transparent';
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    this.roundRect(ctx, boxX, boxY, boxWidth, boxHeight * 0.45, [radius, radius, 0, 0]);
+    ctx.fill();
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText(title, x, y + 2);
+
     ctx.restore();
   }
 
@@ -2679,24 +2779,36 @@ export default class UI {
     const scheme = this.getScheme();
     const isMobile = this.width < 768;
 
-    const boxWidth = isMobile ? 110 : 132;
-    const boxHeight = isMobile ? 44 : 52;
+    const boxWidth = isMobile ? 100 : 120;
+    const boxHeight = isMobile ? 36 : 42;
     const boxX = this.width - boxWidth - (isMobile ? 16 : 24);
     const boxY = isMobile ? 24 : 36;
+    const radius = boxHeight / 2;
 
-    this.drawBrutalismRect(ctx, boxX, boxY, boxWidth, boxHeight, '#FFD700', {
-      shadowOffset: 4,
-      borderWidth: 3
-    });
+    ctx.save();
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.06)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetY = 2;
+    ctx.fillStyle = '#FFFFFF';
+    this.roundRect(ctx, boxX, boxY, boxWidth, boxHeight, radius);
+    ctx.fill();
+    ctx.restore();
 
-    ctx.fillStyle = '#000000';
-    ctx.font = `bold ${isMobile ? 18 : 22}px "Arial Black", Arial, sans-serif`;
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
+    ctx.lineWidth = 1;
+    this.roundRect(ctx, boxX, boxY, boxWidth, boxHeight, radius);
+    ctx.stroke();
+
+    ctx.fillStyle = '#F59E0B';
+    ctx.font = `bold ${isMobile ? 14 : 16}px Arial, sans-serif`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText('💰', boxX + (isMobile ? 12 : 16), boxY + boxHeight / 2);
+    ctx.fillText('\u25CF', boxX + (isMobile ? 12 : 14), boxY + boxHeight / 2);
 
+    ctx.fillStyle = '#0F172A';
+    ctx.font = `600 ${isMobile ? 14 : 16}px Arial, sans-serif`;
     ctx.textAlign = 'right';
-    ctx.fillText(`${this.coins}`, boxX + boxWidth - (isMobile ? 12 : 16), boxY + boxHeight / 2);
+    ctx.fillText(`${this.coins}`, boxX + boxWidth - (isMobile ? 12 : 14), boxY + boxHeight / 2);
   }
 
   openShop() {
