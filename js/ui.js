@@ -242,62 +242,20 @@ export default class UI {
     ctx.shadowColor = 'transparent';
 
     if (isStartButton) {
-      ctx.save();
-      this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
-      ctx.clip();
+      const shineGradient = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.5);
+      shineGradient.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
+      shineGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.05)');
+      shineGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = shineGradient;
+      this.roundRect(ctx, scaledX + 1, scaledY + 1, scaledWidth - 2, scaledHeight * 0.55, [radius - 1, radius - 1, 0, 0]);
+      ctx.fill();
 
-      const bodyGrad = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight);
-      bodyGrad.addColorStop(0, 'rgba(255, 255, 255, 0.18)');
-      bodyGrad.addColorStop(0.35, 'rgba(255, 255, 255, 0.06)');
-      bodyGrad.addColorStop(0.65, 'rgba(0, 0, 0, 0.0)');
-      bodyGrad.addColorStop(1, 'rgba(0, 0, 0, 0.12)');
-      ctx.fillStyle = bodyGrad;
-      ctx.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
-
-      const topHighlight = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.35);
-      topHighlight.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
-      topHighlight.addColorStop(0.6, 'rgba(255, 255, 255, 0.12)');
-      topHighlight.addColorStop(1, 'rgba(255, 255, 255, 0)');
-      ctx.fillStyle = topHighlight;
-      ctx.fillRect(scaledX + 2, scaledY + 1, scaledWidth - 4, scaledHeight * 0.38);
-
-      const innerBorderGrad = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight);
-      innerBorderGrad.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
-      innerBorderGrad.addColorStop(0.15, 'rgba(255, 255, 255, 0.08)');
-      innerBorderGrad.addColorStop(0.85, 'rgba(0, 0, 0, 0.0)');
-      innerBorderGrad.addColorStop(1, 'rgba(0, 0, 0, 0.15)');
-      ctx.strokeStyle = innerBorderGrad;
-      ctx.lineWidth = 1.5;
-      this.roundRect(ctx, scaledX + 1, scaledY + 1, scaledWidth - 2, scaledHeight - 2, radius - 1);
-      ctx.stroke();
-
-      const shimmerPeriod = 3.0;
-      const shimmerProgress = (this.shimmerTime % shimmerPeriod) / shimmerPeriod;
-      const shimmerX = scaledX - scaledWidth * 0.4 + shimmerProgress * scaledWidth * 1.8;
-      const shimmerWidth = scaledWidth * 0.3;
-      const shimmerGrad = ctx.createLinearGradient(
-        shimmerX - shimmerWidth / 2, scaledY,
-        shimmerX + shimmerWidth / 2, scaledY
-      );
-      shimmerGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-      shimmerGrad.addColorStop(0.3, 'rgba(255, 255, 255, 0.08)');
-      shimmerGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.18)');
-      shimmerGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.08)');
-      shimmerGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-      ctx.fillStyle = shimmerGrad;
-      ctx.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
-
-      const specGrad = ctx.createRadialGradient(
-        centerX - scaledWidth * 0.15, scaledY + scaledHeight * 0.2, 0,
-        centerX - scaledWidth * 0.15, scaledY + scaledHeight * 0.2, scaledWidth * 0.35
-      );
-      specGrad.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
-      specGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.04)');
-      specGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-      ctx.fillStyle = specGrad;
-      ctx.fillRect(scaledX, scaledY, scaledWidth, scaledHeight * 0.6);
-
-      ctx.restore();
+      const bottomShine = ctx.createLinearGradient(scaledX, scaledY + scaledHeight * 0.7, scaledX, scaledY + scaledHeight);
+      bottomShine.addColorStop(0, 'rgba(255, 255, 255, 0)');
+      bottomShine.addColorStop(1, 'rgba(255, 255, 255, 0.06)');
+      ctx.fillStyle = bottomShine;
+      this.roundRect(ctx, scaledX + 1, scaledY + scaledHeight * 0.7, scaledWidth - 2, scaledHeight * 0.3 - 1, [0, 0, radius - 1, radius - 1]);
+      ctx.fill();
     } else {
       const shineGradient = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.5);
       shineGradient.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
@@ -383,12 +341,11 @@ export default class UI {
 
     // 光泽效果 - 顶部高光
     const cardShine = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.4);
-    cardShine.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
-    cardShine.addColorStop(0.4, 'rgba(255, 255, 255, 0.3)');
+    cardShine.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+    cardShine.addColorStop(0.5, 'rgba(255, 255, 255, 0.1)');
     cardShine.addColorStop(1, 'rgba(255, 255, 255, 0)');
     ctx.fillStyle = cardShine;
-    this.roundRect(ctx, scaledX + 1, scaledY + 1, scaledWidth - 2, scaledHeight * 0.45, [radius - 1, radius - 1, 0, 0]);
-    ctx.fill();
+    ctx.fillRect(scaledX + 1, scaledY + 1, scaledWidth - 2, scaledHeight * 0.4);
 
     // 边框
     ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
@@ -1884,14 +1841,15 @@ export default class UI {
     orbs.forEach((orb, i) => {
       const offsetX = Math.sin(t * 0.4 + i * 1.5) * 20;
       const offsetY = Math.cos(t * 0.25 + i * 1.0) * 15;
-      const gradient = ctx.createRadialGradient(
-        orb.x + offsetX, orb.y + offsetY, 0,
-        orb.x + offsetX, orb.y + offsetY, orb.r
-      );
+      const cx = orb.x + offsetX;
+      const cy = orb.y + offsetY;
+      const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, orb.r);
       gradient.addColorStop(0, orb.color);
-      gradient.addColorStop(1, 'transparent');
+      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
       ctx.fillStyle = gradient;
-      ctx.fillRect(orb.x - orb.r + offsetX, orb.y - orb.r + offsetY, orb.r * 2, orb.r * 2);
+      ctx.beginPath();
+      ctx.arc(cx, cy, orb.r, 0, Math.PI * 2);
+      ctx.fill();
     });
   }
 
