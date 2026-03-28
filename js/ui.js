@@ -1359,8 +1359,17 @@ export default class UI {
     const isMobile = this.width < 768;
     const alpha = this.modalAnimation;
     const scale = 0.85 + 0.15 * alpha;
-    
-    ctx.fillStyle = `rgba(0, 0, 0, ${0.7 * alpha})`;
+
+    // 径向渐变遮罩：中心半透明，边缘深色，游戏内容可见
+    const cx = this.width / 2;
+    const cy = this.height / 2;
+    const maxRadius = Math.sqrt(cx * cx + cy * cy);
+    const gradient = ctx.createRadialGradient(cx, cy, maxRadius * 0.15, cx, cy, maxRadius);
+    gradient.addColorStop(0, `rgba(0, 0, 0, ${0.25 * alpha})`);
+    gradient.addColorStop(0.4, `rgba(0, 0, 0, ${0.4 * alpha})`);
+    gradient.addColorStop(0.7, `rgba(0, 0, 0, ${0.55 * alpha})`);
+    gradient.addColorStop(1, `rgba(0, 0, 0, ${0.7 * alpha})`);
+    ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, this.width, this.height);
 
     const modalWidth = isMobile ? Math.min(360, this.width - 40) : 440;
