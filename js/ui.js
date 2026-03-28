@@ -199,7 +199,6 @@ export default class UI {
 
   drawPrimaryButton(ctx, button, isHovered, isClicked, alpha = 1) {
     const isMobile = this.width < 768;
-    const isStartButton = button.id === 'start';
 
     let scale = 1;
     if (isClicked) scale = 0.97;
@@ -211,27 +210,21 @@ export default class UI {
     const scaledHeight = button.height * scale;
     const scaledX = centerX - scaledWidth / 2;
     const scaledY = centerY - scaledHeight / 2;
-    const radius = 16;
+    const radius = 22;
 
     ctx.save();
     ctx.globalAlpha = alpha;
 
-    if (isStartButton) {
-      ctx.shadowColor = isHovered ? 'rgba(99, 102, 241, 0.35)' : 'rgba(26, 26, 46, 0.25)';
-      ctx.shadowBlur = isHovered ? 28 : 16;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = isHovered ? 6 : 4;
-    } else {
-      ctx.shadowColor = isHovered
-        ? (button.glowColor || 'rgba(26, 26, 46, 0.2)')
-        : 'rgba(0, 0, 0, 0.08)';
-      ctx.shadowBlur = isHovered ? 20 : 10;
-      ctx.shadowOffsetY = isHovered ? 4 : 3;
-    }
+    // Vibrant glow shadow
+    ctx.shadowColor = isHovered ? 'rgba(99, 102, 241, 0.5)' : 'rgba(99, 102, 241, 0.3)';
+    ctx.shadowBlur = isHovered ? 32 : 20;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = isHovered ? 8 : 4;
 
+    // Vibrant gradient
     const gradient = ctx.createLinearGradient(scaledX, scaledY, scaledX + scaledWidth, scaledY + scaledHeight);
-    gradient.addColorStop(0, button.color || '#1A1A2E');
-    gradient.addColorStop(1, button.colorEnd || '#16213E');
+    gradient.addColorStop(0, button.color || '#6366F1');
+    gradient.addColorStop(1, button.colorEnd || '#8B5CF6');
     ctx.fillStyle = gradient;
     this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
     ctx.fill();
@@ -241,53 +234,35 @@ export default class UI {
     ctx.shadowOffsetX = 0;
     ctx.shadowColor = 'transparent';
 
-    if (isStartButton) {
-      const shineGradient = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.5);
-      shineGradient.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
-      shineGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.05)');
-      shineGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-      ctx.fillStyle = shineGradient;
-      this.roundRect(ctx, scaledX + 1, scaledY + 1, scaledWidth - 2, scaledHeight * 0.55, [radius - 1, radius - 1, 0, 0]);
-      ctx.fill();
+    // Top gloss
+    const shineGradient = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.5);
+    shineGradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
+    shineGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.08)');
+    shineGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = shineGradient;
+    ctx.fillRect(scaledX + 1, scaledY + 1, scaledWidth - 2, scaledHeight * 0.55);
 
-      const bottomShine = ctx.createLinearGradient(scaledX, scaledY + scaledHeight * 0.7, scaledX, scaledY + scaledHeight);
-      bottomShine.addColorStop(0, 'rgba(255, 255, 255, 0)');
-      bottomShine.addColorStop(1, 'rgba(255, 255, 255, 0.06)');
-      ctx.fillStyle = bottomShine;
-      this.roundRect(ctx, scaledX + 1, scaledY + scaledHeight * 0.7, scaledWidth - 2, scaledHeight * 0.3 - 1, [0, 0, radius - 1, radius - 1]);
-      ctx.fill();
-    } else {
-      const shineGradient = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.5);
-      shineGradient.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
-      shineGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.05)');
-      shineGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-      ctx.fillStyle = shineGradient;
-      this.roundRect(ctx, scaledX + 1, scaledY + 1, scaledWidth - 2, scaledHeight * 0.55, [radius - 1, radius - 1, 0, 0]);
-      ctx.fill();
+    // Bottom edge glow
+    const bottomShine = ctx.createLinearGradient(scaledX, scaledY + scaledHeight * 0.7, scaledX, scaledY + scaledHeight);
+    bottomShine.addColorStop(0, 'rgba(255, 255, 255, 0)');
+    bottomShine.addColorStop(1, 'rgba(255, 255, 255, 0.08)');
+    ctx.fillStyle = bottomShine;
+    ctx.fillRect(scaledX + 1, scaledY + scaledHeight * 0.7, scaledWidth - 2, scaledHeight * 0.3 - 1);
 
-      const bottomShine = ctx.createLinearGradient(scaledX, scaledY + scaledHeight * 0.7, scaledX, scaledY + scaledHeight);
-      bottomShine.addColorStop(0, 'rgba(255, 255, 255, 0)');
-      bottomShine.addColorStop(1, 'rgba(255, 255, 255, 0.06)');
-      ctx.fillStyle = bottomShine;
-      this.roundRect(ctx, scaledX + 1, scaledY + scaledHeight * 0.7, scaledWidth - 2, scaledHeight * 0.3 - 1, [0, 0, radius - 1, radius - 1]);
-      ctx.fill();
-    }
-
+    // Text
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = `600 ${isMobile ? 16 : 18}px Arial, sans-serif`;
+    ctx.font = `700 ${isMobile ? 18 : 20}px Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
     if (button.icon === 'play') {
       const textWidth = ctx.measureText(button.text).width;
       const textX = centerX - 12;
-      const iconX = centerX + textWidth / 2 + 8;
+      const iconX = centerX + textWidth / 2 + 10;
 
-      if (isStartButton) {
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-        ctx.shadowBlur = 4;
-        ctx.shadowOffsetY = 1;
-      }
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+      ctx.shadowBlur = 4;
+      ctx.shadowOffsetY = 1;
 
       ctx.fillText(button.text, textX, centerY);
 
@@ -296,9 +271,9 @@ export default class UI {
       ctx.shadowColor = 'transparent';
 
       ctx.beginPath();
-      ctx.moveTo(iconX, centerY - 6);
-      ctx.lineTo(iconX + 10, centerY);
-      ctx.lineTo(iconX, centerY + 6);
+      ctx.moveTo(iconX, centerY - 8);
+      ctx.lineTo(iconX + 13, centerY);
+      ctx.lineTo(iconX, centerY + 8);
       ctx.closePath();
       ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
       ctx.fill();
@@ -320,18 +295,24 @@ export default class UI {
     const scaledHeight = button.height * scale;
     const scaledX = button.x + (button.width - scaledWidth) / 2;
     const scaledY = button.y + (button.height - scaledHeight) / 2;
-    const radius = 16;
+    const radius = 20;
 
     ctx.save();
     ctx.globalAlpha = alpha;
 
-    // 卡片阴影
-    ctx.shadowColor = isHovered ? 'rgba(0, 0, 0, 0.1)' : 'rgba(0, 0, 0, 0.05)';
-    ctx.shadowBlur = isHovered ? 16 : 8;
-    ctx.shadowOffsetY = isHovered ? 4 : 2;
+    // Card shadow with theme-colored glow on hover
+    if (isHovered) {
+      ctx.shadowColor = button.cardHoverGlow || 'rgba(0, 0, 0, 0.12)';
+      ctx.shadowBlur = 20;
+      ctx.shadowOffsetY = 6;
+    } else {
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.06)';
+      ctx.shadowBlur = 12;
+      ctx.shadowOffsetY = 4;
+    }
 
-    // 白色卡片背景
-    ctx.fillStyle = '#FFFFFF';
+    // Card background
+    ctx.fillStyle = button.cardBg || 'rgba(255, 255, 255, 0.9)';
     this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
     ctx.fill();
 
@@ -339,7 +320,7 @@ export default class UI {
     ctx.shadowOffsetY = 0;
     ctx.shadowColor = 'transparent';
 
-    // 光泽效果 - 顶部高光
+    // Gloss effect - subtle top shine using fillRect (safe)
     const cardShine = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.4);
     cardShine.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
     cardShine.addColorStop(0.5, 'rgba(255, 255, 255, 0.1)');
@@ -347,24 +328,24 @@ export default class UI {
     ctx.fillStyle = cardShine;
     ctx.fillRect(scaledX + 1, scaledY + 1, scaledWidth - 2, scaledHeight * 0.4);
 
-    // 边框
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
-    ctx.lineWidth = 1;
+    // Colored border
+    ctx.strokeStyle = button.cardBorder || 'rgba(148, 163, 184, 0.15)';
+    ctx.lineWidth = 1.5;
     this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
     ctx.stroke();
 
-    // 图标背景
-    const iconSize = isMobile ? 36 : 44;
-    const iconX = scaledX + (isMobile ? 14 : 18);
-    const iconY = scaledY + (isMobile ? 14 : 18);
+    // Centered icon circle
+    const iconSize = isMobile ? 40 : 48;
+    const iconX = scaledX + (scaledWidth - iconSize) / 2;
+    const iconY = scaledY + (isMobile ? 16 : 18);
 
     ctx.fillStyle = button.iconBg || '#F3F4F6';
-    this.roundRect(ctx, iconX, iconY, iconSize, iconSize, 10);
+    this.roundRect(ctx, iconX, iconY, iconSize, iconSize, iconSize / 2);
     ctx.fill();
 
-    // 绘制图标
+    // Draw icon
     ctx.fillStyle = button.iconColor || '#6366F1';
-    ctx.font = `bold ${isMobile ? 18 : 22}px Arial, sans-serif`;
+    ctx.font = `bold ${isMobile ? 20 : 24}px Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
@@ -381,18 +362,19 @@ export default class UI {
       ctx.fillText('\u263C', iconCenterX, iconCenterY);
     }
 
-    // 标题文字
+    // Title - centered below icon
+    const textY = iconY + iconSize + (isMobile ? 14 : 16);
     ctx.fillStyle = '#0F172A';
-    ctx.font = `600 ${isMobile ? 15 : 17}px Arial, sans-serif`;
-    ctx.textAlign = 'left';
+    ctx.font = `600 ${isMobile ? 14 : 16}px Arial, sans-serif`;
+    ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(button.text, iconX, iconY + iconSize + (isMobile ? 16 : 20));
+    ctx.fillText(button.text, scaledX + scaledWidth / 2, textY);
 
-    // 副标题
+    // Subtitle - centered below title
     if (button.subtitle) {
-      ctx.fillStyle = '#64748B';
-      ctx.font = `${isMobile ? 11 : 13}px Arial, sans-serif`;
-      ctx.fillText(button.subtitle, iconX, iconY + iconSize + (isMobile ? 32 : 38));
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = `${isMobile ? 11 : 12}px Arial, sans-serif`;
+      ctx.fillText(button.subtitle, scaledX + scaledWidth / 2, textY + (isMobile ? 16 : 18));
     }
 
     ctx.restore();
@@ -834,17 +816,20 @@ export default class UI {
     const margin = isMobile ? 20 : 40;
     const startY = this.height * 0.44;
 
-    // 开始游戏按钮 - 全宽大按钮
+    // 开始游戏按钮 - 全宽大按钮，更高更醒目
     const startButtonWidth = this.width - margin * 2;
-    const startButtonHeight = isMobile ? 56 : 64;
+    const startButtonHeight = isMobile ? 62 : 70;
 
     // 功能卡片网格 - 2x2布局
-    const cardGap = isMobile ? 12 : 16;
+    const cardGap = isMobile ? 14 : 16;
     const cardWidth = (this.width - margin * 2 - cardGap) / 2;
-    const cardHeight = isMobile ? 100 : 120;
+    const cardHeight = isMobile ? 105 : 115;
+
+    const cardRow1Y = startY + startButtonHeight + 20;
+    const cardRow2Y = cardRow1Y + cardHeight + cardGap;
 
     const buttons = [
-      // 开始游戏 - 全宽大按钮
+      // 开始游戏 - 渐变色醒目按钮
       {
         id: 'start',
         text: '开始游戏',
@@ -853,70 +838,82 @@ export default class UI {
         y: startY,
         width: startButtonWidth,
         height: startButtonHeight,
-        color: '#1A1A2E',
-        colorEnd: '#16213E',
-        glowColor: 'rgba(26, 26, 46, 0.3)',
+        color: '#6366F1',
+        colorEnd: '#8B5CF6',
+        glowColor: 'rgba(99, 102, 241, 0.4)',
         icon: 'play',
         action: () => this.onStartGame()
       },
-      // 游戏规则 - 卡片
+      // 游戏规则 - 琥珀色卡片
       {
         id: 'instructions',
         text: '游戏规则',
         subtitle: '了解玩法说明',
         type: 'card',
         x: margin,
-        y: startY + startButtonHeight + cardGap + 40,
+        y: cardRow1Y,
         width: cardWidth,
         height: cardHeight,
         icon: 'book',
         iconBg: '#FEF3C7',
         iconColor: '#F59E0B',
+        cardBg: 'rgba(255, 252, 245, 0.95)',
+        cardBorder: 'rgba(245, 158, 11, 0.2)',
+        cardHoverGlow: 'rgba(245, 158, 11, 0.15)',
         action: () => this.onShowInstructions()
       },
-      // 商店 - 卡片
+      // 商店 - 蓝色卡片
       {
         id: 'shop',
         text: '商店',
         subtitle: '道具 & 皮肤',
         type: 'card',
         x: margin + cardWidth + cardGap,
-        y: startY + startButtonHeight + cardGap + 40,
+        y: cardRow1Y,
         width: cardWidth,
         height: cardHeight,
         icon: 'cart',
         iconBg: '#DBEAFE',
         iconColor: '#3B82F6',
+        cardBg: 'rgba(245, 249, 255, 0.95)',
+        cardBorder: 'rgba(59, 130, 246, 0.2)',
+        cardHoverGlow: 'rgba(59, 130, 246, 0.15)',
         action: () => this.onOpenShop()
       },
-      // 技能 - 卡片
+      // 技能 - 绿色卡片
       {
         id: 'skills',
         text: '技能',
         subtitle: '解锁特殊能力',
         type: 'card',
         x: margin,
-        y: startY + startButtonHeight + cardGap + 40 + cardHeight + cardGap,
+        y: cardRow2Y,
         width: cardWidth,
         height: cardHeight,
         icon: 'lightning',
         iconBg: '#D1FAE5',
         iconColor: '#10B981',
+        cardBg: 'rgba(245, 255, 250, 0.95)',
+        cardBorder: 'rgba(16, 185, 129, 0.2)',
+        cardHoverGlow: 'rgba(16, 185, 129, 0.15)',
         action: () => this.onOpenSkills()
       },
-      // 成就 - 卡片
+      // 成就 - 粉色卡片
       {
         id: 'achievements',
         text: '成就',
         subtitle: '查看你的战绩',
         type: 'card',
         x: margin + cardWidth + cardGap,
-        y: startY + startButtonHeight + cardGap + 40 + cardHeight + cardGap,
+        y: cardRow2Y,
         width: cardWidth,
         height: cardHeight,
         icon: 'trophy',
         iconBg: '#FCE7F3',
         iconColor: '#EC4899',
+        cardBg: 'rgba(255, 245, 250, 0.95)',
+        cardBorder: 'rgba(236, 72, 153, 0.2)',
+        cardHoverGlow: 'rgba(236, 72, 153, 0.15)',
         action: () => this.onOpenAchievements()
       }
     ];
@@ -1897,8 +1894,7 @@ export default class UI {
     ctx.shadowColor = 'transparent';
 
     ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-    this.roundRect(ctx, boxX, boxY, boxWidth, boxHeight * 0.45, [radius, radius, 0, 0]);
-    ctx.fill();
+    ctx.fillRect(boxX, boxY, boxWidth, boxHeight * 0.45);
 
     ctx.fillStyle = '#FFFFFF';
     ctx.fillText(title, x, y + 2);
