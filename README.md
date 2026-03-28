@@ -54,9 +54,9 @@ find100wx/
 │   └── test.js             # 测试文件
 └── audio/                  # 音频资源
     ├── bgm.mp3             # 背景音乐
-    ├── click.mp3           # 点击音效
-    ├── click.mp3        # 完成音效
-    └── click.mp3           # 错误音效
+    ├── click.wav           # 点击音效
+    ├── click.wav        # 完成音效
+    └── click.wav           # 错误音效
 ```
 
 ### 核心模块

@@ -15,25 +15,25 @@ export default class SoundManager {
     
     try {
       this.sounds.click = wx.createInnerAudioContext();
-      this.sounds.click.src = 'audio/click.mp3';
+      this.sounds.click.src = 'audio/click.wav';
       this.sounds.click.onError(() => {
         this.useGeneratedAudio = true;
       });
       
       this.sounds.error = wx.createInnerAudioContext();
-      this.sounds.error.src = 'audio/error.mp3';
+      this.sounds.error.src = 'audio/error.wav';
       this.sounds.error.onError(() => {
         this.useGeneratedAudio = true;
       });
       
       this.sounds.complete = wx.createInnerAudioContext();
-      this.sounds.complete.src = 'audio/complete.mp3';
+      this.sounds.complete.src = 'audio/highscore.mp3';
       this.sounds.complete.onError(() => {
         this.useGeneratedAudio = true;
       });
       
       this.sounds.egg = wx.createInnerAudioContext();
-      this.sounds.egg.src = 'audio/egg.mp3';
+      this.sounds.egg.src = 'audio/egg.wav';
       this.sounds.egg.onError(() => {
         console.log('Egg audio load error, will use fallback');
       });

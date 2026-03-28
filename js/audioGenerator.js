@@ -60,7 +60,7 @@ export class AudioGenerator {
 
   static generateClickSound() {
     if (this.isWxEnvironment()) {
-      this.playWxSound('audio/click.mp3');
+      this.playWxSound('audio/click.wav');
       return;
     }
     
@@ -76,7 +76,7 @@ export class AudioGenerator {
 
   static generateErrorSound() {
     if (this.isWxEnvironment()) {
-      this.playWxSound('audio/error.mp3');
+      this.playWxSound('audio/error.wav');
       return;
     }
     
@@ -92,7 +92,7 @@ export class AudioGenerator {
 
   static generateCompleteSound() {
     if (this.isWxEnvironment()) {
-      this.playWxSound('audio/complete.mp3');
+      this.playWxSound('audio/highscore.mp3');
       return;
     }
     
@@ -111,7 +111,7 @@ export class AudioGenerator {
 
   static generateEggSound() {
     if (this.isWxEnvironment()) {
-      this.playWxSound('audio/egg.mp3');
+      this.playWxSound('audio/egg.wav');
       return;
     }
     
