@@ -1988,7 +1988,7 @@ export default class UI {
       const centerX = this.width / 2;
       const timerY = buttonY + buttonSize / 2;
       const timerFontSize = isMobile ? 28 : 36;
-      
+
       let timerColor;
       let timerBgColor;
       if (timeLeft <= 5.0) {
@@ -2001,17 +2001,17 @@ export default class UI {
         timerColor = scheme.textLight;
         timerBgColor = scheme.accent;
       }
-      
+
       const timerWidth = isMobile ? 100 : 120;
       const timerHeight = isMobile ? 44 : 52;
       const timerX = centerX - timerWidth / 2;
       const timerBoxY = timerY - timerHeight / 2;
-      
+
       this.drawBrutalismRect(ctx, timerX, timerBoxY, timerWidth, timerHeight, timerBgColor, {
         shadowOffset: 4,
         borderWidth: 3
       });
-      
+
       ctx.font = `bold ${timerFontSize}px "Arial Black", Arial, sans-serif`;
       ctx.fillStyle = timerColor;
       ctx.textAlign = 'center';
@@ -2019,6 +2019,48 @@ export default class UI {
       const displayTime = Math.max(0, timeLeft).toFixed(1);
       ctx.fillText(`${displayTime}s`, centerX, timerY);
     }
+
+    // 金币显示 - 右上角
+    const coinBoxWidth = isMobile ? 80 : 100;
+    const coinBoxHeight = isMobile ? 36 : 42;
+    const coinBoxX = this.width - coinBoxWidth - (isMobile ? 16 : 24);
+    const coinBoxY = buttonY + (buttonSize - coinBoxHeight) / 2;
+    const coinRadius = coinBoxHeight / 2;
+
+    ctx.save();
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetY = 2;
+    ctx.fillStyle = scheme.cardBg;
+    this.roundRect(ctx, coinBoxX, coinBoxY, coinBoxWidth, coinBoxHeight, coinRadius);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.strokeStyle = scheme.border;
+    ctx.lineWidth = 1;
+    this.roundRect(ctx, coinBoxX, coinBoxY, coinBoxWidth, coinBoxHeight, coinRadius);
+    ctx.stroke();
+
+    const coinIconSize = isMobile ? 20 : 24;
+    const coinIconX = coinBoxX + (isMobile ? 10 : 12);
+    const coinIconY = coinBoxY + (coinBoxHeight - coinIconSize) / 2;
+
+    ctx.fillStyle = '#FACC15';
+    ctx.beginPath();
+    ctx.arc(coinIconX + coinIconSize / 2, coinIconY + coinIconSize / 2, coinIconSize / 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#92400E';
+    ctx.font = `bold ${isMobile ? 11 : 13}px Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('¥', coinIconX + coinIconSize / 2, coinIconY + coinIconSize / 2 + 1);
+
+    ctx.fillStyle = scheme.text;
+    ctx.font = `600 ${isMobile ? 14 : 16}px Arial, sans-serif`;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`${this.coins}`, coinBoxX + coinBoxWidth - (isMobile ? 10 : 14), coinBoxY + coinBoxHeight / 2);
   }
 
   renderFooter(ctx, footerHeight, bottomSafeArea, isMobile, currentNumber, totalNumbers) {
