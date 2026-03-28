@@ -418,11 +418,11 @@ export default class FindGameMain {
     };
 
     this.ui.onPlayClickSound = () => {
-      this.soundManager.playClick();
+      this.soundManager.playUiClick();
     };
 
     this.rankManager.onPlayClickSound = () => {
-      this.soundManager.playClick();
+      this.soundManager.playUiClick();
     };
 
     this.ui.onOpenRank = () => {
@@ -554,7 +554,7 @@ export default class FindGameMain {
 
     this.gameManager.onRewardTriggered = (reward) => {
       this.ui.showRewardNotification(reward);
-      this.soundManager.playClick && this.soundManager.playClick();
+      this.soundManager.playUiClick();
     };
 
     this.ui.onUseHint = () => {
@@ -592,7 +592,7 @@ export default class FindGameMain {
   }
 
   handleEggTriggered(egg) {
-    this.soundManager.playClick();
+    this.soundManager.playUiClick();
     this.vibrationManager.vibrateCorrect();
     this.ui.triggerEggEffect();
     this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `+${egg.reward.amount} 💰`, '#FFD700');
@@ -948,7 +948,7 @@ export default class FindGameMain {
         this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, '金币不足!', '#FF4444');
         return;
       }
-      this.soundManager.playClick();
+      this.soundManager.playUiClick();
       this.ui.showModalDialog(
         'resetConfirm',
         '⚠ 时光倒流',
@@ -978,7 +978,7 @@ export default class FindGameMain {
     const result = this.shopManager.buy(product.id);
 
     if (result.success) {
-      this.soundManager.playClick();
+      this.soundManager.playUiClick();
       this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `+${result.itemsAdded} 💡`, '#44FF44');
     } else {
       this.soundManager.playError();
@@ -1003,7 +1003,7 @@ export default class FindGameMain {
     const result = this.skillManager.unlockSkill(skillId);
 
     if (result) {
-      this.soundManager.playClick();
+      this.soundManager.playUiClick();
       this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `解锁 ${skill.name}!`, '#9C27B0', 'skills');
       this.ui.skillsData = this.skillManager.getSkillProgress();
     } else {

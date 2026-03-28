@@ -19,6 +19,12 @@ export default class SoundManager {
       this.sounds.click.onError(() => {
         this.useGeneratedAudio = true;
       });
+
+      this.sounds.uiClick = wx.createInnerAudioContext();
+      this.sounds.uiClick.src = 'audio/click-ui.mp3';
+      this.sounds.uiClick.onError(() => {
+        this.useGeneratedAudio = true;
+      });
       
       this.sounds.error = wx.createInnerAudioContext();
       this.sounds.error.src = 'audio/error.wav';
@@ -47,18 +53,35 @@ export default class SoundManager {
 
   playClick() {
     if (!this.enabled) return;
-    
+
     if (this.useGeneratedAudio) {
       try {
         AudioGenerator.generateClickSound();
       } catch (e) {}
       return;
     }
-    
+
     if (!this.sounds.click) return;
     try {
       this.sounds.click.stop();
       this.sounds.click.play();
+    } catch (e) {}
+  }
+
+  playUiClick() {
+    if (!this.enabled) return;
+
+    if (this.useGeneratedAudio) {
+      try {
+        AudioGenerator.generateClickSound();
+      } catch (e) {}
+      return;
+    }
+
+    if (!this.sounds.uiClick) return;
+    try {
+      this.sounds.uiClick.stop();
+      this.sounds.uiClick.play();
     } catch (e) {}
   }
 
