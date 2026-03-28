@@ -353,7 +353,6 @@ export default class GameManager {
       clearInterval(this.timerInterval);
       this.timerInterval = null;
     }
-    this.isPaused = false;
   }
 
   updateTimer() {
