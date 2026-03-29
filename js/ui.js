@@ -1593,7 +1593,7 @@ export default class UI {
     } else if (this.modalType === 'resetConfirm') {
       modalHeight = isMobile ? 580 : 650;
     } else {
-      modalHeight = (isMobile ? 360 : 400) + extraButtonHeight;
+      modalHeight = (isMobile ? 280 : 310) + extraButtonHeight;
     }
 
     const maxModalHeight = this.height - 40;
