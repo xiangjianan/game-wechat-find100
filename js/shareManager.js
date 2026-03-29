@@ -1,18 +1,19 @@
-import { getCanvas } from './render';
-
 export default class ShareManager {
   constructor() {
-    this.canvas = null;
     this.shareTitles = [
       '数一数噻 - 找回消失的专注力！',
       '我能找到所有数字，你能吗？',
       '挑战你的专注力极限！数一数噻',
       '这个数字游戏太上头了！'
     ];
+    this.shareImages = [
+      'https://mmocgame.qpic.cn/wechatgame/Clv3KhwAnOkOsITPWCrY0Zel2aiaooXmGSqRicrxTk1HfriaH6wUYFyHuB1ibA7NPe1v/0',
+      'https://mmocgame.qpic.cn/wechatgame/6D4a0aLh3aT8nr5RKql0SOU4382ia6cibzo7MibrDLzEH2wbEd2EWY2BsuB2VOIX1icT/0',
+      'https://mmocgame.qpic.cn/wechatgame/RHF4KEb2RhaYdWXd8icNcQCDJ3pl5h287zbiaqBEkXop9htlpJYTSWhsq6l7mNr32h/0'
+    ];
   }
 
   init() {
-    this.canvas = getCanvas();
     this._setupShareMenu();
     this._setupShareAppMessage();
     this._setupShareTimeline();
@@ -31,7 +32,7 @@ export default class ShareManager {
     if (typeof wx === 'undefined' || !wx.onShareAppMessage) return;
     wx.onShareAppMessage(() => ({
       title: this._getRandomTitle(),
-      imageUrl: this._getShareImage()
+      imageUrl: this._getRandomImage()
     }));
   }
 
@@ -39,7 +40,7 @@ export default class ShareManager {
     if (typeof wx === 'undefined' || !wx.onShareTimeline) return;
     wx.onShareTimeline(() => ({
       title: this._getRandomTitle(),
-      imageUrl: this._getShareImage()
+      imageUrl: this._getRandomImage()
     }));
   }
 
@@ -47,7 +48,7 @@ export default class ShareManager {
     if (typeof wx === 'undefined' || !wx.shareAppMessage) return;
     wx.shareAppMessage({
       title: title || this._getRandomTitle(),
-      imageUrl: this._getShareImage()
+      imageUrl: this._getRandomImage()
     });
   }
 
@@ -55,24 +56,7 @@ export default class ShareManager {
     return this.shareTitles[Math.floor(Math.random() * this.shareTitles.length)];
   }
 
-  _getShareImage() {
-    if (!this.canvas || typeof this.canvas.toTempFilePathSync !== 'function') {
-      return '';
-    }
-    try {
-      return this.canvas.toTempFilePathSync({
-        destWidth: 500,
-        destHeight: 400
-      });
-    } catch (e) {
-      return '';
-    }
-  }
-
-  getShareTitle(gameResult) {
-    if (!gameResult) return this._getRandomTitle();
-    const { level, time, mode } = gameResult;
-    const modeText = mode === 'timed' ? '限时' : '自由';
-    return `数一数噻 - ${modeText}模式第${level}关 ${time}秒通关！你能更快吗？`;
+  _getRandomImage() {
+    return this.shareImages[Math.floor(Math.random() * this.shareImages.length)];
   }
 }
