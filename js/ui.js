@@ -1587,13 +1587,13 @@ export default class UI {
     let modalHeight;
 
     if (this.modalType === 'gameComplete') {
-      modalHeight = (isMobile ? 460 : 520) + extraButtonHeight;
+      modalHeight = (isMobile ? 400 : 460) + extraButtonHeight;
     } else if (this.modalType === 'gameFailed') {
       modalHeight = (hasScoreInMessage ? (isMobile ? 480 : 540) : (isMobile ? 380 : 420)) + extraButtonHeight;
     } else if (this.modalType === 'resetConfirm') {
       modalHeight = isMobile ? 580 : 650;
     } else {
-      modalHeight = (isMobile ? 380 : 420) + extraButtonHeight;
+      modalHeight = (isMobile ? 360 : 400) + extraButtonHeight;
     }
 
     const maxModalHeight = this.height - 40;
@@ -1672,7 +1672,7 @@ export default class UI {
 
     const btnCount = this.modalButtons ? this.modalButtons.length : 0;
     const extraBtnH = Math.max(0, btnCount - 2) * (isMobile ? 62 : 74);
-    this.renderModalButtons(ctx, x, y + height - (isMobile ? 190 : 230) - extraBtnH, width, isMobile);
+    this.renderModalButtons(ctx, x, y + height - (isMobile ? 130 : 150) - extraBtnH, width, isMobile);
   }
 
   renderFailureContent(ctx, x, y, width, height, isMobile) {
@@ -1800,7 +1800,7 @@ export default class UI {
     
     const defBtnCount = this.modalButtons ? this.modalButtons.length : 0;
     const defExtraH = Math.max(0, defBtnCount - 2) * (isMobile ? 62 : 74);
-    this.renderModalButtons(ctx, x, y + height - (isMobile ? 100 : 110) - defExtraH, width, isMobile);
+    this.renderModalButtons(ctx, x, y + height - (isMobile ? 130 : 150) - defExtraH, width, isMobile);
   }
 
   renderModalButtons(ctx, x, y, width, isMobile) {
