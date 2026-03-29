@@ -11,6 +11,7 @@ import ShopManager from './shopManager';
 import SkillManager from './skillManager';
 import EggManager from './eggManager';
 import RewardManager from './rewardManager';
+import ShareManager from './shareManager';
 import { CacheManager } from './cacheManager';
 import { getColorScheme } from './constants/colors';
 
@@ -98,10 +99,12 @@ export default class FindGameMain {
     this.skillManager = new SkillManager();
     this.eggManager = new EggManager();
     this.rewardManager = new RewardManager();
+    this.shareManager = new ShareManager();
     this.aniId = 0;
 
     this.soundManager.init();
     CacheManager.init();
+    this.shareManager.init();
     this.rankManager.init();
     this.vibrationManager.checkSupport();
     this.achievementManager.loadProgress();
@@ -470,6 +473,10 @@ export default class FindGameMain {
       this.resetGame();
     };
 
+    this.ui.onShare = () => {
+      this.shareManager.shareAppMessage();
+    };
+
     this.coinManager.onCoinChanged = (coins, amount, type) => {
       this.ui.setCoins(coins);
     };
@@ -704,6 +711,14 @@ export default class FindGameMain {
         }
       });
     }
+
+    buttons.splice(-1, 0, {
+      id: 'share',
+      text: '分享战绩',
+      action: () => {
+        this.shareManager.shareAppMessage();
+      }
+    });
     
     this.ui.showModalDialog(
       'gameComplete',
@@ -736,6 +751,13 @@ export default class FindGameMain {
           action: () => {
             this.ui.hideModal();
             this.resetGame();
+          }
+        },
+        {
+          id: 'share',
+          text: '分享给朋友',
+          action: () => {
+            this.shareManager.shareAppMessage();
           }
         },
         {

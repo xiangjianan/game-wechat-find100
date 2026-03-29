@@ -58,7 +58,8 @@ export default class UI {
     this.showModeSelector = false;
     this.instructionsData = null;
     this.headerButtons = null;
-    
+    this.onShare = null;
+
     this.modeSwitcher = {
       x: 0,
       y: 0,
@@ -287,6 +288,7 @@ export default class UI {
 
   drawCardButton(ctx, button, isHovered, isClicked, alpha = 1) {
     const isMobile = this.width < 768;
+    const isWideCard = button.width > button.height * 2;
 
     let scale = 1;
     if (isClicked) scale = 0.97;
@@ -335,7 +337,36 @@ export default class UI {
     this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
     ctx.stroke();
 
-    // Centered icon circle
+    // Wide card: horizontal layout (icon left, text center)
+    if (isWideCard) {
+      const iconSize = isMobile ? 32 : 36;
+      const iconX = scaledX + (isMobile ? 14 : 18);
+      const iconY = scaledY + (scaledHeight - iconSize) / 2;
+
+      ctx.fillStyle = button.iconBg || '#F3F4F6';
+      this.roundRect(ctx, iconX, iconY, iconSize, iconSize, iconSize / 2);
+      ctx.fill();
+
+      ctx.fillStyle = button.iconColor || '#8B5CF6';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const iconCenterX = iconX + iconSize / 2;
+      const iconCenterY = iconY + iconSize / 2;
+
+      this._drawIcon(ctx, button.icon, iconCenterX, iconCenterY, isMobile, button.iconColor);
+
+      ctx.fillStyle = '#0F172A';
+      ctx.font = `600 ${isMobile ? 15 : 17}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(button.text, scaledX + scaledWidth / 2 + iconSize / 4, scaledY + scaledHeight / 2);
+
+      ctx.restore();
+      return;
+    }
+
+    // Square card: vertical layout (icon top, text bottom)
     const iconSize = isMobile ? 40 : 48;
     const iconX = scaledX + (scaledWidth - iconSize) / 2;
     const iconY = scaledY + (isMobile ? 16 : 18);
@@ -353,13 +384,34 @@ export default class UI {
     const iconCenterX = iconX + iconSize / 2;
     const iconCenterY = iconY + iconSize / 2;
 
-    if (button.icon === 'book') {
-      // 书本图标：展开的书本轮廓
-      const s = isMobile ? 10 : 12;
-      ctx.lineWidth = isMobile ? 1.5 : 2;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.strokeStyle = button.iconColor || '#F59E0B';
+    this._drawIcon(ctx, button.icon, iconCenterX, iconCenterY, isMobile, button.iconColor);
+
+    // Title - centered below icon (square card vertical layout)
+    const textY = iconY + iconSize + (isMobile ? 14 : 16);
+    ctx.fillStyle = '#0F172A';
+    ctx.font = `600 ${isMobile ? 14 : 16}px Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(button.text, scaledX + scaledWidth / 2, textY);
+
+    // Subtitle - centered below title
+    if (button.subtitle) {
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = `${isMobile ? 11 : 12}px Arial, sans-serif`;
+      ctx.fillText(button.subtitle, scaledX + scaledWidth / 2, textY + (isMobile ? 16 : 18));
+    }
+
+    ctx.restore();
+  }
+
+  _drawIcon(ctx, icon, iconCenterX, iconCenterY, isMobile, iconColor) {
+    const s = isMobile ? 10 : 12;
+    ctx.lineWidth = isMobile ? 1.5 : 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    if (icon === 'book') {
+      ctx.strokeStyle = iconColor || '#F59E0B';
       // 左页
       ctx.beginPath();
       ctx.moveTo(iconCenterX, iconCenterY - s * 0.8);
@@ -379,13 +431,8 @@ export default class UI {
       ctx.moveTo(iconCenterX, iconCenterY - s * 0.8);
       ctx.lineTo(iconCenterX, iconCenterY + s * 0.8);
       ctx.stroke();
-    } else if (button.icon === 'cart') {
-      // 购物袋图标
-      const s = isMobile ? 10 : 12;
-      ctx.lineWidth = isMobile ? 1.5 : 2;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.strokeStyle = button.iconColor || '#3B82F6';
+    } else if (icon === 'cart') {
+      ctx.strokeStyle = iconColor || '#3B82F6';
       // 袋身
       ctx.beginPath();
       ctx.moveTo(iconCenterX - s * 0.7, iconCenterY - s * 0.1);
@@ -399,13 +446,8 @@ export default class UI {
       ctx.beginPath();
       ctx.arc(iconCenterX, iconCenterY - s * 0.35, s * 0.4, Math.PI * 0.15, Math.PI * 0.85);
       ctx.stroke();
-    } else if (button.icon === 'lightning') {
-      // 闪电图标
-      const s = isMobile ? 10 : 12;
-      ctx.lineWidth = isMobile ? 1.5 : 2;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.strokeStyle = button.iconColor || '#10B981';
+    } else if (icon === 'lightning') {
+      ctx.strokeStyle = iconColor || '#10B981';
       ctx.beginPath();
       ctx.moveTo(iconCenterX + s * 0.1, iconCenterY - s);
       ctx.lineTo(iconCenterX - s * 0.3, iconCenterY - s * 0.05);
@@ -414,13 +456,8 @@ export default class UI {
       ctx.lineTo(iconCenterX + s * 0.35, iconCenterY - s * 0.05);
       ctx.lineTo(iconCenterX - s * 0.1, iconCenterY + s * 0.05);
       ctx.stroke();
-    } else if (button.icon === 'trophy') {
-      // 奖杯图标
-      const s = isMobile ? 10 : 12;
-      ctx.lineWidth = isMobile ? 1.5 : 2;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.strokeStyle = button.iconColor || '#EC4899';
+    } else if (icon === 'trophy') {
+      ctx.strokeStyle = iconColor || '#EC4899';
       // 杯身
       ctx.beginPath();
       ctx.moveTo(iconCenterX - s * 0.55, iconCenterY - s * 0.7);
@@ -452,24 +489,28 @@ export default class UI {
       ctx.beginPath();
       ctx.arc(iconCenterX, iconCenterY - s * 0.25, s * 0.12, 0, Math.PI * 2);
       ctx.stroke();
+    } else if (icon === 'share') {
+      ctx.strokeStyle = iconColor || '#8B5CF6';
+      // 三个节点
+      ctx.beginPath();
+      ctx.arc(iconCenterX - s * 0.55, iconCenterY + s * 0.3, s * 0.2, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(iconCenterX + s * 0.4, iconCenterY - s * 0.5, s * 0.2, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(iconCenterX + s * 0.4, iconCenterY + s * 0.3, s * 0.2, 0, Math.PI * 2);
+      ctx.stroke();
+      // 连线
+      ctx.beginPath();
+      ctx.moveTo(iconCenterX - s * 0.38, iconCenterY + s * 0.2);
+      ctx.lineTo(iconCenterX + s * 0.24, iconCenterY - s * 0.38);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(iconCenterX - s * 0.38, iconCenterY + s * 0.35);
+      ctx.lineTo(iconCenterX + s * 0.24, iconCenterY + s * 0.28);
+      ctx.stroke();
     }
-
-    // Title - centered below icon
-    const textY = iconY + iconSize + (isMobile ? 14 : 16);
-    ctx.fillStyle = '#0F172A';
-    ctx.font = `600 ${isMobile ? 14 : 16}px Arial, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(button.text, scaledX + scaledWidth / 2, textY);
-
-    // Subtitle - centered below title
-    if (button.subtitle) {
-      ctx.fillStyle = '#94A3B8';
-      ctx.font = `${isMobile ? 11 : 12}px Arial, sans-serif`;
-      ctx.fillText(button.subtitle, scaledX + scaledWidth / 2, textY + (isMobile ? 16 : 18));
-    }
-
-    ctx.restore();
   }
 
   darkenColor(color, amount) {
@@ -1057,6 +1098,27 @@ export default class UI {
         action: () => this.onOpenAchievements()
       }
     ];
+
+    // 第三行 - 分享按钮（单按钮居中，较矮）
+    const shareRowY = cardRow2Y + cardHeight + cardGap;
+    const shareButtonHeight = isMobile ? 46 : 52;
+
+    buttons.push({
+      id: 'share',
+      text: '分享给朋友',
+      type: 'card',
+      x: margin,
+      y: shareRowY,
+      width: this.width - margin * 2,
+      height: shareButtonHeight,
+      icon: 'share',
+      iconBg: '#EDE9FE',
+      iconColor: '#8B5CF6',
+      cardBg: 'rgba(245, 243, 255, 0.95)',
+      cardBorder: 'rgba(139, 92, 246, 0.2)',
+      cardHoverGlow: 'rgba(139, 92, 246, 0.15)',
+      action: () => { if (this.onShare) this.onShare(); }
+    });
 
     return buttons;
   }
@@ -1754,6 +1816,8 @@ export default class UI {
         fillColor = scheme.buttonSuccess;
       } else if (button.id === 'playAgain' || button.id === 'tryAgain') {
         fillColor = scheme.buttonPrimary;
+      } else if (button.id === 'share') {
+        fillColor = '#8B5CF6';
       } else if (button.id === 'confirm') {
         fillColor = button.color || '#FF6B6B';
       } else if (button.id === 'cancel') {
