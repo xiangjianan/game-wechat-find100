@@ -2,7 +2,7 @@
 
 一个基于微信小游戏平台的数字查找益智游戏。玩家需要在限定时间内，按顺序（1, 2, 3...）点击屏幕上随机分布的多边形中的数字。
 
-![微信扫码体验游戏](image/wechat.jpg)
+<div align="center"><img src="image/wechat.jpg" width="30%" alt="微信扫码体验游戏"></div>
 
 ## 🎮 游戏简介
 
