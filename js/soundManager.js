@@ -23,7 +23,7 @@ export default class SoundManager {
 
       this.sounds.uiClick = wx.createInnerAudioContext();
       this.sounds.uiClick.src = 'audio/click-ui.mp3';
-      this.sounds.uiClick.volume = this.volume;
+      this.sounds.uiClick.volume = this.volume * 0.4;
       this.sounds.uiClick.obeyMuteSwitch = false;
       this.sounds.uiClick.onError(() => {
         this.sounds.uiClick = null;
