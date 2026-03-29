@@ -624,24 +624,26 @@ export default class UI {
   renderRewardNotifications(ctx) {
     const scheme = this.getScheme();
     const isMobile = this.width < 768;
-    
+    const headerHeight = isMobile ? Math.max(100, Math.max(this.safeArea.top, 44) + 56) : 120;
+
     for (const notification of this.rewardNotifications) {
       if (notification.animation <= 0) continue;
-      
+
       const reward = notification.reward;
       const alpha = notification.animation;
-      
-      const baseY = this.height / 3;
+
+      // 初始位置在顶部标题栏下方，向上飘出屏幕
+      const baseY = headerHeight + 8;
       const notificationY = baseY + notification.offsetY;
-      
+
       ctx.save();
-      ctx.globalAlpha = alpha;
-      
-      // 绘制奖励背景
-      const notificationWidth = isMobile ? 180 : 220;
-      const notificationHeight = isMobile ? 50 : 60;
+      ctx.globalAlpha = alpha * 0.75;
+
+      // 绘制奖励背景（紧凑尺寸）
+      const notificationWidth = isMobile ? 140 : 170;
+      const notificationHeight = isMobile ? 32 : 38;
       const notificationX = (this.width - notificationWidth) / 2;
-      
+
       // 根据奖励类型选择颜色
       let bgColor = scheme.accent;
       if (reward.type === 'hint') {
@@ -651,21 +653,21 @@ export default class UI {
       } else if (reward.type === 'time') {
         bgColor = '#00BFFF';
       }
-      
+
       this.drawBrutalismRect(ctx, notificationX, notificationY, notificationWidth, notificationHeight, bgColor, {
-        shadowOffset: 6,
-        borderWidth: 3
+        shadowOffset: 4,
+        borderWidth: 2
       });
-      
+
       // 绘制奖励文字
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = `bold ${isMobile ? 20 : 24}px Arial, sans-serif`;
+      ctx.font = `bold ${isMobile ? 14 : 16}px Arial, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      
+
       const text = `${reward.icon} ${reward.name} +${reward.amount}`;
       ctx.fillText(text, this.width / 2, notificationY + notificationHeight / 2);
-      
+
       ctx.restore();
     }
   }
@@ -2618,43 +2620,45 @@ export default class UI {
     const scheme = this.getScheme();
     const isMobile = this.width < 768;
     const centerX = this.width / 2;
-    const headerHeight = isMobile ? 100 : 120;
-    const centerY = headerHeight + (isMobile ? 45 : 55);
-    
+    // 放在标题栏底部边缘，不侵入游戏区域
+    const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
+    const headerHeight = isMobile ? Math.max(100, topSafeArea + 56) : 120;
+    const centerY = headerHeight + (isMobile ? 20 : 24);
     const level = this.comboData.level;
     const color = level ? level.color : scheme.accent;
     const scale = this.comboData.scale;
-    
+
     ctx.save();
-    
+    ctx.globalAlpha = 0.85;
+
     if (this.comboData.glowIntensity > 0) {
       ctx.shadowColor = color;
-      ctx.shadowBlur = 20 * this.comboData.glowIntensity;
+      ctx.shadowBlur = 12 * this.comboData.glowIntensity;
     }
-    
+
     ctx.translate(centerX, centerY);
     ctx.scale(scale, scale);
     ctx.translate(-centerX, -centerY);
-    
-    const boxWidth = isMobile ? 120 : 150;
-    const boxHeight = isMobile ? 50 : 60;
+
+    // 紧凑尺寸，嵌入标题栏内
+    const boxWidth = isMobile ? 80 : 100;
+    const boxHeight = isMobile ? 28 : 32;
     const boxX = centerX - boxWidth / 2;
     const boxY = centerY - boxHeight / 2;
-    
+
     this.drawBrutalismRect(ctx, boxX, boxY, boxWidth, boxHeight, color, {
-      shadowOffset: 4,
-      borderWidth: 3
+      shadowOffset: 3,
+      borderWidth: 2
     });
-    
+
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = `bold ${isMobile ? 24 : 28}px "Arial Black", Arial, sans-serif`;
+    ctx.font = `bold ${isMobile ? 13 : 15}px "Arial Black", Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`${this.comboData.count}连击`, centerX, centerY - (isMobile ? 5 : 8));
-    
     if (level) {
-      ctx.font = `bold ${isMobile ? 12 : 14}px Arial, sans-serif`;
-      ctx.fillText(level.name, centerX, centerY + (isMobile ? 15 : 18));
+      ctx.fillText(`${this.comboData.count}连击·${level.name}`, centerX, centerY);
+    } else {
+      ctx.fillText(`${this.comboData.count}连击`, centerX, centerY);
     }
     
     ctx.restore();
