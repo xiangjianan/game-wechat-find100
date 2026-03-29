@@ -1582,18 +1582,23 @@ export default class UI {
 
     const modalWidth = isMobile ? Math.min(360, this.width - 40) : 440;
     const hasScoreInMessage = this.modalMessage && this.modalMessage.includes('得分');
+    const buttonCount = this.modalButtons ? this.modalButtons.length : 0;
+    const extraButtonHeight = Math.max(0, buttonCount - 2) * (isMobile ? 62 : 74);
     let modalHeight;
 
     if (this.modalType === 'gameComplete') {
-      modalHeight = isMobile ? 460 : 520;
+      modalHeight = (isMobile ? 460 : 520) + extraButtonHeight;
     } else if (this.modalType === 'gameFailed') {
-      modalHeight = hasScoreInMessage ? (isMobile ? 480 : 540) : (isMobile ? 380 : 420);
+      modalHeight = (hasScoreInMessage ? (isMobile ? 480 : 540) : (isMobile ? 380 : 420)) + extraButtonHeight;
     } else if (this.modalType === 'resetConfirm') {
       modalHeight = isMobile ? 580 : 650;
     } else {
       modalHeight = isMobile ? 380 : 420;
     }
-    
+
+    const maxModalHeight = this.height - 40;
+    if (modalHeight > maxModalHeight) modalHeight = maxModalHeight;
+
     const modalX = (this.width - modalWidth) / 2;
     const modalY = (this.height - modalHeight) / 2;
 
@@ -1664,8 +1669,10 @@ export default class UI {
     ctx.fillStyle = scheme.textLight;
     ctx.font = `bold ${isMobile ? 20 : 24}px "Arial Black", Arial, sans-serif`;
     ctx.fillText(timeValue || '0.00秒', centerX, timeBoxY + timeBoxHeight / 2);
-    
-    this.renderModalButtons(ctx, x, y + height - (isMobile ? 190 : 230), width, isMobile);
+
+    const btnCount = this.modalButtons ? this.modalButtons.length : 0;
+    const extraBtnH = Math.max(0, btnCount - 2) * (isMobile ? 62 : 74);
+    this.renderModalButtons(ctx, x, y + height - (isMobile ? 190 : 230) - extraBtnH, width, isMobile);
   }
 
   renderFailureContent(ctx, x, y, width, height, isMobile) {
@@ -1736,8 +1743,10 @@ export default class UI {
     ctx.fillStyle = scheme.text;
     ctx.font = `bold ${isMobile ? 16 : 18}px Arial, sans-serif`;
     ctx.fillText('别放弃，再试一次!', centerX, textY + (isMobile ? 10 : 15));
-    
-    this.renderModalButtons(ctx, x, y + height - (isMobile ? 130 : 150), width, isMobile);
+
+    const failBtnCount = this.modalButtons ? this.modalButtons.length : 0;
+    const failExtraH = Math.max(0, failBtnCount - 2) * (isMobile ? 62 : 74);
+    this.renderModalButtons(ctx, x, y + height - (isMobile ? 130 : 150) - failExtraH, width, isMobile);
   }
 
   renderResetConfirmContent(ctx, x, y, width, height, isMobile) {
