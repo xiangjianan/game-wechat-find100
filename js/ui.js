@@ -354,13 +354,104 @@ export default class UI {
     const iconCenterY = iconY + iconSize / 2;
 
     if (button.icon === 'book') {
-      ctx.fillText('\u25A1', iconCenterX, iconCenterY);
+      // 书本图标：展开的书本轮廓
+      const s = isMobile ? 10 : 12;
+      ctx.lineWidth = isMobile ? 1.5 : 2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = button.iconColor || '#F59E0B';
+      // 左页
+      ctx.beginPath();
+      ctx.moveTo(iconCenterX, iconCenterY - s * 0.8);
+      ctx.quadraticCurveTo(iconCenterX - s * 0.2, iconCenterY - s * 0.6, iconCenterX - s, iconCenterY - s * 0.5);
+      ctx.lineTo(iconCenterX - s, iconCenterY + s * 0.7);
+      ctx.quadraticCurveTo(iconCenterX - s * 0.2, iconCenterY + s * 0.5, iconCenterX, iconCenterY + s * 0.8);
+      ctx.stroke();
+      // 右页
+      ctx.beginPath();
+      ctx.moveTo(iconCenterX, iconCenterY - s * 0.8);
+      ctx.quadraticCurveTo(iconCenterX + s * 0.2, iconCenterY - s * 0.6, iconCenterX + s, iconCenterY - s * 0.5);
+      ctx.lineTo(iconCenterX + s, iconCenterY + s * 0.7);
+      ctx.quadraticCurveTo(iconCenterX + s * 0.2, iconCenterY + s * 0.5, iconCenterX, iconCenterY + s * 0.8);
+      ctx.stroke();
+      // 中线
+      ctx.beginPath();
+      ctx.moveTo(iconCenterX, iconCenterY - s * 0.8);
+      ctx.lineTo(iconCenterX, iconCenterY + s * 0.8);
+      ctx.stroke();
     } else if (button.icon === 'cart') {
-      ctx.fillText('\u2630', iconCenterX, iconCenterY);
+      // 购物袋图标
+      const s = isMobile ? 10 : 12;
+      ctx.lineWidth = isMobile ? 1.5 : 2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = button.iconColor || '#3B82F6';
+      // 袋身
+      ctx.beginPath();
+      ctx.moveTo(iconCenterX - s * 0.7, iconCenterY - s * 0.1);
+      ctx.quadraticCurveTo(iconCenterX - s * 0.7, iconCenterY + s, iconCenterX, iconCenterY + s);
+      ctx.quadraticCurveTo(iconCenterX + s * 0.7, iconCenterY + s, iconCenterX + s * 0.7, iconCenterY - s * 0.1);
+      ctx.lineTo(iconCenterX + s * 0.5, iconCenterY - s * 0.1);
+      ctx.lineTo(iconCenterX - s * 0.5, iconCenterY - s * 0.1);
+      ctx.closePath();
+      ctx.stroke();
+      // 提手
+      ctx.beginPath();
+      ctx.arc(iconCenterX, iconCenterY - s * 0.35, s * 0.4, Math.PI * 0.15, Math.PI * 0.85);
+      ctx.stroke();
     } else if (button.icon === 'lightning') {
-      ctx.fillText('\u26A1', iconCenterX, iconCenterY);
+      // 闪电图标
+      const s = isMobile ? 10 : 12;
+      ctx.lineWidth = isMobile ? 1.5 : 2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = button.iconColor || '#10B981';
+      ctx.beginPath();
+      ctx.moveTo(iconCenterX + s * 0.1, iconCenterY - s);
+      ctx.lineTo(iconCenterX - s * 0.3, iconCenterY - s * 0.05);
+      ctx.lineTo(iconCenterX + s * 0.15, iconCenterY + s * 0.05);
+      ctx.lineTo(iconCenterX - s * 0.1, iconCenterY + s);
+      ctx.lineTo(iconCenterX + s * 0.35, iconCenterY - s * 0.05);
+      ctx.lineTo(iconCenterX - s * 0.1, iconCenterY + s * 0.05);
+      ctx.stroke();
     } else if (button.icon === 'trophy') {
-      ctx.fillText('\u263C', iconCenterX, iconCenterY);
+      // 奖杯图标
+      const s = isMobile ? 10 : 12;
+      ctx.lineWidth = isMobile ? 1.5 : 2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = button.iconColor || '#EC4899';
+      // 杯身
+      ctx.beginPath();
+      ctx.moveTo(iconCenterX - s * 0.55, iconCenterY - s * 0.7);
+      ctx.lineTo(iconCenterX + s * 0.55, iconCenterY - s * 0.7);
+      ctx.lineTo(iconCenterX + s * 0.45, iconCenterY + s * 0.1);
+      ctx.quadraticCurveTo(iconCenterX, iconCenterY + s * 0.4, iconCenterX - s * 0.45, iconCenterY + s * 0.1);
+      ctx.closePath();
+      ctx.stroke();
+      // 左手柄
+      ctx.beginPath();
+      ctx.moveTo(iconCenterX - s * 0.55, iconCenterY - s * 0.55);
+      ctx.quadraticCurveTo(iconCenterX - s, iconCenterY - s * 0.3, iconCenterX - s * 0.55, iconCenterY);
+      ctx.stroke();
+      // 右手柄
+      ctx.beginPath();
+      ctx.moveTo(iconCenterX + s * 0.55, iconCenterY - s * 0.55);
+      ctx.quadraticCurveTo(iconCenterX + s, iconCenterY - s * 0.3, iconCenterX + s * 0.55, iconCenterY);
+      ctx.stroke();
+      // 底座
+      ctx.beginPath();
+      ctx.moveTo(iconCenterX - s * 0.15, iconCenterY + s * 0.3);
+      ctx.lineTo(iconCenterX + s * 0.15, iconCenterY + s * 0.3);
+      ctx.moveTo(iconCenterX, iconCenterY + s * 0.3);
+      ctx.lineTo(iconCenterX, iconCenterY + s * 0.55);
+      ctx.moveTo(iconCenterX - s * 0.35, iconCenterY + s * 0.55);
+      ctx.lineTo(iconCenterX + s * 0.35, iconCenterY + s * 0.55);
+      ctx.stroke();
+      // 星星装饰
+      ctx.beginPath();
+      ctx.arc(iconCenterX, iconCenterY - s * 0.25, s * 0.12, 0, Math.PI * 2);
+      ctx.stroke();
     }
 
     // Title - centered below icon
