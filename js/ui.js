@@ -1820,7 +1820,7 @@ export default class UI {
     ctx.textBaseline = 'middle';
     ctx.font = `${isMobile ? 10 : 11}px Arial, sans-serif`;
     ctx.fillStyle = scheme.textSecondary;
-    ctx.fillText('Designed by xiangjianan · 100% AI Developed', this.width / 2, badgeY);
+    ctx.fillText('Designed by xiangjianan · 🤖 · 100% AI Developed', this.width / 2, badgeY);
     ctx.restore();
   }
 
