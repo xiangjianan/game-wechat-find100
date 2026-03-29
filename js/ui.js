@@ -1593,7 +1593,7 @@ export default class UI {
     } else if (this.modalType === 'resetConfirm') {
       modalHeight = isMobile ? 580 : 650;
     } else {
-      modalHeight = isMobile ? 380 : 420;
+      modalHeight = (isMobile ? 380 : 420) + extraButtonHeight;
     }
 
     const maxModalHeight = this.height - 40;
@@ -1798,7 +1798,9 @@ export default class UI {
       ctx.fillText(line, centerX, messageY + index * lineHeight);
     });
     
-    this.renderModalButtons(ctx, x, y + height - (isMobile ? 100 : 110), width, isMobile);
+    const defBtnCount = this.modalButtons ? this.modalButtons.length : 0;
+    const defExtraH = Math.max(0, defBtnCount - 2) * (isMobile ? 62 : 74);
+    this.renderModalButtons(ctx, x, y + height - (isMobile ? 100 : 110) - defExtraH, width, isMobile);
   }
 
   renderModalButtons(ctx, x, y, width, isMobile) {
@@ -1823,7 +1825,7 @@ export default class UI {
       let fillColor;
       if (button.id === 'nextLevel' || button.id === 'restart') {
         fillColor = scheme.buttonSuccess;
-      } else if (button.id === 'playAgain' || button.id === 'tryAgain') {
+      } else if (button.id === 'playAgain' || button.id === 'tryAgain' || button.id === 'resume') {
         fillColor = scheme.buttonPrimary;
       } else if (button.id === 'share') {
         fillColor = '#8B5CF6';
