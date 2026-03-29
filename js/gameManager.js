@@ -338,6 +338,7 @@ export default class GameManager {
   }
 
   startTimer() {
+    if (this.gameMode !== 'timed') return;
     this.stopTimer();
     this.timerStartTime = Date.now();
     this.timerLastUpdate = this.timerStartTime;
@@ -374,6 +375,7 @@ export default class GameManager {
   }
 
   pauseTimer() {
+    if (this.gameMode !== 'timed') return false;
     if (this.gameState !== 'playing' || this.isPaused) return false;
     this.isPaused = true;
     this.pauseStartTime = Date.now();
@@ -382,6 +384,7 @@ export default class GameManager {
   }
 
   resumeTimer() {
+    if (this.gameMode !== 'timed') return false;
     if (!this.isPaused) return false;
     this.isPaused = false;
     this.timerLastUpdate = Date.now();
