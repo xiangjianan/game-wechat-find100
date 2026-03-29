@@ -16,6 +16,7 @@ export default class SoundManager {
     try {
       this.sounds.click = wx.createInnerAudioContext();
       this.sounds.click.src = 'audio/click.wav';
+      this.sounds.click.volume = this.volume * 0.5;
       this.sounds.click.onError(() => {
         this.useGeneratedAudio = true;
       });

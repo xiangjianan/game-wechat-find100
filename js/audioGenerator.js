@@ -27,11 +27,11 @@ export class AudioGenerator {
     return this.audioContext;
   }
 
-  static playWxSound(src) {
+  static playWxSound(src, volume = 0.5) {
     try {
       const audio = wx.createInnerAudioContext();
       audio.src = src;
-      audio.volume = 0.5;
+      audio.volume = volume;
       audio.play();
     } catch (e) {
       // 静默处理错误
@@ -60,15 +60,25 @@ export class AudioGenerator {
 
   static generateClickSound() {
     if (this.isWxEnvironment()) {
-      this.playWxSound('audio/click.wav');
+      this.playWxSound('audio/click.wav', 0.18);
       return;
     }
-    
+
     const audioContext = this.getAudioContext();
     if (!audioContext || !audioContext.destination) return;
-    
+
     try {
-      this.createTone(audioContext, 800, 'sine', 0.1);
+      const gainNode = audioContext.createGain();
+      gainNode.connect(audioContext.destination);
+      const oscillator = audioContext.createOscillator();
+      oscillator.connect(gainNode);
+      oscillator.frequency.value = 800;
+      oscillator.type = 'sine';
+      const startTime = audioContext.currentTime;
+      gainNode.gain.setValueAtTime(0.15, startTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.1);
+      oscillator.start(startTime);
+      oscillator.stop(startTime + 0.1);
     } catch (e) {
       // 静默处理错误
     }

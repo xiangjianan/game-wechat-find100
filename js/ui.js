@@ -46,6 +46,7 @@ export default class UI {
     this.eggTriggered = false;
     this.eggTriggerTime = 0;
     this.eggTriggerDuration = 5.0;
+    this.eggCloseButton = null;
 
     this.gameState = 'menu';
 
@@ -714,11 +715,7 @@ export default class UI {
     if (!this.eggTriggered) return;
 
     this.eggTriggerTime += deltaTime;
-
-    if (this.eggTriggerTime >= this.eggTriggerDuration) {
-      this.eggTriggered = false;
-      this.eggTriggerTime = 0;
-    }
+    // 不再自动关闭，等用户点击关闭
   }
 
   renderEffects(ctx) {
@@ -746,54 +743,104 @@ export default class UI {
   }
 
   renderEggEffect(ctx) {
-    const progress = this.eggTriggerTime / this.eggTriggerDuration;
-    let alpha;
+    const scheme = this.getScheme();
+    const isMobile = this.width < 768;
+    const t = this.eggTriggerTime;
 
-    if (progress < 0.8) {
-      alpha = 1;
-    } else {
-      alpha = Math.max(0, 1 - (progress - 0.8) / 0.2);
-    }
+    // 仅淡入
+    let alpha = Math.min(1, this.eggTriggerTime / 0.3);
 
     ctx.save();
-    ctx.globalAlpha = alpha;
-
     const centerX = this.width / 2;
     const centerY = this.height / 2;
 
-    const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.min(this.width, this.height) / 2);
-    gradient.addColorStop(0, `rgba(255, 215, 0, ${alpha * 0.8})`);
-    gradient.addColorStop(0.5, `rgba(255, 215, 0, ${alpha * 0.4})`);
-    gradient.addColorStop(1, `rgba(255, 215, 0, 0)`);
-
+    // 柔和的全屏光晕，使用游戏主题色
+    const glowAlpha = alpha * 0.25 * (0.8 + Math.sin(t * 3) * 0.2);
+    const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.min(this.width, this.height) * 0.6);
+    gradient.addColorStop(0, `rgba(99, 102, 241, ${glowAlpha})`);
+    gradient.addColorStop(0.4, `rgba(139, 92, 246, ${glowAlpha * 0.5})`);
+    gradient.addColorStop(1, `rgba(99, 102, 241, 0)`);
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, this.width, this.height);
 
-    const starCount = 20;
-    for (let i = 0; i < starCount; i++) {
-      const angle = (i / starCount) * Math.PI * 2 + this.eggTriggerTime * 2;
-      const radius = 100 + Math.sin(this.eggTriggerTime * 5 + i) * 30;
+    // 环绕粒子：从中心向外扩散，使用主题色
+    const particleCount = 16;
+    for (let i = 0; i < particleCount; i++) {
+      const baseAngle = (i / particleCount) * Math.PI * 2;
+      const angle = baseAngle + t * 0.8;
+      const expandPhase = Math.min(1, this.eggTriggerTime / 0.3);
+      const radius = 30 + expandPhase * (60 + i * 3) + Math.sin(t * 2 + i) * 15;
       const x = centerX + Math.cos(angle) * radius;
       const y = centerY + Math.sin(angle) * radius;
-      const size = 3 + Math.sin(this.eggTriggerTime * 3 + i * 2) * 2;
+      const size = (2 + Math.sin(t * 4 + i * 1.5) * 1) * alpha;
+      const particleAlpha = alpha * (0.5 + Math.sin(t * 3 + i) * 0.3);
 
-      ctx.fillStyle = '#FFD700';
+      ctx.globalAlpha = particleAlpha;
+      ctx.fillStyle = i % 3 === 0 ? scheme.accent : (i % 3 === 1 ? scheme.secondary : '#FFD700');
       ctx.beginPath();
-      ctx.arc(x, y, size, 0, Math.PI * 2);
+      ctx.arc(x, y, Math.max(0.5, size), 0, Math.PI * 2);
       ctx.fill();
     }
 
-    ctx.fillStyle = '#FF6B35';
-    ctx.font = 'bold 48px "Arial Black", Arial, sans-serif';
+    // 中央卡片式提示
+    ctx.globalAlpha = alpha;
+    const cardWidth = isMobile ? 260 : 320;
+    const cardHeight = isMobile ? 170 : 190;
+    const cardX = centerX - cardWidth / 2;
+    const cardY = centerY - cardHeight / 2;
+
+    // 卡片背景
+    this.drawBrutalismRect(ctx, cardX, cardY, cardWidth, cardHeight, scheme.cardBg, {
+      shadowOffset: 6,
+      borderWidth: 3
+    });
+
+    // 顶部彩色条
+    const barColors = [scheme.primary, scheme.secondary, scheme.accent];
+    const barWidth = cardWidth / 3;
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = barColors[i];
+      ctx.globalAlpha = alpha * 0.8;
+      ctx.fillRect(cardX + 3 + i * barWidth, cardY + 3, barWidth, 4);
+    }
+
+    ctx.globalAlpha = alpha;
+
+    // 标题
+    ctx.fillStyle = scheme.primary;
+    ctx.font = `bold ${isMobile ? 16 : 20}px "Arial Black", Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.globalAlpha = alpha * 0.9;
-    ctx.fillText('🎉 逆向思维大师！', centerX, centerY - 80);
-    ctx.font = 'bold 24px "Arial Black", Arial, sans-serif';
-    ctx.fillText('谢谢你玩我的游戏！', centerX, centerY - 30);
-    ctx.font = 'bold 32px "Arial Black", Arial, sans-serif';
-    ctx.fillStyle = '#FF6B35';
-    ctx.fillText('+100,000 💰', centerX, centerY + 30);
+    ctx.fillText('你发现了隐藏彩蛋！', centerX, cardY + cardHeight * 0.16);
+
+    // 正文
+    ctx.fillStyle = scheme.text;
+    ctx.font = `${isMobile ? 11 : 13}px Arial, sans-serif`;
+    ctx.fillText('感谢你花时间游玩这个小游戏', centerX, cardY + cardHeight * 0.34);
+
+    // 开发者署名
+    ctx.fillStyle = scheme.textSecondary;
+    ctx.font = `${isMobile ? 10 : 12}px Arial, sans-serif`;
+    ctx.fillText('—— xiangjianan', centerX, cardY + cardHeight * 0.50);
+
+    // 奖励
+    ctx.fillStyle = scheme.buttonSuccess;
+    ctx.font = `bold ${isMobile ? 14 : 18}px "Arial Black", Arial, sans-serif`;
+    ctx.fillText('+100,000 coins', centerX, cardY + cardHeight * 0.65);
+
+    // 关闭按钮
+    const closeBtnWidth = isMobile ? 120 : 140;
+    const closeBtnHeight = isMobile ? 32 : 36;
+    const closeBtnX = centerX - closeBtnWidth / 2;
+    const closeBtnY = cardY + cardHeight - closeBtnHeight - 12;
+    this.drawBrutalismRect(ctx, closeBtnX, closeBtnY, closeBtnWidth, closeBtnHeight, scheme.primary, {
+      shadowOffset: 3,
+      borderWidth: 2
+    });
+    this.eggCloseButton = { x: closeBtnX, y: closeBtnY, width: closeBtnWidth, height: closeBtnHeight };
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = `bold ${isMobile ? 13 : 15}px Arial, sans-serif`;
+    ctx.fillText('我知道了', centerX, closeBtnY + closeBtnHeight / 2);
 
     ctx.restore();
   }
@@ -1051,6 +1098,21 @@ export default class UI {
   }
 
   handleClick(x, y) {
+    // 彩蛋弹框关闭按钮
+    if (this.eggTriggered && this.eggCloseButton) {
+      const btn = this.eggCloseButton;
+      if (x >= btn.x && x <= btn.x + btn.width &&
+          y >= btn.y && y <= btn.y + btn.height) {
+        if (this.onPlayClickSound) this.onPlayClickSound();
+        this.eggTriggered = false;
+        this.eggTriggerTime = 0;
+        this.eggCloseButton = null;
+        return true;
+      }
+      // 点击卡片其他区域不做任何事
+      return true;
+    }
+
     if (this.showRank) {
       return false;
     }
@@ -1820,7 +1882,7 @@ export default class UI {
     ctx.textBaseline = 'middle';
     ctx.font = `${isMobile ? 10 : 11}px Arial, sans-serif`;
     ctx.fillStyle = scheme.textSecondary;
-    ctx.fillText('Designed by xiangjianan · 🤖 · 100% AI Developed', this.width / 2, badgeY);
+    ctx.fillText('Inspired by xiangjianan · 🤖 · 100% AI Developed', this.width / 2, badgeY);
     ctx.restore();
   }
 
