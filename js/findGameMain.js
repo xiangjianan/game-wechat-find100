@@ -712,14 +712,6 @@ export default class FindGameMain {
       });
     }
 
-    buttons.splice(-1, 0, {
-      id: 'share',
-      text: '分享战绩',
-      action: () => {
-        this.shareManager.shareAppMessage();
-      }
-    });
-    
     this.ui.showModalDialog(
       'gameComplete',
       '恭喜通关！',
@@ -751,13 +743,6 @@ export default class FindGameMain {
           action: () => {
             this.ui.hideModal();
             this.resetGame();
-          }
-        },
-        {
-          id: 'share',
-          text: '分享给朋友',
-          action: () => {
-            this.shareManager.shareAppMessage();
           }
         },
         {

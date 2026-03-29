@@ -1827,8 +1827,6 @@ export default class UI {
         fillColor = scheme.buttonSuccess;
       } else if (button.id === 'playAgain' || button.id === 'tryAgain' || button.id === 'resume') {
         fillColor = scheme.buttonPrimary;
-      } else if (button.id === 'share') {
-        fillColor = '#8B5CF6';
       } else if (button.id === 'confirm') {
         fillColor = button.color || '#FF6B6B';
       } else if (button.id === 'cancel') {
