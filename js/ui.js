@@ -1925,7 +1925,7 @@ export default class UI {
 
     this.renderModernTitle(ctx, this.width / 2, titleY, titleSize);
 
-    const sloganY = titleY + (isMobile ? 80 : 100);
+    const sloganY = titleY + (isMobile ? 85 : 108);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
@@ -2017,42 +2017,94 @@ export default class UI {
 
   renderModernTitle(ctx, x, y, size) {
     const scheme = this.getScheme();
-    const title = '数一数噻';
+    const chars = ['数', '一', '数', '噻'];
+    const tileColors = [
+      { start: '#6366F1', end: '#818CF8' },
+      { start: '#EC4899', end: '#F472B6' },
+      { start: '#10B981', end: '#34D399' },
+      { start: '#F59E0B', end: '#FBBF24' }
+    ];
+    const tileNumbers = ['1', '2', '3', '4'];
+
+    const tilePaddingX = size * 0.32;
+    const tilePaddingY = size * 0.28;
+    const tileGap = size * 0.12;
+    const tileRadius = size * 0.28;
 
     ctx.save();
-
     ctx.font = `800 ${size}px "Arial Black", Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    const textWidth = ctx.measureText(title).width;
-    const paddingX = 36;
-    const paddingY = 20;
-    const boxWidth = textWidth + paddingX * 2;
-    const boxHeight = size + paddingY * 2;
-    const boxX = x - boxWidth / 2;
-    const boxY = y - boxHeight / 2;
-    const radius = 24;
+    const charWidths = chars.map(c => ctx.measureText(c).width);
+    const tileWidth = Math.max(...charWidths) + tilePaddingX * 2;
+    const tileHeight = size + tilePaddingY * 2;
+    const totalWidth = tileWidth * chars.length + tileGap * (chars.length - 1);
+    const startX = x - totalWidth / 2;
 
-    ctx.shadowColor = 'rgba(99, 102, 241, 0.25)';
-    ctx.shadowBlur = 40;
-    ctx.shadowOffsetY = 8;
-    const boxGradient = ctx.createLinearGradient(boxX, boxY, boxX + boxWidth, boxY + boxHeight);
-    boxGradient.addColorStop(0, '#6366F1');
-    boxGradient.addColorStop(1, '#3B82F6');
-    ctx.fillStyle = boxGradient;
-    this.roundRect(ctx, boxX, boxY, boxWidth, boxHeight, radius);
-    ctx.fill();
+    const t = Date.now() / 1000;
 
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetY = 0;
-    ctx.shadowColor = 'transparent';
+    for (let i = 0; i < chars.length; i++) {
+      const tx = startX + i * (tileWidth + tileGap);
+      const ty = y - tileHeight / 2;
+      const bounceOffset = Math.sin(t * 1.8 + i * 0.9) * 3;
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-    ctx.fillRect(boxX, boxY, boxWidth, boxHeight * 0.45);
+      ctx.save();
 
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillText(title, x, y + 2);
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
+      ctx.shadowBlur = 16;
+      ctx.shadowOffsetY = 4 + bounceOffset * 0.5;
+
+      const grad = ctx.createLinearGradient(tx, ty + bounceOffset, tx + tileWidth, ty + tileHeight + bounceOffset);
+      grad.addColorStop(0, tileColors[i].start);
+      grad.addColorStop(1, tileColors[i].end);
+      ctx.fillStyle = grad;
+      this.roundRect(ctx, tx, ty + bounceOffset, tileWidth, tileHeight, tileRadius);
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.shadowColor = 'transparent';
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+      this.roundRect(ctx, tx, ty + bounceOffset, tileWidth, tileHeight * 0.45, tileRadius);
+      ctx.fill();
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText(chars[i], tx + tileWidth / 2, y + 2 + bounceOffset);
+
+      const numSize = Math.round(size * 0.22);
+      ctx.font = `bold ${numSize}px Arial, sans-serif`;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+      ctx.fillText(tileNumbers[i], tx + tileWidth - numSize * 0.6, ty + bounceOffset + numSize * 0.8);
+
+      ctx.font = `800 ${size}px "Arial Black", Arial, sans-serif`;
+      ctx.restore();
+    }
+
+    const decorNumbers = ['1', '2', '3', '5', '8', '13'];
+    const decorPositions = [
+      { px: -0.42, py: -0.7, s: 0.18 },
+      { px: 0.38, py: -0.65, s: 0.15 },
+      { px: -0.5, py: 0.6, s: 0.14 },
+      { px: 0.48, py: 0.55, s: 0.17 },
+      { px: -0.15, py: -0.78, s: 0.12 },
+      { px: 0.2, py: 0.72, s: 0.13 }
+    ];
+    const decorColors = ['rgba(99,102,241,0.15)', 'rgba(236,72,153,0.12)', 'rgba(16,185,129,0.12)', 'rgba(245,158,11,0.12)', 'rgba(59,130,246,0.10)', 'rgba(139,92,246,0.10)'];
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    decorPositions.forEach((pos, i) => {
+      const dx = x + totalWidth * pos.px;
+      const dy = y + tileHeight * pos.py;
+      const drift = Math.sin(t * 0.8 + i * 1.2) * 4;
+      const fontSize = Math.round(size * pos.s);
+      ctx.font = `900 ${fontSize}px "Arial Black", Arial, sans-serif`;
+      ctx.fillStyle = decorColors[i];
+      ctx.fillText(decorNumbers[i], dx, dy + drift);
+    });
 
     ctx.restore();
   }
