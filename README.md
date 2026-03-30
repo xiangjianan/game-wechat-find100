@@ -1,3 +1,10 @@
+<p align="center">
+  <img src="https://img.shields.io/badge/🤖_100%25_AI_Developed-7C3AED?style=for-the-badge" alt="100% AI Developed" />
+  <img src="https://img.shields.io/badge/✨_全程AI生成-00D4AA?style=for-the-badge" alt="全程AI生成" />
+</p>
+
+> **💡 本仓库 100% 由 AI 独立完成开发，从需求分析、代码编写到测试调试，全程由 AI 主导完成，无任何人工编写代码。**
+
 # 数一数噻 (Find Numbers Game)
 
 一个基于微信小游戏平台的数字查找益智游戏。玩家需要在限定时间内，按顺序（1, 2, 3...）点击屏幕上随机分布的多边形中的数字。
