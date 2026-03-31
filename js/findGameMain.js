@@ -764,9 +764,9 @@ export default class FindGameMain {
 
   renderGameBackground(ctx) {
     const gradient = ctx.createLinearGradient(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    gradient.addColorStop(0, '#F8FAFC');
-    gradient.addColorStop(0.5, '#EFF6FF');
-    gradient.addColorStop(1, '#F5F3FF');
+    gradient.addColorStop(0, '#FEFBF6');
+    gradient.addColorStop(0.5, '#FAF5EE');
+    gradient.addColorStop(1, '#F5F0FF');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
   }
