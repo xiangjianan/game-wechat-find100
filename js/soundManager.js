@@ -44,10 +44,7 @@ export default class SoundManager {
       this.sounds.egg = wx.createInnerAudioContext();
       this.sounds.egg.src = 'audio/egg.wav';
       this.sounds.egg.onError(() => {
-        console.log('Egg audio load error, will use fallback');
-      });
-      this.sounds.egg.onCanplay(() => {
-        console.log('Egg audio ready to play');
+        this.useGeneratedAudio = true;
       });
     } catch (e) {
       this.useGeneratedAudio = true;
@@ -133,17 +130,11 @@ export default class SoundManager {
       return;
     }
     
-    if (!this.sounds.egg) {
-      console.log('Egg sound not initialized');
-      return;
-    }
+    if (!this.sounds.egg) return;
     try {
       this.sounds.egg.stop();
       this.sounds.egg.play();
-      console.log('Playing egg sound');
-    } catch (e) {
-      console.log('Error playing egg sound:', e);
-    }
+    } catch (e) {}
   }
 
   playBackground() {

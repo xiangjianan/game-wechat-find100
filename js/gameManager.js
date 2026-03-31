@@ -43,6 +43,11 @@ export default class GameManager {
     this.eagleEyeTimeoutId = null;
     this.onRewardTriggered = null;
 
+    this.countdownActive = false;
+    this.countdownValue = 3;
+    this.countdownStartTime = 0;
+    this.countdownDuration = 3000;
+
     this.setupComboCallbacks();
     this.eggManager.init();
   }
@@ -92,14 +97,37 @@ export default class GameManager {
     this.errorCount = 0;
     this.hintCount = this.itemManager ? this.itemManager.getItemCount('hint') : 0;
     this.hintedPolygon = null;
-    
+
     if (this.gameMode === 'timed') {
-      this.startTimer();
+      this.startCountdown();
     }
+  }
+
+  startCountdown() {
+    this.countdownActive = true;
+    this.countdownValue = 3;
+    this.countdownStartTime = Date.now();
+  }
+
+  isCountdownActive() {
+    if (!this.countdownActive) return false;
+    const elapsed = Date.now() - this.countdownStartTime;
+    if (elapsed >= this.countdownDuration) {
+      this.countdownActive = false;
+      this.startTimer();
+      return false;
+    }
+    this.countdownValue = 3 - Math.floor(elapsed / 1000);
+    return true;
+  }
+
+  getCountdownValue() {
+    return this.countdownValue;
   }
 
   handleClick(x, y) {
     if (this.gameState !== 'playing') return;
+    if (this.countdownActive) return;
 
     for (const polygon of this.polygons) {
       if (!polygon.isClicked && polygon.containsPoint({ x, y })) {
@@ -293,11 +321,12 @@ export default class GameManager {
     for (const polygon of this.polygons) {
       polygon.update();
     }
-    
-    // 注意：倒计时由 setInterval 在 updateTimer() 中管理
-    // 不在此处重复扣减，避免双倍计时问题
-    // 仅检查是否超时（用于处理边界情况）
+
     if (this.gameMode === 'timed' && this.gameState === 'playing' && !this.isPaused) {
+      if (this.countdownActive) {
+        this.isCountdownActive();
+        return;
+      }
       if (this.timeLeft <= 0 && this.gameState !== 'failed') {
         this.handleTimeUp();
       }

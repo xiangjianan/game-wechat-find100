@@ -136,6 +136,20 @@ export default class UI {
     this.shopProducts = null;
 
     this.shimmerTime = 0;
+
+    this.timerPulse = 0;
+    this.edgeFlashAlpha = 0;
+    this.showSettingsPanel = false;
+    this.settingsData = {
+      soundEnabled: true,
+      vibrationEnabled: true,
+      darkMode: 'auto'
+    };
+    this.settingsHoveredToggle = null;
+
+    this.countdownActive = false;
+    this.countdownValue = 3;
+    this.countdownAlpha = 0;
   }
 
   getScheme() {
@@ -813,6 +827,13 @@ export default class UI {
     this.updateSkillsScrollInertia(deltaTime);
     this.updateEggEffect(deltaTime);
     this.updateRewardNotifications(deltaTime);
+
+    if (this.timerPulse > 0) {
+      this.timerPulse += deltaTime * 4;
+    }
+    if (this.edgeFlashAlpha > 0) {
+      this.edgeFlashAlpha = Math.max(0, this.edgeFlashAlpha - deltaTime * 2);
+    }
 
     for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
       const ft = this.floatingTexts[i];
@@ -1967,6 +1988,23 @@ export default class UI {
 
     this.renderEffects(ctx);
     this.renderAchievementNotifications(ctx);
+
+    // Edge flash warning when timer is low
+    if (this.edgeFlashAlpha > 0) {
+      ctx.save();
+      ctx.globalAlpha = this.edgeFlashAlpha * 0.3;
+      const grad = ctx.createLinearGradient(0, 0, 0, 20);
+      grad.addColorStop(0, '#EF4444');
+      grad.addColorStop(1, 'rgba(239, 68, 68, 0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, this.width, 20);
+      const grad2 = ctx.createLinearGradient(0, this.height, 0, this.height - 20);
+      grad2.addColorStop(0, '#EF4444');
+      grad2.addColorStop(1, 'rgba(239, 68, 68, 0)');
+      ctx.fillStyle = grad2;
+      ctx.fillRect(0, this.height - 20, this.width, 20);
+      ctx.restore();
+    }
   }
 
   updateMenuAnimation(deltaTime) {
@@ -2188,10 +2226,41 @@ export default class UI {
     const bottomSafeArea = Math.max(this.safeArea.bottom, isMobile ? 34 : 0);
     const headerHeight = isMobile ? Math.max(100, topSafeArea + 56) : 120;
     const footerHeight = isMobile ? Math.max(80, bottomSafeArea + 46) : 60;
-    
+
     this.renderHeader(ctx, headerHeight, topSafeArea, isMobile, timeLeft, currentNumber, totalNumbers);
-    
+
     this.renderFooter(ctx, footerHeight, bottomSafeArea, isMobile, currentNumber, totalNumbers);
+
+    // Countdown overlay (3-2-1-GO!)
+    if (this.countdownActive) {
+      this.renderCountdown(ctx);
+    }
+  }
+
+  renderCountdown(ctx) {
+    const centerX = this.width / 2;
+    const centerY = this.height / 2;
+    const text = this.countdownValue > 0 ? this.countdownValue.toString() : 'GO!';
+
+    ctx.save();
+    ctx.globalAlpha = this.countdownAlpha;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    ctx.font = `bold ${Math.min(this.width, this.height) * 0.25}px "Arial Black", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    const color = this.countdownValue > 0 ? '#FFFFFF' : '#10B981';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = 20;
+    ctx.fillStyle = color;
+    ctx.fillText(text, centerX, centerY);
+
+    ctx.restore();
+
+    this.countdownAlpha -= 0.015;
   }
 
   renderHeader(ctx, headerHeight, topSafeArea, isMobile, timeLeft, currentNumber, totalNumbers) {
@@ -2271,9 +2340,12 @@ export default class UI {
 
       let timerColor;
       let timerBgColor;
-      if (timeLeft <= 5.0) {
+      if (timeLeft <= 3.0) {
         timerColor = scheme.textLight;
         timerBgColor = scheme.danger;
+      } else if (timeLeft <= 5.0) {
+        timerColor = scheme.textLight;
+        timerBgColor = scheme.buttonPrimary;
       } else if (timeLeft <= 10.0) {
         timerColor = scheme.textLight;
         timerBgColor = scheme.buttonPrimary;
@@ -2282,12 +2354,24 @@ export default class UI {
         timerBgColor = scheme.accent;
       }
 
+      // Timer pulse animation when < 5s
+      let timerScale = 1;
+      if (timeLeft <= 5.0 && timeLeft > 0) {
+        this.timerPulse += 0.1;
+        timerScale = 1 + Math.sin(this.timerPulse) * 0.05;
+        if (timeLeft <= 3.0) {
+          this.edgeFlashAlpha = Math.max(this.edgeFlashAlpha, 0.5 + Math.sin(this.timerPulse * 1.5) * 0.3);
+        }
+      }
+
       const timerWidth = isMobile ? 100 : 120;
       const timerHeight = isMobile ? 44 : 52;
-      const timerX = centerX - timerWidth / 2;
-      const timerBoxY = timerY - timerHeight / 2;
+      const sw = timerWidth * timerScale;
+      const sh = timerHeight * timerScale;
+      const sx = centerX - sw / 2;
+      const sy = timerY - sh / 2;
 
-      this.drawBrutalismRect(ctx, timerX, timerBoxY, timerWidth, timerHeight, timerBgColor, {
+      this.drawBrutalismRect(ctx, sx, sy, sw, sh, timerBgColor, {
         shadowOffset: 4,
         borderWidth: 3
       });
@@ -2893,18 +2977,40 @@ export default class UI {
   }
 
   renderComboDisplay(ctx) {
-    if (this.comboData.count < 5) return;
-    
+    if (this.comboData.count < 2) return;
+
     const scheme = this.getScheme();
     const isMobile = this.width < 768;
     const centerX = this.width / 2;
-    // 放在标题栏底部边缘，不侵入游戏区域
     const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
     const headerHeight = isMobile ? Math.max(100, topSafeArea + 56) : 120;
     const centerY = headerHeight + (isMobile ? 20 : 24);
     const level = this.comboData.level;
     const color = level ? level.color : scheme.accent;
     const scale = this.comboData.scale;
+
+    // Low combo (2-4): small subtle indicator
+    if (this.comboData.count >= 2 && this.comboData.count < 5) {
+      ctx.save();
+      const pillWidth = isMobile ? 70 : 80;
+      const pillHeight = isMobile ? 24 : 28;
+      const pillX = centerX - pillWidth / 2;
+      const pillY = centerY - pillHeight / 2;
+
+      ctx.globalAlpha = 0.7;
+      ctx.fillStyle = scheme.accent;
+      this.roundRect(ctx, pillX, pillY, pillWidth, pillHeight, pillHeight / 2);
+      ctx.fill();
+
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = `bold ${isMobile ? 12 : 14}px "Arial Black", Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`${this.comboData.count}连击`, centerX, centerY);
+      ctx.restore();
+      return;
+    }
 
     ctx.save();
     ctx.globalAlpha = 0.85;

@@ -264,12 +264,12 @@ export default class Polygon {
   renderText(ctx) {
     const scheme = getCachedScheme();
     const stateColors = cachedStateColors;
-    
+
     const center = this.getCenter();
     const transformX = center.x + this.shakeOffset.x;
     const transformY = center.y + this.shakeOffset.y;
-    
-    // 使用局部变换而非save/restore
+
+    ctx.save();
     ctx.translate(transformX, transformY);
     ctx.scale(this.scale, this.scale);
     ctx.translate(-center.x, -center.y);
@@ -279,12 +279,12 @@ export default class Polygon {
     const digitMultiplier = digitCount === 1 ? 1.0 : digitCount === 2 ? 0.8 : 0.65;
     const fontSize = baseFontSize * digitMultiplier;
     ctx.font = `bold ${fontSize}px Arial, sans-serif`;
-    
+
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    
+
     const text = this.number.toString();
-    
+
     if (!this.isClicked) {
       ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
       const shadowOffset = 1;
@@ -293,7 +293,7 @@ export default class Polygon {
       ctx.fillText(text, center.x - shadowOffset, center.y + shadowOffset);
       ctx.fillText(text, center.x + shadowOffset, center.y + shadowOffset);
     }
-    
+
     if (this.isClicked) {
       ctx.fillStyle = stateColors.textClicked;
     } else {
@@ -302,10 +302,7 @@ export default class Polygon {
     }
     ctx.fillText(text, center.x, center.y);
 
-    // 重置变换
-    ctx.translate(center.x, center.y);
-    ctx.scale(1 / this.scale, 1 / this.scale);
-    ctx.translate(-transformX, -transformY);
+    ctx.restore();
   }
 
   render(ctx) {
