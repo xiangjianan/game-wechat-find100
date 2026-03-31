@@ -504,6 +504,8 @@ export default class FindGameMain {
       } else {
         this.ui.showFloatingText(center.x, center.y, '错误', '#FF4444');
       }
+      // 错误时屏幕抖动
+      this.ui.shakeScreen(0.3, 10);
     };
     
     this.gameManager.onCorrectClick = (center, comboLevel) => {
@@ -528,6 +530,8 @@ export default class FindGameMain {
           this.ui.showFloatingText(center.x, center.y, '正确', '#44FF44');
         }
       }
+      // 正确时轻微闪烁
+      this.ui.flashScreen('rgba(76, 175, 80, 0.15)', 0.1);
     };
     
     this.gameManager.onComboUpdate = (count, level) => {

@@ -136,10 +136,73 @@ export default class UI {
     this.shopProducts = null;
 
     this.shimmerTime = 0;
+    this.ripples = [];
+    this.particles = [];
+    this.initParticles();
+  }
+
+  initParticles() {
+    for (let i = 0; i < 20; i++) {
+      this.particles.push({
+        x: Math.random() * this.width,
+        y: Math.random() * this.height,
+        size: Math.random() * 3 + 1,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        alpha: Math.random() * 0.5 + 0.2
+      });
+    }
+  }
+
+  createRipple(x, y, color = 'rgba(255, 255, 255, 0.4)') {
+    this.ripples.push({
+      x, y,
+      radius: 0,
+      maxRadius: 100,
+      alpha: 1,
+      color
+    });
+  }
+
+  updateRipples(dt) {
+    for (let i = this.ripples.length - 1; i >= 0; i--) {
+      const r = this.ripples[i];
+      r.radius += dt * 300;
+      r.alpha -= dt * 2;
+      if (r.alpha <= 0) {
+        this.ripples.splice(i, 1);
+      }
+    }
+  }
+
+  updateParticles(dt) {
+    this.particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0) p.x = this.width;
+      if (p.x > this.width) p.x = 0;
+      if (p.y < 0) p.y = this.height;
+      if (p.y > this.height) p.y = 0;
+    });
   }
 
   getScheme() {
     return getColorScheme();
+  }
+
+  // Easing functions for smooth animations
+  easeOutQuart(x) {
+    return 1 - Math.pow(1 - x, 4);
+  }
+
+  easeOutBack(x) {
+    const c1 = 1.70158;
+    const c3 = c1 + 1;
+    return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+  }
+
+  lerp(start, end, t) {
+    return start * (1 - t) + end * t;
   }
 
   roundRect(ctx, x, y, width, height, radius) {
@@ -250,6 +313,18 @@ export default class UI {
     bottomShine.addColorStop(1, 'rgba(255, 255, 255, 0.08)');
     ctx.fillStyle = bottomShine;
     ctx.fillRect(scaledX + 1, scaledY + scaledHeight * 0.7, scaledWidth - 2, scaledHeight * 0.3 - 1);
+
+    // Ripple effect
+    if (button.ripple) {
+      ctx.save();
+      this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
+      ctx.clip();
+      ctx.beginPath();
+      ctx.arc(button.ripple.x, button.ripple.y, button.ripple.radius, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.fill();
+      ctx.restore();
+    }
 
     // Text
     ctx.fillStyle = '#FFFFFF';
@@ -1251,6 +1326,7 @@ export default class UI {
   }
 
   handleClick(x, y) {
+    this.createRipple(x, y);
     // 彩蛋弹框关闭按钮
     if (this.eggTriggered && this.eggCloseButton) {
       const btn = this.eggCloseButton;
@@ -1902,6 +1978,9 @@ export default class UI {
     this.updateAchievementNotifications(deltaTime);
     this.updateShopScrollInertia(deltaTime);
 
+    ctx.save();
+    ctx.translate(this.shakeOffset.x, this.shakeOffset.y);
+
     if (this.showShop) {
       this.renderMenu(ctx);
       this.renderShop(ctx);
@@ -1910,6 +1989,7 @@ export default class UI {
       if (this.showModal) {
         this.renderModal(ctx);
       }
+      ctx.restore();
       return;
     }
 
@@ -1921,6 +2001,7 @@ export default class UI {
       if (this.showModal) {
         this.renderModal(ctx);
       }
+      ctx.restore();
       return;
     }
 
@@ -1932,6 +2013,7 @@ export default class UI {
       if (this.showModal) {
         this.renderModal(ctx);
       }
+      ctx.restore();
       return;
     }
 
@@ -1942,6 +2024,7 @@ export default class UI {
       if (this.showModal) {
         this.renderModal(ctx);
       }
+      ctx.restore();
       return;
     }
 
@@ -1967,6 +2050,7 @@ export default class UI {
 
     this.renderEffects(ctx);
     this.renderAchievementNotifications(ctx);
+    ctx.restore();
   }
 
   updateMenuAnimation(deltaTime) {
@@ -2047,6 +2131,7 @@ export default class UI {
     ctx.font = `${isMobile ? 10 : 11}px Arial, sans-serif`;
     ctx.fillStyle = scheme.textSecondary;
     ctx.fillText('Inspired by xiangjianan · 🤖 · 100% AI Developed', this.width / 2, badgeY);
+    ctx.restore();
     ctx.restore();
   }
 
@@ -2817,11 +2902,13 @@ export default class UI {
     if (count > 0) {
       this.comboData.animation = Math.min(1, this.comboData.animation + 0.1);
       this.comboData.scale = 1.2;
+      this.comboData.bounceTime = 0.5;
       this.comboData.glowIntensity = level ? 1 : 0.5;
       
       if (count >= 5 && count !== previousCount) {
         this.createComboParticles(level, count);
         this.comboData.scale = 1.4;
+        this.comboData.bounceTime = 0.6;
       }
     } else {
       this.comboData.animation = Math.max(0, this.comboData.animation - 0.1);
@@ -2870,7 +2957,10 @@ export default class UI {
   }
 
   updateComboEffects(deltaTime) {
-    if (this.comboData.scale > 1) {
+    if (this.comboData.bounceTime > 0) {
+      this.comboData.bounceTime -= deltaTime;
+      this.comboData.scale = 1 + Math.sin(this.comboData.bounceTime * 10) * 0.2 * this.comboData.bounceTime;
+    } else if (this.comboData.scale > 1) {
       this.comboData.scale = Math.max(1, this.comboData.scale - deltaTime * 2);
     }
     
@@ -2970,8 +3060,14 @@ export default class UI {
   }
 
   flashScreen(color, intensity) {
-    this.flashAlpha = intensity;
     this.flashColor = color;
+    this.flashAlpha = intensity;
+    this.flashTargetAlpha = 0;
+  }
+
+  shakeScreen(duration, intensity) {
+    this.shakeTime = duration;
+    this.shakeIntensity = intensity;
   }
 
   renderButtons(ctx) {
