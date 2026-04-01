@@ -763,17 +763,42 @@ export default class FindGameMain {
   }
 
   renderGameBackground(ctx) {
+    // Soft base gradient
     const gradient = ctx.createLinearGradient(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    gradient.addColorStop(0, '#F8FAFC');
-    gradient.addColorStop(0.5, '#EFF6FF');
-    gradient.addColorStop(1, '#F5F3FF');
+    gradient.addColorStop(0, '#E8ECF8');
+    gradient.addColorStop(0.3, '#DDE4FC');
+    gradient.addColorStop(0.6, '#E8DDF8');
+    gradient.addColorStop(1, '#DDE8F4');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+    // Animated aurora blobs for glass backdrop
+    const t = Date.now() / 1000;
+    const blobs = [
+      { x: SCREEN_WIDTH * 0.15, y: SCREEN_HEIGHT * 0.2, r: 200, color: 'rgba(99, 102, 241, 0.12)' },
+      { x: SCREEN_WIDTH * 0.85, y: SCREEN_HEIGHT * 0.15, r: 240, color: 'rgba(59, 130, 246, 0.10)' },
+      { x: SCREEN_WIDTH * 0.5, y: SCREEN_HEIGHT * 0.5, r: 260, color: 'rgba(139, 92, 246, 0.09)' },
+      { x: SCREEN_WIDTH * 0.2, y: SCREEN_HEIGHT * 0.8, r: 180, color: 'rgba(16, 185, 129, 0.08)' },
+      { x: SCREEN_WIDTH * 0.75, y: SCREEN_HEIGHT * 0.75, r: 220, color: 'rgba(236, 72, 153, 0.07)' }
+    ];
+    blobs.forEach((blob, i) => {
+      const ox = Math.sin(t * 0.3 + i * 1.5) * 30;
+      const oy = Math.cos(t * 0.2 + i * 1.0) * 20;
+      const cx = blob.x + ox;
+      const cy = blob.y + oy;
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, blob.r);
+      grad.addColorStop(0, blob.color);
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, blob.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
   }
 
   renderGameAreaBorder(ctx) {
-    if (this.gameManager.gameState !== 'playing' && 
-        this.gameManager.gameState !== 'completed' && 
+    if (this.gameManager.gameState !== 'playing' &&
+        this.gameManager.gameState !== 'completed' &&
         this.gameManager.gameState !== 'failed') {
       return;
     }
@@ -784,25 +809,49 @@ export default class FindGameMain {
     const bottomSafeArea = Math.max(safeArea.bottom, isMobile ? 34 : 0);
     const headerHeight = isMobile ? Math.max(100, topSafeArea + 56) : 130;
     const footerHeight = isMobile ? Math.max(80, bottomSafeArea + 46) : 60;
-    
+
     const borderPadding = 12;
     const borderX = borderPadding - 4;
     const borderY = headerHeight + borderPadding - 4;
     const borderWidth = SCREEN_WIDTH - borderPadding * 2 + 8;
     const borderHeight = SCREEN_HEIGHT - headerHeight - footerHeight - borderPadding * 2 + 8;
-    const borderRadius = 12;
-    
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.2)';
+    const borderRadius = 16;
+
+    // Frosted glass frame — light border with subtle fill
+    ctx.save();
+
+    // Subtle glass fill
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.beginPath();
+    this.drawRoundedRect(ctx, borderX, borderY, borderWidth, borderHeight, borderRadius);
+    ctx.fill();
+
+    // Light outer border
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     this.drawRoundedRect(ctx, borderX, borderY, borderWidth, borderHeight, borderRadius);
     ctx.stroke();
 
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.1)';
+    // Inner border — slightly more transparent
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    this.drawRoundedRect(ctx, borderX + 4, borderY + 4, borderWidth - 8, borderHeight - 8, 10);
+    this.drawRoundedRect(ctx, borderX + 4, borderY + 4, borderWidth - 8, borderHeight - 8, borderRadius - 4);
     ctx.stroke();
+
+    // Top edge highlight
+    const topHighlight = ctx.createLinearGradient(borderX, borderY, borderX, borderY + 2);
+    topHighlight.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
+    topHighlight.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+    ctx.strokeStyle = topHighlight;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(borderX + borderRadius, borderY);
+    ctx.lineTo(borderX + borderWidth - borderRadius, borderY);
+    ctx.stroke();
+
+    ctx.restore();
   }
 
   drawRoundedRect(ctx, x, y, width, height, radius) {

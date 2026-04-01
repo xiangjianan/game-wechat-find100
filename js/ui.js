@@ -142,6 +142,81 @@ export default class UI {
     return getColorScheme();
   }
 
+  /**
+   * Apple-style frosted glass panel renderer.
+   * Simulates backdrop-blur with layered semi-transparent fills and light borders.
+   * @param {CanvasRenderingContext2D} ctx
+   * @param {number} x
+   * @param {number} y
+   * @param {number} width
+   * @param {number} height
+   * @param {object} options - { radius, alpha, shadow, borderColor, noBorder, noShine }
+   */
+  drawGlassPanel(ctx, x, y, width, height, options = {}) {
+    const scheme = this.getScheme();
+    const radius = options.radius !== undefined ? options.radius : 16;
+    const alpha = options.alpha !== undefined ? options.alpha : 0.55;
+    const hasShadow = options.shadow !== false;
+    const borderColor = options.borderColor || scheme.glassBorderLight;
+    const noBorder = options.noBorder || false;
+    const noShine = options.noShine || false;
+
+    ctx.save();
+
+    // Soft diffused shadow
+    if (hasShadow) {
+      ctx.shadowColor = 'rgba(99, 102, 241, 0.08)';
+      ctx.shadowBlur = 24;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 8;
+    }
+
+    // Main frosted fill — semi-transparent white
+    ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+    this.roundRect(ctx, x, y, width, height, radius);
+    ctx.fill();
+
+    // Clear shadow for subsequent layers
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+
+    // Inner subtle gradient — top highlight / bottom shadow for depth
+    if (!noShine) {
+      const shineGrad = ctx.createLinearGradient(x, y, x, y + height);
+      shineGrad.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
+      shineGrad.addColorStop(0.3, 'rgba(255, 255, 255, 0.08)');
+      shineGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.0)');
+      shineGrad.addColorStop(1, 'rgba(0, 0, 0, 0.03)');
+      ctx.fillStyle = shineGrad;
+      this.roundRect(ctx, x, y, width, height, radius);
+      ctx.fill();
+    }
+
+    // Top-edge light stroke — key glass indicator
+    if (!noBorder) {
+      // Light top/left border
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = 1;
+      this.roundRect(ctx, x + 0.5, y + 0.5, width - 1, height - 1, radius);
+      ctx.stroke();
+
+      // Subtle inner glow at top
+      const innerGlow = ctx.createLinearGradient(x, y, x, y + 2);
+      innerGlow.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
+      innerGlow.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+      ctx.strokeStyle = innerGlow;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y + 0.5);
+      ctx.lineTo(x + width - radius, y + 0.5);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
   roundRect(ctx, x, y, width, height, radius) {
     if (radius === 0) {
       ctx.beginPath();
@@ -217,19 +292,21 @@ export default class UI {
     ctx.save();
     ctx.globalAlpha = alpha;
 
-    // Vibrant glow shadow
-    ctx.shadowColor = isHovered ? 'rgba(99, 102, 241, 0.5)' : 'rgba(99, 102, 241, 0.3)';
-    ctx.shadowBlur = isHovered ? 32 : 20;
+    // Soft glow shadow
+    ctx.shadowColor = isHovered ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.12)';
+    ctx.shadowBlur = isHovered ? 28 : 16;
     ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = isHovered ? 8 : 4;
+    ctx.shadowOffsetY = isHovered ? 6 : 3;
 
-    // Vibrant gradient
+    // Semi-transparent gradient fill (glass-like tinted)
     const gradient = ctx.createLinearGradient(scaledX, scaledY, scaledX + scaledWidth, scaledY + scaledHeight);
     gradient.addColorStop(0, button.color || '#6366F1');
     gradient.addColorStop(1, button.colorEnd || '#8B5CF6');
     ctx.fillStyle = gradient;
+    ctx.globalAlpha = alpha * (isHovered ? 0.9 : 0.75);
     this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
     ctx.fill();
+    ctx.globalAlpha = alpha;
 
     ctx.shadowBlur = 0;
     ctx.shadowOffsetY = 0;
@@ -238,18 +315,18 @@ export default class UI {
 
     // Top gloss
     const shineGradient = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.5);
-    shineGradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
-    shineGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.08)');
+    shineGradient.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
+    shineGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.1)');
     shineGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
     ctx.fillStyle = shineGradient;
-    ctx.fillRect(scaledX + 1, scaledY + 1, scaledWidth - 2, scaledHeight * 0.55);
+    this.roundRect(ctx, scaledX + 1, scaledY + 1, scaledWidth - 2, scaledHeight * 0.5, radius);
+    ctx.fill();
 
-    // Bottom edge glow
-    const bottomShine = ctx.createLinearGradient(scaledX, scaledY + scaledHeight * 0.7, scaledX, scaledY + scaledHeight);
-    bottomShine.addColorStop(0, 'rgba(255, 255, 255, 0)');
-    bottomShine.addColorStop(1, 'rgba(255, 255, 255, 0.08)');
-    ctx.fillStyle = bottomShine;
-    ctx.fillRect(scaledX + 1, scaledY + scaledHeight * 0.7, scaledWidth - 2, scaledHeight * 0.3 - 1);
+    // Light border
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+    ctx.lineWidth = 1;
+    this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
+    ctx.stroke();
 
     // Text
     ctx.fillStyle = '#FFFFFF';
@@ -262,15 +339,7 @@ export default class UI {
       const textX = centerX - 12;
       const iconX = centerX + textWidth / 2 + 10;
 
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
-      ctx.shadowBlur = 4;
-      ctx.shadowOffsetY = 1;
-
       ctx.fillText(button.text, textX, centerY);
-
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetY = 0;
-      ctx.shadowColor = 'transparent';
 
       ctx.beginPath();
       ctx.moveTo(iconX, centerY - 8);
@@ -303,39 +372,12 @@ export default class UI {
     ctx.save();
     ctx.globalAlpha = alpha;
 
-    // Card shadow with theme-colored glow on hover
-    if (isHovered) {
-      ctx.shadowColor = button.cardHoverGlow || 'rgba(0, 0, 0, 0.12)';
-      ctx.shadowBlur = 20;
-      ctx.shadowOffsetY = 6;
-    } else {
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.06)';
-      ctx.shadowBlur = 12;
-      ctx.shadowOffsetY = 4;
-    }
-
-    // Card background
-    ctx.fillStyle = button.cardBg || 'rgba(255, 255, 255, 0.9)';
-    this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
-    ctx.fill();
-
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetY = 0;
-    ctx.shadowColor = 'transparent';
-
-    // Gloss effect - subtle top shine using fillRect (safe)
-    const cardShine = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.4);
-    cardShine.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
-    cardShine.addColorStop(0.5, 'rgba(255, 255, 255, 0.1)');
-    cardShine.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    ctx.fillStyle = cardShine;
-    ctx.fillRect(scaledX + 1, scaledY + 1, scaledWidth - 2, scaledHeight * 0.4);
-
-    // Colored border
-    ctx.strokeStyle = button.cardBorder || 'rgba(148, 163, 184, 0.15)';
-    ctx.lineWidth = 1.5;
-    this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
-    ctx.stroke();
+    // Glass card panel
+    this.drawGlassPanel(ctx, scaledX, scaledY, scaledWidth, scaledHeight, {
+      radius: radius,
+      alpha: isHovered ? 0.65 : 0.5,
+      borderColor: isHovered ? 'rgba(255, 255, 255, 0.7)' : 'rgba(255, 255, 255, 0.5)'
+    });
 
     // Wide card: horizontal layout (icon left, text center)
     if (isWideCard) {
@@ -533,19 +575,12 @@ export default class UI {
     const segmentWidth = width / 2;
     const radius = height / 2;
 
-    ctx.save();
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.06)';
-    ctx.shadowBlur = 8;
-    ctx.shadowOffsetY = 2;
-    ctx.fillStyle = '#FFFFFF';
-    this.roundRect(ctx, x, y, width, height, radius);
-    ctx.fill();
-    ctx.restore();
-
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.2)';
-    ctx.lineWidth = 1;
-    this.roundRect(ctx, x, y, width, height, radius);
-    ctx.stroke();
+    // Glass background for switcher
+    this.drawGlassPanel(ctx, x, y, width, height, {
+      radius: radius,
+      alpha: 0.5,
+      borderColor: 'rgba(255, 255, 255, 0.5)'
+    });
 
     const isTimedActive = this.gameMode === 'timed';
     const isTimedClicked = this.modeSwitcher.clickedSegment === 'timed';
@@ -559,16 +594,25 @@ export default class UI {
       offsetY = 1;
     }
 
+    // Active segment — tinted glass with colored fill
     ctx.save();
-    ctx.shadowColor = 'rgba(99, 102, 241, 0.2)';
-    ctx.shadowBlur = 10;
+    ctx.shadowColor = 'rgba(99, 102, 241, 0.15)';
+    ctx.shadowBlur = 12;
     ctx.shadowOffsetY = 2;
 
     const activeGradient = ctx.createLinearGradient(activeX, y, activeX + segmentWidth, y + height);
-    activeGradient.addColorStop(0, '#6366F1');
-    activeGradient.addColorStop(1, '#3B82F6');
+    activeGradient.addColorStop(0, 'rgba(99, 102, 241, 0.85)');
+    activeGradient.addColorStop(1, 'rgba(59, 130, 246, 0.75)');
     ctx.fillStyle = activeGradient;
     this.roundRect(ctx, activeX + 3 + offsetX, y + 3 + offsetY, segmentWidth - 6, height - 6, radius - 3);
+    ctx.fill();
+
+    // Shine on active segment
+    const activeShine = ctx.createLinearGradient(activeX, y, activeX, y + height * 0.5);
+    activeShine.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
+    activeShine.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+    ctx.fillStyle = activeShine;
+    this.roundRect(ctx, activeX + 3 + offsetX, y + 3 + offsetY, segmentWidth - 6, (height - 6) * 0.5, radius - 3);
     ctx.fill();
     ctx.restore();
 
@@ -1576,8 +1620,9 @@ export default class UI {
     const isMobile = this.width < 768;
     const alpha = this.modalAnimation;
     const scale = 0.85 + 0.15 * alpha;
-    
-    ctx.fillStyle = `rgba(0, 0, 0, ${0.7 * alpha})`;
+
+    // Frosted backdrop
+    ctx.fillStyle = `rgba(15, 23, 42, ${0.3 * alpha})`;
     ctx.fillRect(0, 0, this.width, this.height);
 
     const modalWidth = isMobile ? Math.min(360, this.width - 40) : 440;
@@ -1607,9 +1652,11 @@ export default class UI {
     ctx.scale(scale, scale);
     ctx.translate(-this.width / 2, -this.height / 2);
 
-    this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
-      shadowOffset: 10,
-      borderWidth: 5
+    // Glass modal panel
+    this.drawGlassPanel(ctx, modalX, modalY, modalWidth, modalHeight, {
+      radius: 24,
+      alpha: 0.7,
+      borderColor: 'rgba(255, 255, 255, 0.7)'
     });
 
     if (this.modalType === 'gameComplete') {
@@ -1661,10 +1708,18 @@ export default class UI {
     const timeBoxX = centerX - timeBoxWidth / 2;
     const timeBoxY = y + (isMobile ? 195 : 230);
     
-    this.drawBrutalismRect(ctx, timeBoxX, timeBoxY, timeBoxWidth, timeBoxHeight, scheme.buttonPrimary, {
-      shadowOffset: 4,
-      borderWidth: 3
+    this.drawGlassPanel(ctx, timeBoxX, timeBoxY, timeBoxWidth, timeBoxHeight, {
+      radius: timeBoxHeight / 2,
+      alpha: 0.65,
+      borderColor: 'rgba(255, 255, 255, 0.6)'
     });
+    // Tinted overlay for color
+    ctx.save();
+    ctx.globalAlpha = 0.6;
+    ctx.fillStyle = scheme.buttonPrimary;
+    this.roundRect(ctx, timeBoxX, timeBoxY, timeBoxWidth, timeBoxHeight, timeBoxHeight / 2);
+    ctx.fill();
+    ctx.restore();
     
     ctx.fillStyle = scheme.textLight;
     ctx.font = `bold ${isMobile ? 20 : 24}px "Arial Black", Arial, sans-serif`;
@@ -1823,6 +1878,7 @@ export default class UI {
       const isClicked = this.clickedButton === button.id;
 
       let fillColor;
+      let isGlass = false;
       if (button.id === 'nextLevel' || button.id === 'restart') {
         fillColor = scheme.buttonSuccess;
       } else if (button.id === 'playAgain' || button.id === 'tryAgain' || button.id === 'resume') {
@@ -1831,8 +1887,10 @@ export default class UI {
         fillColor = button.color || '#FF6B6B';
       } else if (button.id === 'cancel') {
         fillColor = '#888888';
+        isGlass = true;
       } else {
         fillColor = scheme.cardBg;
+        isGlass = true;
       }
 
       if (isHovered) {
@@ -1848,13 +1906,42 @@ export default class UI {
       const scaledX = centerX - scaledWidth / 2;
       const scaledY = buttonY + (buttonHeight - scaledHeight) / 2;
 
-      const shadowOffset = isClicked ? 2 : (isHovered ? 8 : 6);
-      this.drawBrutalismRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, fillColor, {
-        shadowOffset: shadowOffset,
-        borderWidth: 4
-      });
+      if (isGlass) {
+        // Glass-styled button
+        this.drawGlassPanel(ctx, scaledX, scaledY, scaledWidth, scaledHeight, {
+          radius: scaledHeight / 2,
+          alpha: isHovered ? 0.55 : 0.4,
+          borderColor: 'rgba(255, 255, 255, 0.5)'
+        });
+      } else {
+        // Colored glass button
+        ctx.save();
+        ctx.shadowColor = 'rgba(99, 102, 241, 0.1)';
+        ctx.shadowBlur = 12;
+        ctx.shadowOffsetY = 4;
+        ctx.globalAlpha = isHovered ? 0.9 : 0.75;
+        ctx.fillStyle = fillColor;
+        this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, scaledHeight / 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
 
-      ctx.fillStyle = button.id === 'menu' ? scheme.text : scheme.textLight;
+        // Shine
+        const shineGrad = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.5);
+        shineGrad.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
+        shineGrad.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+        ctx.fillStyle = shineGrad;
+        this.roundRect(ctx, scaledX + 1, scaledY + 1, scaledWidth - 2, scaledHeight * 0.5, scaledHeight / 2);
+        ctx.fill();
+
+        // Border
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 1;
+        this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, scaledHeight / 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      ctx.fillStyle = button.id === 'menu' || button.id === 'cancel' ? scheme.text : scheme.textLight;
       ctx.font = `bold ${isMobile ? 18 : 20}px "Arial Black", Arial, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -2053,10 +2140,12 @@ export default class UI {
   renderModernBackground(ctx) {
     const scheme = this.getScheme();
 
+    // Rich gradient base for glass backdrop
     const gradient = ctx.createLinearGradient(0, 0, this.width, this.height);
-    gradient.addColorStop(0, '#F8FAFC');
-    gradient.addColorStop(0.5, '#EFF6FF');
-    gradient.addColorStop(1, '#F5F3FF');
+    gradient.addColorStop(0, '#E0E5F6');
+    gradient.addColorStop(0.3, '#D8DFFC');
+    gradient.addColorStop(0.6, '#E2D8F8');
+    gradient.addColorStop(1, '#D8E4F4');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, this.width, this.height);
 
@@ -2066,16 +2155,18 @@ export default class UI {
   renderFloatingOrbs(ctx) {
     const t = Date.now() / 1000;
     const orbs = [
-      { x: this.width * 0.1, y: this.height * 0.15, r: 140, color: 'rgba(99, 102, 241, 0.06)' },
-      { x: this.width * 0.9, y: this.height * 0.25, r: 180, color: 'rgba(59, 130, 246, 0.05)' },
-      { x: this.width * 0.5, y: this.height * 0.55, r: 160, color: 'rgba(139, 92, 246, 0.04)' },
-      { x: this.width * 0.15, y: this.height * 0.75, r: 120, color: 'rgba(16, 185, 129, 0.04)' },
-      { x: this.width * 0.8, y: this.height * 0.7, r: 150, color: 'rgba(236, 72, 153, 0.03)' }
+      { x: this.width * 0.1, y: this.height * 0.15, r: 180, color: 'rgba(99, 102, 241, 0.15)' },
+      { x: this.width * 0.9, y: this.height * 0.25, r: 220, color: 'rgba(59, 130, 246, 0.12)' },
+      { x: this.width * 0.5, y: this.height * 0.55, r: 200, color: 'rgba(139, 92, 246, 0.10)' },
+      { x: this.width * 0.15, y: this.height * 0.75, r: 160, color: 'rgba(16, 185, 129, 0.09)' },
+      { x: this.width * 0.8, y: this.height * 0.7, r: 190, color: 'rgba(236, 72, 153, 0.08)' },
+      { x: this.width * 0.35, y: this.height * 0.35, r: 170, color: 'rgba(99, 102, 241, 0.08)' },
+      { x: this.width * 0.65, y: this.height * 0.85, r: 150, color: 'rgba(245, 158, 11, 0.07)' }
     ];
 
     orbs.forEach((orb, i) => {
-      const offsetX = Math.sin(t * 0.4 + i * 1.5) * 20;
-      const offsetY = Math.cos(t * 0.25 + i * 1.0) * 15;
+      const offsetX = Math.sin(t * 0.3 + i * 1.5) * 25;
+      const offsetY = Math.cos(t * 0.2 + i * 1.0) * 18;
       const cx = orb.x + offsetX;
       const cy = orb.y + offsetY;
       const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, orb.r);
@@ -2196,12 +2287,21 @@ export default class UI {
 
   renderHeader(ctx, headerHeight, topSafeArea, isMobile, timeLeft, currentNumber, totalNumbers) {
     const scheme = this.getScheme();
-    
-    ctx.fillStyle = scheme.background;
-    ctx.fillRect(0, 0, this.width, headerHeight);
-    
-    ctx.fillStyle = scheme.border;
-    ctx.fillRect(0, headerHeight - 4, this.width, 4);
+
+    // Frosted glass header
+    this.drawGlassPanel(ctx, 0, 0, this.width, headerHeight, {
+      radius: 0,
+      alpha: 0.6,
+      noBorder: true,
+      noShine: false
+    });
+
+    // Subtle bottom separator
+    const sepGrad = ctx.createLinearGradient(0, headerHeight - 1, 0, headerHeight);
+    sepGrad.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
+    sepGrad.addColorStop(1, 'rgba(148, 163, 184, 0.12)');
+    ctx.fillStyle = sepGrad;
+    ctx.fillRect(0, headerHeight - 1, this.width, 1);
 
     const buttonSize = isMobile ? 48 : 56;
     const buttonSpacing = isMobile ? 14 : 18;
@@ -2242,24 +2342,34 @@ export default class UI {
     this.headerButtons.forEach(button => {
       const isHovered = this.isPointInButton(this.mouseX, this.mouseY, button);
       const isClicked = this.clickedButton === button.id;
-      
+
       let scale = 1;
       if (isHovered) scale = 1.05;
       if (isClicked) scale = 0.95;
-      
+
       const scaledSize = (buttonSize * scale) | 0;
       const scaledX = (button.x + (buttonSize - scaledSize) / 2) | 0;
       const scaledY = (button.y + (buttonSize - scaledSize) / 2) | 0;
-      
-      let fillColor = button.color;
-      if (isHovered) fillColor = button.hoverColor;
-      
-      const shadowOffset = isClicked ? 2 : (isHovered ? 6 : 4);
-      this.drawBrutalismRect(ctx, scaledX, scaledY, scaledSize, scaledSize, fillColor, {
-        shadowOffset: shadowOffset,
-        borderWidth: 3
-      });
-      
+
+      if (isHovered) {
+        // Solid color on hover
+        ctx.save();
+        ctx.shadowColor = 'rgba(99, 102, 241, 0.2)';
+        ctx.shadowBlur = 12;
+        ctx.shadowOffsetY = 4;
+        ctx.fillStyle = button.hoverColor;
+        this.roundRect(ctx, scaledX, scaledY, scaledSize, scaledSize, scaledSize / 2);
+        ctx.fill();
+        ctx.restore();
+      } else {
+        // Glass button
+        this.drawGlassPanel(ctx, scaledX, scaledY, scaledSize, scaledSize, {
+          radius: scaledSize / 2,
+          alpha: 0.5,
+          borderColor: 'rgba(255, 255, 255, 0.5)'
+        });
+      }
+
       ctx.fillStyle = isHovered ? scheme.textLight : scheme.text;
       ctx.fillText(button.text, scaledX + (scaledSize / 2) | 0, scaledY + (scaledSize / 2) | 0);
     });
@@ -2271,15 +2381,19 @@ export default class UI {
 
       let timerColor;
       let timerBgColor;
+      let timerGlassAlpha;
       if (timeLeft <= 5.0) {
         timerColor = scheme.textLight;
         timerBgColor = scheme.danger;
+        timerGlassAlpha = 0.8;
       } else if (timeLeft <= 10.0) {
         timerColor = scheme.textLight;
         timerBgColor = scheme.buttonPrimary;
+        timerGlassAlpha = 0.7;
       } else {
         timerColor = scheme.textLight;
         timerBgColor = scheme.accent;
+        timerGlassAlpha = 0.65;
       }
 
       const timerWidth = isMobile ? 100 : 120;
@@ -2287,10 +2401,31 @@ export default class UI {
       const timerX = centerX - timerWidth / 2;
       const timerBoxY = timerY - timerHeight / 2;
 
-      this.drawBrutalismRect(ctx, timerX, timerBoxY, timerWidth, timerHeight, timerBgColor, {
-        shadowOffset: 4,
-        borderWidth: 3
-      });
+      // Glass timer with colored tint
+      ctx.save();
+      ctx.shadowColor = 'rgba(99, 102, 241, 0.12)';
+      ctx.shadowBlur = 16;
+      ctx.shadowOffsetY = 4;
+      ctx.fillStyle = timerBgColor;
+      ctx.globalAlpha = timerGlassAlpha;
+      this.roundRect(ctx, timerX, timerBoxY, timerWidth, timerHeight, timerHeight / 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      // Glass shine on timer
+      const timerShine = ctx.createLinearGradient(timerX, timerBoxY, timerX, timerBoxY + timerHeight * 0.5);
+      timerShine.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
+      timerShine.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+      ctx.fillStyle = timerShine;
+      this.roundRect(ctx, timerX, timerBoxY, timerWidth, timerHeight * 0.5, timerHeight / 2);
+      ctx.fill();
+
+      // Light border
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 1;
+      this.roundRect(ctx, timerX, timerBoxY, timerWidth, timerHeight, timerHeight / 2);
+      ctx.stroke();
+      ctx.restore();
 
       ctx.font = `bold ${timerFontSize}px "Arial Black", Arial, sans-serif`;
       ctx.fillStyle = timerColor;
@@ -2300,26 +2435,18 @@ export default class UI {
       ctx.fillText(`${displayTime}s`, centerX, timerY);
     }
 
-    // 金币显示 - 右上角
+    // 金币显示 - 右上角 (glass style)
     const coinBoxWidth = isMobile ? 80 : 100;
     const coinBoxHeight = isMobile ? 36 : 42;
     const coinBoxX = this.width - coinBoxWidth - (isMobile ? 16 : 24);
     const coinBoxY = buttonY + (buttonSize - coinBoxHeight) / 2;
     const coinRadius = coinBoxHeight / 2;
 
-    ctx.save();
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
-    ctx.shadowBlur = 8;
-    ctx.shadowOffsetY = 2;
-    ctx.fillStyle = scheme.cardBg;
-    this.roundRect(ctx, coinBoxX, coinBoxY, coinBoxWidth, coinBoxHeight, coinRadius);
-    ctx.fill();
-    ctx.restore();
-
-    ctx.strokeStyle = scheme.border;
-    ctx.lineWidth = 1;
-    this.roundRect(ctx, coinBoxX, coinBoxY, coinBoxWidth, coinBoxHeight, coinRadius);
-    ctx.stroke();
+    this.drawGlassPanel(ctx, coinBoxX, coinBoxY, coinBoxWidth, coinBoxHeight, {
+      radius: coinRadius,
+      alpha: 0.5,
+      borderColor: 'rgba(255, 255, 255, 0.5)'
+    });
 
     const coinIconSize = isMobile ? 20 : 24;
     const coinIconX = coinBoxX + (isMobile ? 10 : 12);
@@ -2347,27 +2474,58 @@ export default class UI {
     const scheme = this.getScheme();
     const footerY = this.height - footerHeight;
     const centerX = this.width / 2;
-    
-    ctx.fillStyle = scheme.background;
-    ctx.fillRect(0, footerY, this.width, footerHeight);
-    
-    ctx.fillStyle = scheme.border;
-    ctx.fillRect(0, footerY, this.width, 4);
-    
+
+    // Frosted glass footer
+    this.drawGlassPanel(ctx, 0, footerY, this.width, footerHeight, {
+      radius: 0,
+      alpha: 0.6,
+      noBorder: true,
+      noShine: false
+    });
+
+    // Subtle top separator
+    const sepGrad = ctx.createLinearGradient(0, footerY, 0, footerY + 1);
+    sepGrad.addColorStop(0, 'rgba(148, 163, 184, 0.12)');
+    sepGrad.addColorStop(1, 'rgba(255, 255, 255, 0.5)');
+    ctx.fillStyle = sepGrad;
+    ctx.fillRect(0, footerY, this.width, 1);
+
     const progressBarWidth = isMobile ? 220 : 300;
     const progressBarHeight = isMobile ? 28 : 34;
     const progressBarY = footerY + (footerHeight - progressBarHeight) / 2;
     const progress = (currentNumber - 1) / totalNumbers;
 
-    this.drawBrutalismRect(ctx, centerX - progressBarWidth / 2, progressBarY, progressBarWidth, progressBarHeight, scheme.cardBg, {
-      shadowOffset: 4,
-      borderWidth: 3
+    // Glass progress bar background
+    this.drawGlassPanel(ctx, centerX - progressBarWidth / 2, progressBarY, progressBarWidth, progressBarHeight, {
+      radius: progressBarHeight / 2,
+      alpha: 0.4,
+      borderColor: 'rgba(255, 255, 255, 0.4)'
     });
 
     const fillWidth = (progressBarWidth * progress) | 0;
     if (fillWidth > 0) {
-      ctx.fillStyle = scheme.buttonPrimary;
-      ctx.fillRect(centerX - progressBarWidth / 2 + 3, progressBarY + 3, fillWidth - 6, progressBarHeight - 6);
+      ctx.save();
+      const fillGrad = ctx.createLinearGradient(
+        centerX - progressBarWidth / 2, progressBarY,
+        centerX - progressBarWidth / 2 + fillWidth, progressBarY
+      );
+      fillGrad.addColorStop(0, 'rgba(99, 102, 241, 0.7)');
+      fillGrad.addColorStop(1, 'rgba(139, 92, 246, 0.6)');
+      ctx.fillStyle = fillGrad;
+      this.roundRect(ctx, centerX - progressBarWidth / 2 + 2, progressBarY + 2, Math.max(0, fillWidth - 4), progressBarHeight - 4, (progressBarHeight - 4) / 2);
+      ctx.fill();
+
+      // Shine on fill
+      const fillShine = ctx.createLinearGradient(
+        centerX - progressBarWidth / 2, progressBarY,
+        centerX - progressBarWidth / 2, progressBarY + progressBarHeight * 0.5
+      );
+      fillShine.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
+      fillShine.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+      ctx.fillStyle = fillShine;
+      this.roundRect(ctx, centerX - progressBarWidth / 2 + 2, progressBarY + 2, Math.max(0, fillWidth - 4), (progressBarHeight - 4) * 0.5, (progressBarHeight - 4) / 2);
+      ctx.fill();
+      ctx.restore();
     }
     
     ctx.font = `bold ${isMobile ? 14 : 16}px "Arial Black", Arial, sans-serif`;
@@ -2440,7 +2598,8 @@ export default class UI {
     const scheme = this.getScheme();
     const isMobile = this.width < 768;
 
-    ctx.fillStyle = `rgba(0, 0, 0, 0.7)`;
+    // Frosted backdrop
+    ctx.fillStyle = `rgba(15, 23, 42, 0.3)`;
     ctx.fillRect(0, 0, this.width, this.height);
 
     const modalWidth = isMobile ? Math.min(360, this.width - 40) : 480;
@@ -2448,9 +2607,10 @@ export default class UI {
     const modalX = (this.width - modalWidth) / 2;
     const modalY = (this.height - modalHeight) / 2;
 
-    this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
-      shadowOffset: 10,
-      borderWidth: 5
+    this.drawGlassPanel(ctx, modalX, modalY, modalWidth, modalHeight, {
+      radius: 24,
+      alpha: 0.7,
+      borderColor: 'rgba(255, 255, 255, 0.7)'
     });
 
     const titleY = modalY + (isMobile ? 50 : 60);
@@ -2561,10 +2721,30 @@ export default class UI {
     const scaledY = buttonY + (buttonHeight - scaledHeight) / 2;
 
     const shadowOffset = isClicked ? 2 : (isHovered ? 8 : 6);
-    this.drawBrutalismRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, fillColor, {
-      shadowOffset: shadowOffset,
-      borderWidth: 4
-    });
+
+    // Glass-tinted button
+    ctx.save();
+    ctx.shadowColor = 'rgba(99, 102, 241, 0.1)';
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetY = 4;
+    ctx.globalAlpha = isHovered ? 0.9 : 0.75;
+    ctx.fillStyle = fillColor;
+    this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, scaledHeight / 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    const shineGrad = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.5);
+    shineGrad.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
+    shineGrad.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+    ctx.fillStyle = shineGrad;
+    this.roundRect(ctx, scaledX + 1, scaledY + 1, scaledWidth - 2, scaledHeight * 0.5, scaledHeight / 2);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.lineWidth = 1;
+    this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, scaledHeight / 2);
+    ctx.stroke();
+    ctx.restore();
 
     ctx.fillStyle = scheme.textLight;
     ctx.font = `bold ${isMobile ? 18 : 20}px "Arial Black", Arial, sans-serif`;
@@ -2577,7 +2757,8 @@ export default class UI {
     const scheme = this.getScheme();
     const isMobile = this.width < 768;
 
-    ctx.fillStyle = `rgba(0, 0, 0, 0.8)`;
+    // Frosted backdrop
+    ctx.fillStyle = `rgba(15, 23, 42, 0.3)`;
     ctx.fillRect(0, 0, this.width, this.height);
 
     const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
@@ -2585,9 +2766,10 @@ export default class UI {
     const modalX = (this.width - modalWidth) / 2;
     const modalY = (this.height - modalHeight) / 2;
 
-    this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
-      shadowOffset: 10,
-      borderWidth: 5
+    this.drawGlassPanel(ctx, modalX, modalY, modalWidth, modalHeight, {
+      radius: 24,
+      alpha: 0.7,
+      borderColor: 'rgba(255, 255, 255, 0.7)'
     });
 
     const titleY = modalY + (isMobile ? 40 : 50);
@@ -3189,19 +3371,12 @@ export default class UI {
     const boxY = isMobile ? 24 : 36;
     const radius = boxHeight / 2;
 
-    ctx.save();
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
-    ctx.shadowBlur = 12;
-    ctx.shadowOffsetY = 3;
-    ctx.fillStyle = '#FFFFFF';
-    this.roundRect(ctx, boxX, boxY, boxWidth, boxHeight, radius);
-    ctx.fill();
-    ctx.restore();
-
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.12)';
-    ctx.lineWidth = 1;
-    this.roundRect(ctx, boxX, boxY, boxWidth, boxHeight, radius);
-    ctx.stroke();
+    // Glass coin display
+    this.drawGlassPanel(ctx, boxX, boxY, boxWidth, boxHeight, {
+      radius: radius,
+      alpha: 0.5,
+      borderColor: 'rgba(255, 255, 255, 0.5)'
+    });
 
     const coinSize = isMobile ? 24 : 28;
     const coinX = boxX + (isMobile ? 10 : 12);
@@ -3265,7 +3440,8 @@ export default class UI {
     const scheme = this.getScheme();
     const isMobile = this.width < 768;
 
-    ctx.fillStyle = `rgba(0, 0, 0, 0.8)`;
+    // Frosted backdrop
+    ctx.fillStyle = `rgba(15, 23, 42, 0.3)`;
     ctx.fillRect(0, 0, this.width, this.height);
 
     const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
@@ -3273,9 +3449,10 @@ export default class UI {
     const modalX = (this.width - modalWidth) / 2;
     const modalY = (this.height - modalHeight) / 2;
 
-    this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
-      shadowOffset: 10,
-      borderWidth: 5
+    this.drawGlassPanel(ctx, modalX, modalY, modalWidth, modalHeight, {
+      radius: 24,
+      alpha: 0.7,
+      borderColor: 'rgba(255, 255, 255, 0.7)'
     });
 
     const titleY = modalY + (isMobile ? 40 : 50);
@@ -3448,9 +3625,9 @@ export default class UI {
     const isMobile = this.width < 768;
 
     if (!this.skillsData) {
-      ctx.fillStyle = `rgba(0, 0, 0, 0.8)`;
+      ctx.fillStyle = `rgba(15, 23, 42, 0.3)`;
       ctx.fillRect(0, 0, this.width, this.height);
-      
+
       ctx.fillStyle = scheme.text;
       ctx.font = `bold ${isMobile ? 20 : 24}px "Arial Black", Arial, sans-serif`;
       ctx.textAlign = 'center';
@@ -3459,7 +3636,8 @@ export default class UI {
       return;
     }
 
-    ctx.fillStyle = `rgba(0, 0, 0, 0.8)`;
+    // Frosted backdrop
+    ctx.fillStyle = `rgba(15, 23, 42, 0.3)`;
     ctx.fillRect(0, 0, this.width, this.height);
 
     const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
@@ -3467,9 +3645,10 @@ export default class UI {
     const modalX = (this.width - modalWidth) / 2;
     const modalY = (this.height - modalHeight) / 2;
 
-    this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
-      shadowOffset: 10,
-      borderWidth: 5
+    this.drawGlassPanel(ctx, modalX, modalY, modalWidth, modalHeight, {
+      radius: 24,
+      alpha: 0.7,
+      borderColor: 'rgba(255, 255, 255, 0.7)'
     });
 
     const titleY = modalY + (isMobile ? 40 : 50);

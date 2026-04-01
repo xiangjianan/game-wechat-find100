@@ -180,11 +180,11 @@ export default class Polygon {
   renderShape(ctx) {
     const scheme = getCachedScheme();
     const stateColors = cachedStateColors;
-    
+
     const center = this.getCenter();
     const transformX = center.x + this.shakeOffset.x;
     const transformY = center.y + this.shakeOffset.y;
-    
+
     ctx.save();
     ctx.translate(transformX, transformY);
     ctx.scale(this.scale, this.scale);
@@ -203,6 +203,7 @@ export default class Polygon {
     ctx.closePath();
 
     let fillColor;
+    let fillAlpha = 1;
     if (this.isClicked) {
       fillColor = stateColors.clicked;
     } else if (this.isEagleEyeHighlighted) {
@@ -213,11 +214,28 @@ export default class Polygon {
     } else if (this.isHighlighted) {
       fillColor = stateColors.highlighted;
     } else {
-      fillColor = scheme.cardBg;
+      // Default: frosted glass fill
+      fillColor = 'rgba(255, 255, 255, 0.4)';
+      fillAlpha = 0.4;
     }
-    
-    ctx.fillStyle = fillColor;
-    ctx.fill();
+
+    if (fillAlpha < 1) {
+      // Glass polygon: semi-transparent white with layered depth
+      ctx.fillStyle = fillColor;
+      ctx.fill();
+
+      // Inner gradient for glass depth
+      const bounds = this._getBounds();
+      const innerGrad = ctx.createLinearGradient(bounds.minX, bounds.minY, bounds.minX, bounds.maxY);
+      innerGrad.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
+      innerGrad.addColorStop(0.4, 'rgba(255, 255, 255, 0.05)');
+      innerGrad.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+      ctx.fillStyle = innerGrad;
+      ctx.fill();
+    } else {
+      ctx.fillStyle = fillColor;
+      ctx.fill();
+    }
 
     if (this.isError) {
       ctx.fillStyle = `rgba(239, 68, 68, ${this.errorAlpha})`;
@@ -227,19 +245,51 @@ export default class Polygon {
     ctx.shadowBlur = 0;
     ctx.shadowColor = 'rgba(0, 0, 0, 0)';
 
-    ctx.strokeStyle = scheme.borderSubtle;
-    ctx.lineWidth = this.isHinted ? 4 : 1.5;
-    ctx.lineCap = 'square';
-    ctx.lineJoin = 'miter';
+    // Glass border: light top edge, subtle overall
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+    ctx.lineWidth = 1;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
     ctx.stroke();
+
+    // Top-edge light highlight
+    if (!this.isClicked && !this.isEagleEyeHighlighted && !this.isHinted) {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(this.vertices[0].x, this.vertices[0].y - 0.5);
+      if (this.vertices.length > 1) {
+        ctx.lineTo(this.vertices[1].x, this.vertices[1].y - 0.5);
+      }
+      ctx.stroke();
+    }
 
     if (this.isHinted) {
       ctx.strokeStyle = `rgba(255, 215, 0, ${0.5 + this.hintGlowIntensity * 0.5})`;
       ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(this.vertices[0].x, this.vertices[0].y);
+      for (let i = 1; i < this.vertices.length; i++) {
+        ctx.lineTo(this.vertices[i].x, this.vertices[i].y);
+      }
+      ctx.closePath();
       ctx.stroke();
     }
-    
+
     ctx.restore();
+  }
+
+  _getBounds() {
+    if (this._bounds) return this._bounds;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const v of this.vertices) {
+      if (v.x < minX) minX = v.x;
+      if (v.y < minY) minY = v.y;
+      if (v.x > maxX) maxX = v.x;
+      if (v.y > maxY) maxY = v.y;
+    }
+    this._bounds = { minX, minY, maxX, maxY };
+    return this._bounds;
   }
 
   interpolateColor(color1, color2, factor) {
