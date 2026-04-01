@@ -225,11 +225,3 @@ export default class SettingsPanel {
     }
   }
 }
-
-function lightenColor(color, amount) {
-  const hex = color.replace('#', '');
-  const r = Math.min(255, parseInt(hex.substr(0, 2), 16) + Math.floor(255 * amount));
-  const g = Math.min(255, parseInt(hex.substr(2, 2), 16) + Math.floor(255 * amount));
-  const b = Math.min(255, parseInt(hex.substr(4, 2), 16) + Math.floor(255 * amount));
-  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-}
