@@ -75,7 +75,7 @@ export const COLORS = {
 export const BRUTALISM_STYLES = {
   borderWidth: 0,
   shadowOffset: 0,
-  borderRadius: 16,
+  borderRadius: 18,
   fontSize: {
     title: 48,
     subtitle: 24,
