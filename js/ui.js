@@ -167,7 +167,7 @@ export default class UI {
 
   drawBrutalismRect(ctx, x, y, width, height, fillColor, options = {}) {
     const scheme = this.getScheme();
-    const radius = options.radius !== undefined ? options.radius : 12;
+    const radius = options.radius !== undefined ? options.radius : 18;
 
     if (options.shadowOffset > 0) {
       ctx.shadowColor = scheme.shadow;
@@ -212,7 +212,7 @@ export default class UI {
     const scaledHeight = button.height * scale;
     const scaledX = centerX - scaledWidth / 2;
     const scaledY = centerY - scaledHeight / 2;
-    const radius = 22;
+    const radius = 28;
 
     ctx.save();
     ctx.globalAlpha = alpha;
@@ -298,7 +298,7 @@ export default class UI {
     const scaledHeight = button.height * scale;
     const scaledX = button.x + (button.width - scaledWidth) / 2;
     const scaledY = button.y + (button.height - scaledHeight) / 2;
-    const radius = 20;
+    const radius = 26;
 
     ctx.save();
     ctx.globalAlpha = alpha;
@@ -700,7 +700,7 @@ export default class UI {
       
       this.drawBrutalismRect(ctx, notificationX, actualY, notificationWidth, notificationHeight, scheme.buttonSuccess, {
         shadowOffset: 8,
-        borderWidth: 4
+        borderWidth: 1
       });
       
       ctx.fillStyle = scheme.textLight;
@@ -789,7 +789,7 @@ export default class UI {
 
       this.drawBrutalismRect(ctx, notificationX, notificationY, notificationWidth, notificationHeight, bgColor, {
         shadowOffset: 4,
-        borderWidth: 2
+        borderWidth: 1
       });
 
       // 绘制奖励文字
@@ -994,19 +994,19 @@ export default class UI {
 
   _buildMenuButtons() {
     const isMobile = this.width < 768;
-    const margin = isMobile ? 20 : 40;
-    const startY = this.height * 0.44;
+    const margin = isMobile ? 24 : 48;
+    const startY = this.height * 0.42;
 
     // 开始游戏按钮 - 全宽大按钮，更高更醒目
     const startButtonWidth = this.width - margin * 2;
-    const startButtonHeight = isMobile ? 62 : 70;
+    const startButtonHeight = isMobile ? 58 : 66;
 
     // 功能卡片网格 - 2x2布局
-    const cardGap = isMobile ? 14 : 16;
+    const cardGap = isMobile ? 12 : 14;
     const cardWidth = (this.width - margin * 2 - cardGap) / 2;
-    const cardHeight = isMobile ? 105 : 115;
+    const cardHeight = isMobile ? 100 : 110;
 
-    const cardRow1Y = startY + startButtonHeight + 20;
+    const cardRow1Y = startY + startButtonHeight + 18;
     const cardRow2Y = cardRow1Y + cardHeight + cardGap;
 
     const buttons = [
@@ -1101,7 +1101,7 @@ export default class UI {
 
     // 第三行 - 分享按钮（单按钮居中，较矮）
     const shareRowY = cardRow2Y + cardHeight + cardGap;
-    const shareButtonHeight = isMobile ? 46 : 52;
+    const shareButtonHeight = isMobile ? 44 : 50;
 
     buttons.push({
       id: 'share',
@@ -1580,7 +1580,7 @@ export default class UI {
     ctx.fillStyle = `rgba(0, 0, 0, ${0.7 * alpha})`;
     ctx.fillRect(0, 0, this.width, this.height);
 
-    const modalWidth = isMobile ? Math.min(360, this.width - 40) : 440;
+    const modalWidth = isMobile ? Math.min(340, this.width - 48) : 420;
     const hasScoreInMessage = this.modalMessage && this.modalMessage.includes('得分');
     const buttonCount = this.modalButtons ? this.modalButtons.length : 0;
     const extraButtonHeight = Math.max(0, buttonCount - 2) * (isMobile ? 62 : 74);
@@ -1608,8 +1608,8 @@ export default class UI {
     ctx.translate(-this.width / 2, -this.height / 2);
 
     this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
-      shadowOffset: 10,
-      borderWidth: 5
+      shadowOffset: 8,
+      borderWidth: 0
     });
 
     if (this.modalType === 'gameComplete') {
@@ -1730,7 +1730,7 @@ export default class UI {
       
       this.drawBrutalismRect(ctx, scoreBoxX, scoreBoxY, scoreBoxWidth, scoreBoxHeight, scheme.accent, {
         shadowOffset: 4,
-        borderWidth: 3
+        borderWidth: 1
       });
       
       ctx.fillStyle = scheme.textLight;
@@ -1805,9 +1805,9 @@ export default class UI {
 
   renderModalButtons(ctx, x, y, width, isMobile) {
     const scheme = this.getScheme();
-    const buttonWidth = isMobile ? 200 : 240;
-    const buttonHeight = isMobile ? 48 : 56;
-    const buttonSpacing = isMobile ? 14 : 18;
+    const buttonWidth = isMobile ? 190 : 230;
+    const buttonHeight = isMobile ? 46 : 52;
+    const buttonSpacing = isMobile ? 12 : 16;
     const centerX = x + width / 2;
 
     this.modalButtons.forEach((button, index) => {
@@ -1848,10 +1848,10 @@ export default class UI {
       const scaledX = centerX - scaledWidth / 2;
       const scaledY = buttonY + (buttonHeight - scaledHeight) / 2;
 
-      const shadowOffset = isClicked ? 2 : (isHovered ? 8 : 6);
+      const shadowOffset = isClicked ? 2 : (isHovered ? 6 : 4);
       this.drawBrutalismRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, fillColor, {
         shadowOffset: shadowOffset,
-        borderWidth: 4
+        borderWidth: 0
       });
 
       ctx.fillStyle = button.id === 'menu' ? scheme.text : scheme.textLight;
@@ -2102,7 +2102,7 @@ export default class UI {
     const tilePaddingX = size * 0.32;
     const tilePaddingY = size * 0.28;
     const tileGap = size * 0.12;
-    const tileRadius = size * 0.28;
+    const tileRadius = size * 0.36;
 
     ctx.save();
     ctx.font = `800 ${size}px "Arial Black", Arial, sans-serif`;
@@ -2186,8 +2186,8 @@ export default class UI {
     const isMobile = this.width < 768;
     const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
     const bottomSafeArea = Math.max(this.safeArea.bottom, isMobile ? 34 : 0);
-    const headerHeight = isMobile ? Math.max(100, topSafeArea + 56) : 120;
-    const footerHeight = isMobile ? Math.max(80, bottomSafeArea + 46) : 60;
+    const headerHeight = isMobile ? Math.max(100, topSafeArea + 54) : 116;
+    const footerHeight = isMobile ? Math.max(80, bottomSafeArea + 44) : 56;
     
     this.renderHeader(ctx, headerHeight, topSafeArea, isMobile, timeLeft, currentNumber, totalNumbers);
     
@@ -2203,12 +2203,12 @@ export default class UI {
     ctx.fillStyle = scheme.border;
     ctx.fillRect(0, headerHeight - 4, this.width, 4);
 
-    const buttonSize = isMobile ? 48 : 56;
-    const buttonSpacing = isMobile ? 14 : 18;
+    const buttonSize = isMobile ? 46 : 52;
+    const buttonSpacing = isMobile ? 12 : 16;
     const contentStartY = topSafeArea;
     const contentHeight = headerHeight - topSafeArea;
     const buttonY = contentStartY + (contentHeight - buttonSize) / 2;
-    const buttonStartX = isMobile ? 16 : 24;
+    const buttonStartX = isMobile ? 18 : 26;
 
     this.headerButtons = [
       {
@@ -2257,7 +2257,7 @@ export default class UI {
       const shadowOffset = isClicked ? 2 : (isHovered ? 6 : 4);
       this.drawBrutalismRect(ctx, scaledX, scaledY, scaledSize, scaledSize, fillColor, {
         shadowOffset: shadowOffset,
-        borderWidth: 3
+        borderWidth: 0
       });
       
       ctx.fillStyle = isHovered ? scheme.textLight : scheme.text;
@@ -2289,7 +2289,7 @@ export default class UI {
 
       this.drawBrutalismRect(ctx, timerX, timerBoxY, timerWidth, timerHeight, timerBgColor, {
         shadowOffset: 4,
-        borderWidth: 3
+        borderWidth: 1
       });
 
       ctx.font = `bold ${timerFontSize}px "Arial Black", Arial, sans-serif`;
@@ -2449,8 +2449,8 @@ export default class UI {
     const modalY = (this.height - modalHeight) / 2;
 
     this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
-      shadowOffset: 10,
-      borderWidth: 5
+      shadowOffset: 8,
+      borderWidth: 0
     });
 
     const titleY = modalY + (isMobile ? 50 : 60);
@@ -2524,7 +2524,7 @@ export default class UI {
 
       this.drawBrutalismRect(ctx, mode.x, modeY, modeWidth, modeHeight, modeData.color, {
         shadowOffset: 4,
-        borderWidth: 3
+        borderWidth: 1
       });
 
       ctx.font = `bold ${isMobile ? 20 : 24}px "Arial Black", Arial, sans-serif`;
@@ -2586,8 +2586,8 @@ export default class UI {
     const modalY = (this.height - modalHeight) / 2;
 
     this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
-      shadowOffset: 10,
-      borderWidth: 5
+      shadowOffset: 8,
+      borderWidth: 0
     });
 
     const titleY = modalY + (isMobile ? 40 : 50);
@@ -3274,8 +3274,8 @@ export default class UI {
     const modalY = (this.height - modalHeight) / 2;
 
     this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
-      shadowOffset: 10,
-      borderWidth: 5
+      shadowOffset: 8,
+      borderWidth: 0
     });
 
     const titleY = modalY + (isMobile ? 40 : 50);
@@ -3371,7 +3371,7 @@ export default class UI {
 
       this.drawBrutalismRect(ctx, itemX, itemY, itemWidth, itemHeight, bgColor, {
         shadowOffset: 2,
-        borderWidth: 2
+        borderWidth: 1
       });
 
       ctx.font = `bold ${isMobile ? 36 : 44}px Arial, sans-serif`;
@@ -3418,7 +3418,7 @@ export default class UI {
         const buyShadowOffset = isBuyButtonClicked ? 2 : (isBuyButtonHovered ? 6 : 4);
         this.drawBrutalismRect(ctx, scaledBuyX, scaledBuyY, scaledBuyWidth, scaledBuyHeight, buyButtonColor, {
           shadowOffset: buyShadowOffset,
-          borderWidth: 3
+          borderWidth: 1
         });
 
         ctx.fillStyle = scheme.textLight;
@@ -3429,7 +3429,7 @@ export default class UI {
       } else {
         this.drawBrutalismRect(ctx, buyButtonX, buyButtonY, buyButtonWidth, buyButtonHeight, '#CCCCCC', {
           shadowOffset: 2,
-          borderWidth: 2
+          borderWidth: 1
         });
 
         ctx.fillStyle = '#666666';
@@ -3468,8 +3468,8 @@ export default class UI {
     const modalY = (this.height - modalHeight) / 2;
 
     this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
-      shadowOffset: 10,
-      borderWidth: 5
+      shadowOffset: 8,
+      borderWidth: 0
     });
 
     const titleY = modalY + (isMobile ? 40 : 50);
@@ -3577,7 +3577,7 @@ export default class UI {
 
         this.drawBrutalismRect(ctx, itemX, currentY, itemWidth, itemHeight, bgColor, {
           shadowOffset: 2,
-          borderWidth: 2
+          borderWidth: 1
         });
 
         ctx.font = `bold ${isMobile ? 32 : 40}px Arial, sans-serif`;
@@ -3630,7 +3630,7 @@ export default class UI {
           const unlockShadowOffset = isUnlockButtonClicked ? 2 : (isUnlockButtonHovered ? 6 : 4);
           this.drawBrutalismRect(ctx, scaledUnlockX, scaledUnlockY, scaledUnlockWidth, scaledUnlockHeight, unlockButtonColor, {
             shadowOffset: unlockShadowOffset,
-            borderWidth: 3
+            borderWidth: 1
           });
 
           ctx.fillStyle = '#FFFFFF';
@@ -3641,7 +3641,7 @@ export default class UI {
         } else {
           this.drawBrutalismRect(ctx, unlockButtonX, unlockButtonY, unlockButtonWidth, unlockButtonHeight, '#CCCCCC', {
             shadowOffset: 2,
-            borderWidth: 2
+            borderWidth: 1
           });
 
           ctx.fillStyle = '#666666';
