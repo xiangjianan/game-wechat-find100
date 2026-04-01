@@ -15,6 +15,7 @@ export default class GameManager {
     this.gameState = 'menu';
     this.startTime = 0;
     this.endTime = 0;
+    this.totalPausedDuration = 0;
     this.currentLevel = 1;
     this.polygonCount = 10;
     this.onGameComplete = null;
@@ -87,6 +88,7 @@ export default class GameManager {
     this.totalNumbers = count;
     this.gameState = 'playing';
     this.startTime = Date.now();
+    this.totalPausedDuration = 0;
     this.timeLeft = this.initialTime + (this.skillManager ? this.skillManager.getInitialTimeBonus() : 0);
     this.clickCount = 0;
     this.errorCount = 0;
@@ -230,8 +232,9 @@ export default class GameManager {
     this.stopTimer();
     this.gameState = 'completed';
     this.endTime = Date.now();
-    const completionTime = (this.endTime - this.startTime) / 1000;
-    
+    const paused = this.totalPausedDuration + (this.isPaused ? this.endTime - this.pauseStartTime : 0);
+    const completionTime = (this.endTime - this.startTime - paused) / 1000;
+
     if (this.onGameComplete) {
       this.onGameComplete(completionTime);
     }
@@ -248,6 +251,7 @@ export default class GameManager {
     this.gameState = 'menu';
     this.startTime = 0;
     this.endTime = 0;
+    this.totalPausedDuration = 0;
     this.timeLeft = this.initialTime;
     this.clickCount = 0;
     this.errorCount = 0;
@@ -326,7 +330,8 @@ export default class GameManager {
   getCompletionTime() {
     if (this.startTime === 0) return 0;
     const endTime = this.gameState === 'completed' ? this.endTime : Date.now();
-    return (endTime - this.startTime) / 1000;
+    const paused = this.totalPausedDuration + (this.isPaused ? Date.now() - this.pauseStartTime : 0);
+    return (endTime - this.startTime - paused) / 1000;
   }
 
   getProgress() {
@@ -375,20 +380,23 @@ export default class GameManager {
   }
 
   pauseTimer() {
-    if (this.gameMode !== 'timed') return false;
     if (this.gameState !== 'playing' || this.isPaused) return false;
     this.isPaused = true;
     this.pauseStartTime = Date.now();
-    this.stopTimer();
+    if (this.gameMode === 'timed') {
+      this.stopTimer();
+    }
     return true;
   }
 
   resumeTimer() {
-    if (this.gameMode !== 'timed') return false;
     if (!this.isPaused) return false;
     this.isPaused = false;
-    this.timerLastUpdate = Date.now();
-    this.startTimer();
+    this.totalPausedDuration += Date.now() - this.pauseStartTime;
+    if (this.gameMode === 'timed') {
+      this.timerLastUpdate = Date.now();
+      this.startTimer();
+    }
     return true;
   }
 
