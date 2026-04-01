@@ -1,5 +1,5 @@
 import { getColorScheme } from '../../constants/colors';
-import { roundRect, from '../helpers/drawing';
+import { roundRect, lightenColor } from '../helpers/drawing';
 
 export default class SettingsPanel {
   constructor(width, height) {
