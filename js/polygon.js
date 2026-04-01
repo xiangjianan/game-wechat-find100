@@ -1,4 +1,5 @@
 import { COLORS, getColorScheme, BRUTALISM_STYLES } from './constants/colors';
+import { drawChromaticAberration, drawEdgeRefraction } from './liquidGlass';
 
 // 缓存颜色方案，避免每帧重复计算
 let cachedScheme = null;
@@ -177,7 +178,7 @@ export default class Polygon {
     };
   }
 
-  renderShape(ctx) {
+  renderShape(ctx, mouseX, mouseY) {
     const scheme = getCachedScheme();
     const stateColors = cachedStateColors;
 
@@ -204,6 +205,7 @@ export default class Polygon {
 
     let fillColor;
     let fillAlpha = 1;
+    let isGlassState = false;
     if (this.isClicked) {
       fillColor = stateColors.clicked;
     } else if (this.isEagleEyeHighlighted) {
@@ -217,6 +219,7 @@ export default class Polygon {
       // Default: frosted glass fill
       fillColor = 'rgba(255, 255, 255, 0.4)';
       fillAlpha = 0.4;
+      isGlassState = true;
     }
 
     if (fillAlpha < 1) {
@@ -232,6 +235,103 @@ export default class Polygon {
       innerGrad.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
       ctx.fillStyle = innerGrad;
       ctx.fill();
+
+      // Specular highlight — mouse-reactive light reflection
+      if (isGlassState && mouseX !== undefined && mouseY !== undefined) {
+        const localMX = Math.max(bounds.minX, Math.min(bounds.maxX, mouseX));
+        const localMY = Math.max(bounds.minY, Math.min(bounds.maxY, mouseY));
+        const hlRadius = Math.max(bounds.maxX - bounds.minX, bounds.maxY - bounds.minY) * 0.6;
+        const hlGrad = ctx.createRadialGradient(localMX, localMY, 0, localMX, localMY, hlRadius);
+        hlGrad.addColorStop(0, 'rgba(255, 255, 255, 0.18)');
+        hlGrad.addColorStop(0.4, 'rgba(255, 255, 255, 0.04)');
+        hlGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(this.vertices[0].x, this.vertices[0].y);
+        for (let i = 1; i < this.vertices.length; i++) {
+          ctx.lineTo(this.vertices[i].x, this.vertices[i].y);
+        }
+        ctx.closePath();
+        ctx.clip();
+        ctx.fillStyle = hlGrad;
+        ctx.fillRect(bounds.minX, bounds.minY, bounds.maxX - bounds.minX, bounds.maxY - bounds.minY);
+        ctx.restore();
+
+        // Re-establish the path for subsequent stroke operations
+        ctx.beginPath();
+        ctx.moveTo(this.vertices[0].x, this.vertices[0].y);
+        for (let i = 1; i < this.vertices.length; i++) {
+          ctx.lineTo(this.vertices[i].x, this.vertices[i].y);
+        }
+        ctx.closePath();
+      }
+
+      // Chromatic aberration — subtle RGB fringing at edges
+      if (isGlassState) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'screen';
+        ctx.globalAlpha = 0.06;
+
+        // Red offset
+        ctx.strokeStyle = 'rgba(255, 100, 100, 0.12)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(this.vertices[0].x - 0.8, this.vertices[0].y - 0.8);
+        for (let i = 1; i < this.vertices.length; i++) {
+          ctx.lineTo(this.vertices[i].x - 0.8, this.vertices[i].y - 0.8);
+        }
+        ctx.closePath();
+        ctx.stroke();
+
+        // Blue offset
+        ctx.strokeStyle = 'rgba(100, 140, 255, 0.12)';
+        ctx.beginPath();
+        ctx.moveTo(this.vertices[0].x + 0.8, this.vertices[0].y + 0.8);
+        for (let i = 1; i < this.vertices.length; i++) {
+          ctx.lineTo(this.vertices[i].x + 0.8, this.vertices[i].y + 0.8);
+        }
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.restore();
+
+        // Re-establish path
+        ctx.beginPath();
+        ctx.moveTo(this.vertices[0].x, this.vertices[0].y);
+        for (let i = 1; i < this.vertices.length; i++) {
+          ctx.lineTo(this.vertices[i].x, this.vertices[i].y);
+        }
+        ctx.closePath();
+      }
+
+      // Edge refraction glow — top edge brighter
+      if (isGlassState) {
+        const bounds2 = this._getBounds();
+        const edgeH = 4;
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(this.vertices[0].x, this.vertices[0].y);
+        for (let i = 1; i < this.vertices.length; i++) {
+          ctx.lineTo(this.vertices[i].x, this.vertices[i].y);
+        }
+        ctx.closePath();
+        ctx.clip();
+
+        const topGrad = ctx.createLinearGradient(bounds2.minX, bounds2.minY, bounds2.minX, bounds2.minY + edgeH);
+        topGrad.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
+        topGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.fillStyle = topGrad;
+        ctx.fillRect(bounds2.minX, bounds2.minY, bounds2.maxX - bounds2.minX, edgeH);
+        ctx.restore();
+
+        // Re-establish path
+        ctx.beginPath();
+        ctx.moveTo(this.vertices[0].x, this.vertices[0].y);
+        for (let i = 1; i < this.vertices.length; i++) {
+          ctx.lineTo(this.vertices[i].x, this.vertices[i].y);
+        }
+        ctx.closePath();
+      }
     } else {
       ctx.fillStyle = fillColor;
       ctx.fill();
@@ -245,16 +345,35 @@ export default class Polygon {
     ctx.shadowBlur = 0;
     ctx.shadowColor = 'rgba(0, 0, 0, 0)';
 
-    // Glass border: light top edge, subtle overall
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+    // Glass border: double-border with light response
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
     ctx.lineWidth = 1;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.stroke();
 
-    // Top-edge light highlight
+    // Inner subtle border for double-glass effect
+    if (isGlassState) {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.lineWidth = 0.5;
+      const inset = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(this.vertices[0].x + inset * 0.5, this.vertices[0].y + inset * 0.5);
+      for (let i = 1; i < this.vertices.length; i++) {
+        const dx = this.vertices[i].x - this.vertices[i-1].x;
+        const dy = this.vertices[i].y - this.vertices[i-1].y;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        const nx = -dy / (len || 1);
+        const ny = dx / (len || 1);
+        ctx.lineTo(this.vertices[i].x + nx * inset, this.vertices[i].y + ny * inset);
+      }
+      ctx.closePath();
+      ctx.stroke();
+    }
+
+    // Top-edge light highlight — catches light
     if (!this.isClicked && !this.isEagleEyeHighlighted && !this.isHinted) {
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(this.vertices[0].x, this.vertices[0].y - 0.5);
@@ -262,6 +381,16 @@ export default class Polygon {
         ctx.lineTo(this.vertices[1].x, this.vertices[1].y - 0.5);
       }
       ctx.stroke();
+
+      // Left edge subtle highlight
+      if (this.vertices.length > 2) {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(this.vertices[0].x - 0.5, this.vertices[0].y);
+        ctx.lineTo(this.vertices[this.vertices.length - 1].x - 0.5, this.vertices[this.vertices.length - 1].y);
+        ctx.stroke();
+      }
     }
 
     if (this.isHinted) {

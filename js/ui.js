@@ -1,5 +1,6 @@
 import { COLORS, getColorScheme, BRUTALISM_STYLES } from './constants/colors';
 import { SAFE_AREA } from './render';
+import { drawLiquidGlassPanel, drawGlassBorder, drawChromaticAberration, drawSpecularHighlight, drawEdgeRefraction, computeElasticScale } from './liquidGlass';
 
 export default class UI {
   constructor(width, height) {
@@ -153,68 +154,23 @@ export default class UI {
    * @param {object} options - { radius, alpha, shadow, borderColor, noBorder, noShine }
    */
   drawGlassPanel(ctx, x, y, width, height, options = {}) {
-    const scheme = this.getScheme();
     const radius = options.radius !== undefined ? options.radius : 16;
-    const alpha = options.alpha !== undefined ? options.alpha : 0.55;
+    const alpha = options.alpha !== undefined ? options.alpha : 0.5;
     const hasShadow = options.shadow !== false;
-    const borderColor = options.borderColor || scheme.glassBorderLight;
     const noBorder = options.noBorder || false;
-    const noShine = options.noShine || false;
+    const blur = options.blur !== undefined ? options.blur : 10;
+    const aberration = options.aberration !== undefined ? options.aberration : 1.5;
 
-    ctx.save();
-
-    // Soft diffused shadow
-    if (hasShadow) {
-      ctx.shadowColor = 'rgba(99, 102, 241, 0.08)';
-      ctx.shadowBlur = 24;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 8;
-    }
-
-    // Main frosted fill — semi-transparent white
-    ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-    this.roundRect(ctx, x, y, width, height, radius);
-    ctx.fill();
-
-    // Clear shadow for subsequent layers
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-
-    // Inner subtle gradient — top highlight / bottom shadow for depth
-    if (!noShine) {
-      const shineGrad = ctx.createLinearGradient(x, y, x, y + height);
-      shineGrad.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
-      shineGrad.addColorStop(0.3, 'rgba(255, 255, 255, 0.08)');
-      shineGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.0)');
-      shineGrad.addColorStop(1, 'rgba(0, 0, 0, 0.03)');
-      ctx.fillStyle = shineGrad;
-      this.roundRect(ctx, x, y, width, height, radius);
-      ctx.fill();
-    }
-
-    // Top-edge light stroke — key glass indicator
-    if (!noBorder) {
-      // Light top/left border
-      ctx.strokeStyle = borderColor;
-      ctx.lineWidth = 1;
-      this.roundRect(ctx, x + 0.5, y + 0.5, width - 1, height - 1, radius);
-      ctx.stroke();
-
-      // Subtle inner glow at top
-      const innerGlow = ctx.createLinearGradient(x, y, x, y + 2);
-      innerGlow.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
-      innerGlow.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
-      ctx.strokeStyle = innerGlow;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(x + radius, y + 0.5);
-      ctx.lineTo(x + width - radius, y + 0.5);
-      ctx.stroke();
-    }
-
-    ctx.restore();
+    drawLiquidGlassPanel(ctx, x, y, width, height, {
+      radius,
+      alpha,
+      shadow: hasShadow,
+      noBorder,
+      blur,
+      aberration,
+      mouseX: this.mouseX,
+      mouseY: this.mouseY
+    });
   }
 
   roundRect(ctx, x, y, width, height, radius) {
@@ -283,10 +239,28 @@ export default class UI {
 
     const centerX = button.x + button.width / 2;
     const centerY = button.y + button.height / 2;
-    const scaledWidth = button.width * scale;
-    const scaledHeight = button.height * scale;
-    const scaledX = centerX - scaledWidth / 2;
-    const scaledY = centerY - scaledHeight / 2;
+
+    // Elastic directional scaling toward mouse
+    let elasticScaleX = 1;
+    let elasticScaleY = 1;
+    let elasticTX = 0;
+    let elasticTY = 0;
+    if (isHovered && !isClicked) {
+      const elastic = computeElasticScale(centerX, centerY, button.width, button.height, this.mouseX, this.mouseY, 0.12);
+      elasticScaleX = elastic.scaleX;
+      elasticScaleY = elastic.scaleY;
+      elasticTX = elastic.translateX;
+      elasticTY = elastic.translateY;
+    }
+    if (isClicked) {
+      elasticScaleX = 0.96;
+      elasticScaleY = 0.96;
+    }
+
+    const scaledWidth = button.width * scale * elasticScaleX;
+    const scaledHeight = button.height * scale * elasticScaleY;
+    const scaledX = centerX - scaledWidth / 2 + elasticTX;
+    const scaledY = centerY - scaledHeight / 2 + elasticTY;
     const radius = 22;
 
     ctx.save();
@@ -322,10 +296,35 @@ export default class UI {
     this.roundRect(ctx, scaledX + 1, scaledY + 1, scaledWidth - 2, scaledHeight * 0.5, radius);
     ctx.fill();
 
+    // Specular highlight follows mouse
+    if (isHovered) {
+      const hlX = Math.max(scaledX, Math.min(scaledX + scaledWidth, this.mouseX));
+      const hlY = Math.max(scaledY, Math.min(scaledY + scaledHeight, this.mouseY));
+      const hlRadius = Math.max(scaledWidth, scaledHeight) * 0.5;
+      const hlGrad = ctx.createRadialGradient(hlX, hlY, 0, hlX, hlY, hlRadius);
+      hlGrad.addColorStop(0, 'rgba(255, 255, 255, 0.15)');
+      hlGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.03)');
+      hlGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.save();
+      this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
+      ctx.clip();
+      ctx.fillStyle = hlGrad;
+      ctx.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
+      ctx.restore();
+    }
+
     // Light border
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
     ctx.lineWidth = 1;
     this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
+    ctx.stroke();
+
+    // Top edge highlight
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(scaledX + radius, scaledY + 0.5);
+    ctx.lineTo(scaledX + scaledWidth - radius, scaledY + 0.5);
     ctx.stroke();
 
     // Text
@@ -336,20 +335,20 @@ export default class UI {
 
     if (button.icon === 'play') {
       const textWidth = ctx.measureText(button.text).width;
-      const textX = centerX - 12;
-      const iconX = centerX + textWidth / 2 + 10;
+      const textX = centerX + elasticTX - 12;
+      const iconX = centerX + elasticTX + textWidth / 2 + 10;
 
-      ctx.fillText(button.text, textX, centerY);
+      ctx.fillText(button.text, textX, centerY + elasticTY);
 
       ctx.beginPath();
-      ctx.moveTo(iconX, centerY - 8);
-      ctx.lineTo(iconX + 13, centerY);
-      ctx.lineTo(iconX, centerY + 8);
+      ctx.moveTo(iconX, centerY + elasticTY - 8);
+      ctx.lineTo(iconX + 13, centerY + elasticTY);
+      ctx.lineTo(iconX, centerY + elasticTY + 8);
       ctx.closePath();
       ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
       ctx.fill();
     } else {
-      ctx.fillText(button.text, centerX, centerY);
+      ctx.fillText(button.text, centerX + elasticTX, centerY + elasticTY);
     }
 
     ctx.restore();

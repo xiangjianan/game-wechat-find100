@@ -871,7 +871,7 @@ export default class FindGameMain {
     this.renderGameBackground(ctx);
 
     if (this.gameManager.gameState === 'playing' || this.gameManager.gameState === 'completed' || this.gameManager.gameState === 'failed') {
-      this.gameManager.render(ctx);
+      this.gameManager.render(ctx, this.ui.mouseX, this.ui.mouseY);
       this.renderGameAreaBorder(ctx);
     }
 
