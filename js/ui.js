@@ -136,6 +136,36 @@ export default class UI {
     this.shopProducts = null;
 
     this.shimmerTime = 0;
+
+    // Menu background particles
+    this.menuParticles = [];
+
+    // Click ripple effects
+    this.rippleEffects = [];
+
+    // Modal spring animation velocity
+    this.modalVelocity = 0;
+
+    // Completion star rating
+    this.completionStars = 0;
+    this.completionStarsInit = false;
+    this.starAnimations = [0, 0, 0];
+    this.starAppearTime = 0;
+
+    // Combo edge glow
+    this.comboEdgeGlow = 0;
+    this.comboEdgeColor = 'rgba(99, 102, 241, 1)';
+
+    // Encouraging messages for failure screen
+    this._encouragingMessages = [
+      '每一次尝试都是进步！',
+      '失败是成功之母，加油！',
+      '你已经很棒了，继续加油！',
+      '坚持就是胜利，不要放弃！',
+      '相信自己，你一定可以的！',
+      '距离成功只差一点点了！'
+    ];
+    this._currentEncouragingMsg = '';
   }
 
   getScheme() {
@@ -622,7 +652,8 @@ export default class UI {
   showFloatingText(x, y, text, color, source = null) {
     this.floatingTexts.push({
       x, y, text, color,
-      alpha: 1,
+      alpha: 0,
+      fadeIn: 1,
       offsetY: 0,
       life: 1.0,
       source
@@ -814,13 +845,32 @@ export default class UI {
     this.updateEggEffect(deltaTime);
     this.updateRewardNotifications(deltaTime);
 
+    // Update menu particles
+    this._updateMenuParticles(deltaTime);
+
+    // Update ripple effects
+    this._updateRippleEffects(deltaTime);
+
+    // Update combo edge glow decay
+    if (this.comboEdgeGlow > 0) {
+      this.comboEdgeGlow = Math.max(0, this.comboEdgeGlow - deltaTime * 2);
+    }
+
     for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
       const ft = this.floatingTexts[i];
-      ft.life -= deltaTime * 1.5;
-      ft.offsetY -= deltaTime * 100;
-      ft.alpha = Math.max(0, ft.life);
 
-      if (ft.life <= 0) {
+      // Fade in phase
+      if (ft.fadeIn > 0) {
+        ft.fadeIn = Math.max(0, ft.fadeIn - deltaTime * 6);
+        ft.alpha = 1 - ft.fadeIn;
+      } else {
+        ft.life -= deltaTime * 1.5;
+        ft.alpha = Math.max(0, ft.life);
+      }
+
+      ft.offsetY -= deltaTime * 100;
+
+      if (ft.life <= 0 && ft.fadeIn <= 0) {
         this.floatingTexts.splice(i, 1);
       }
     }
@@ -872,6 +922,110 @@ export default class UI {
     }
 
     this.renderRewardNotifications(ctx);
+    this.renderRippleEffects(ctx);
+    this.renderComboEdgeGlow(ctx);
+  }
+
+  _initMenuParticles() {
+    this.menuParticles = [];
+    const particleCount = 20;
+    for (let i = 0; i < particleCount; i++) {
+      this.menuParticles.push({
+        x: Math.random() * this.width,
+        y: Math.random() * this.height,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.3 - 0.15,
+        size: Math.random() * 3 + 1,
+        baseAlpha: Math.random() * 0.12 + 0.03,
+        color: ['#6366F1', '#EC4899', '#10B981', '#F59E0B', '#3B82F6', '#8B5CF6'][Math.floor(Math.random() * 6)]
+      });
+    }
+  }
+
+  _updateMenuParticles(deltaTime) {
+    for (const p of this.menuParticles) {
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < -10) p.x = this.width + 10;
+      if (p.x > this.width + 10) p.x = -10;
+      if (p.y < -10) p.y = this.height + 10;
+      if (p.y > this.height + 10) p.y = -10;
+    }
+  }
+
+  _renderMenuParticles(ctx) {
+    const t = this.shimmerTime;
+    for (const p of this.menuParticles) {
+      const pulse = 0.8 + Math.sin(t * 2 + p.x * 0.01) * 0.2;
+      ctx.globalAlpha = p.baseAlpha * pulse;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  _updateRippleEffects(deltaTime) {
+    for (let i = this.rippleEffects.length - 1; i >= 0; i--) {
+      const r = this.rippleEffects[i];
+      r.radius += deltaTime * 200;
+      r.life -= deltaTime * 3;
+      r.alpha = Math.max(0, r.life) * 0.4;
+      if (r.life <= 0) {
+        this.rippleEffects.splice(i, 1);
+      }
+    }
+  }
+
+  renderRippleEffects(ctx) {
+    for (const r of this.rippleEffects) {
+      ctx.save();
+      ctx.globalAlpha = r.alpha;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  renderComboEdgeGlow(ctx) {
+    if (this.comboEdgeGlow <= 0) return;
+
+    const alpha = this.comboEdgeGlow * 0.2;
+    const w = this.width;
+    const h = this.height;
+    const edgeSize = 60;
+
+    ctx.save();
+
+    const topGrad = ctx.createLinearGradient(0, 0, 0, edgeSize);
+    topGrad.addColorStop(0, `rgba(99, 102, 241, ${alpha})`);
+    topGrad.addColorStop(1, 'rgba(99, 102, 241, 0)');
+    ctx.fillStyle = topGrad;
+    ctx.fillRect(0, 0, w, edgeSize);
+
+    const bottomGrad = ctx.createLinearGradient(0, h, 0, h - edgeSize);
+    bottomGrad.addColorStop(0, `rgba(139, 92, 246, ${alpha})`);
+    bottomGrad.addColorStop(1, 'rgba(139, 92, 246, 0)');
+    ctx.fillStyle = bottomGrad;
+    ctx.fillRect(0, h - edgeSize, w, edgeSize);
+
+    const leftGrad = ctx.createLinearGradient(0, 0, edgeSize, 0);
+    leftGrad.addColorStop(0, `rgba(99, 102, 241, ${alpha * 0.7})`);
+    leftGrad.addColorStop(1, 'rgba(99, 102, 241, 0)');
+    ctx.fillStyle = leftGrad;
+    ctx.fillRect(0, 0, edgeSize, h);
+
+    const rightGrad = ctx.createLinearGradient(w, 0, w - edgeSize, 0);
+    rightGrad.addColorStop(0, `rgba(139, 92, 246, ${alpha * 0.7})`);
+    rightGrad.addColorStop(1, 'rgba(139, 92, 246, 0)');
+    ctx.fillStyle = rightGrad;
+    ctx.fillRect(w - edgeSize, 0, edgeSize, h);
+
+    ctx.restore();
   }
 
   renderEggEffect(ctx) {
@@ -1545,6 +1699,7 @@ export default class UI {
     this.modalAnimation = 0;
     this.modalTargetAnimation = 1;
     this.modalSoundPlayed = false;
+    this.modalVelocity = 0;
   }
 
   hideModal() {
@@ -1554,9 +1709,13 @@ export default class UI {
   updateModalAnimation(deltaTime) {
     if (this.showModal) {
       if (this.modalAnimation < this.modalTargetAnimation) {
-        this.modalAnimation += deltaTime * 5;
+        // Spring easing for opening
+        this.modalVelocity += (this.modalTargetAnimation - this.modalAnimation) * 8 * deltaTime;
+        this.modalVelocity *= 0.7;
+        this.modalAnimation += this.modalVelocity;
         if (this.modalAnimation > this.modalTargetAnimation) {
           this.modalAnimation = this.modalTargetAnimation;
+          this.modalVelocity = 0;
         }
       } else if (this.modalAnimation > this.modalTargetAnimation) {
         this.modalAnimation -= deltaTime * 5;
@@ -1567,6 +1726,7 @@ export default class UI {
       
       if (this.modalAnimation <= 0 && this.modalTargetAnimation === 0) {
         this.showModal = false;
+        this.completionStarsInit = false;
       }
     }
   }
@@ -1630,18 +1790,66 @@ export default class UI {
       this.soundManager.playComplete();
       this.modalSoundPlayed = true;
     }
+
+    // Init star rating based on completion time
+    if (!this.completionStarsInit) {
+      this.completionStarsInit = true;
+      this.starAppearTime = 0;
+      this.starAnimations = [0, 0, 0];
+      const time = this.completionTime || 999;
+      if (time <= 30) this.completionStars = 3;
+      else if (time <= 60) this.completionStars = 2;
+      else this.completionStars = 1;
+      // Random encouraging messages
+      if (!this._currentEncouragingMsg) {
+        const msgs = ['太厉害了！', '完美表现！', '非常出色！', '你就是速度之王！'];
+        this._currentEncouragingMsg = msgs[Math.floor(Math.random() * msgs.length)];
+      }
+    }
+    this.starAppearTime += 0.016;
+
     const scheme = this.getScheme();
     const centerX = x + width / 2;
-    
-    ctx.fillStyle = scheme.buttonSuccess;
-    ctx.font = `bold ${isMobile ? 48 : 56}px "Arial Black", Arial, sans-serif`;
+
+    // Star rating animation
+    const starY = y + (isMobile ? 50 : 60);
+    const starSize = isMobile ? 28 : 34;
+    const starSpacing = isMobile ? 50 : 60;
+    for (let i = 0; i < 3; i++) {
+      const delay = i * 0.3;
+      const t = Math.max(0, Math.min(1, (this.starAppearTime - delay) * 3));
+      // Spring bounce ease
+      const bounce = t < 1 ? 1 - Math.pow(1 - t, 3) * Math.cos(t * Math.PI * 2) : 1;
+      const sx = centerX + (i - 1) * starSpacing;
+      const scale = bounce * (i < this.completionStars ? 1 : 0.4);
+      const alpha = i < this.completionStars ? Math.min(1, t * 2) : 0.2;
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(sx, starY);
+      ctx.scale(scale, scale);
+      ctx.fillStyle = i < this.completionStars ? '#F59E0B' : '#D1D5DB';
+      ctx.font = `${starSize}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('★', 0, 0);
+      ctx.restore();
+    }
+
+    ctx.fillStyle = scheme.text;
+    ctx.font = `bold ${isMobile ? 30 : 38}px "Arial Black", Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('★', centerX, y + (isMobile ? 50 : 60));
-    
-    ctx.fillStyle = scheme.text;
-    ctx.font = `bold ${isMobile ? 32 : 40}px "Arial Black", Arial, sans-serif`;
     ctx.fillText('通关成功!', centerX, y + (isMobile ? 110 : 130));
+
+    // Encouraging message
+    const msgAlpha = Math.max(0, Math.min(1, (this.starAppearTime - 1) * 2));
+    ctx.save();
+    ctx.globalAlpha = msgAlpha;
+    ctx.fillStyle = scheme.accent;
+    ctx.font = `bold ${isMobile ? 14 : 16}px Arial, sans-serif`;
+    ctx.fillText(this._currentEncouragingMsg || '', centerX, y + (isMobile ? 140 : 160));
+    ctx.restore();
     
     const messageLines = this.modalMessage.split('\n');
     let timeValue = '';
@@ -1740,9 +1948,12 @@ export default class UI {
       textY += scoreBoxHeight + (isMobile ? 15 : 20);
     }
     
+    if (!this._currentEncouragingMsg) {
+      this._currentEncouragingMsg = this._encouragingMessages[Math.floor(Math.random() * this._encouragingMessages.length)];
+    }
     ctx.fillStyle = scheme.text;
     ctx.font = `bold ${isMobile ? 16 : 18}px Arial, sans-serif`;
-    ctx.fillText('别放弃，再试一次!', centerX, textY + (isMobile ? 10 : 15));
+    ctx.fillText(this._currentEncouragingMsg, centerX, textY + (isMobile ? 10 : 15));
 
     const failBtnCount = this.modalButtons ? this.modalButtons.length : 0;
     const failExtraH = Math.max(0, failBtnCount - 2) * (isMobile ? 62 : 74);
@@ -2027,6 +2238,10 @@ export default class UI {
 
     ctx.restore();
 
+    // Render menu background particles
+    if (this.menuParticles.length === 0) this._initMenuParticles();
+    this._renderMenuParticles(ctx);
+
     const switcherWidth = isMobile ? 240 : 280;
     const switcherHeight = isMobile ? 42 : 48;
     const switcherX = (this.width - switcherWidth) / 2;
@@ -2054,9 +2269,9 @@ export default class UI {
     const scheme = this.getScheme();
 
     const gradient = ctx.createLinearGradient(0, 0, this.width, this.height);
-    gradient.addColorStop(0, '#F8FAFC');
-    gradient.addColorStop(0.5, '#EFF6FF');
-    gradient.addColorStop(1, '#F5F3FF');
+    gradient.addColorStop(0, '#FEFBF6');
+    gradient.addColorStop(0.5, '#FAF5EE');
+    gradient.addColorStop(1, '#F5F0FF');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, this.width, this.height);
 
@@ -2197,11 +2412,21 @@ export default class UI {
   renderHeader(ctx, headerHeight, topSafeArea, isMobile, timeLeft, currentNumber, totalNumbers) {
     const scheme = this.getScheme();
     
-    ctx.fillStyle = scheme.background;
+    // Frosted glass effect background
+    const headerGradient = ctx.createLinearGradient(0, 0, 0, headerHeight);
+    headerGradient.addColorStop(0, 'rgba(254, 251, 246, 0.95)');
+    headerGradient.addColorStop(1, 'rgba(250, 245, 238, 0.9)');
+    ctx.fillStyle = headerGradient;
     ctx.fillRect(0, 0, this.width, headerHeight);
     
-    ctx.fillStyle = scheme.border;
-    ctx.fillRect(0, headerHeight - 4, this.width, 4);
+    // Soft border with gradient
+    const borderGradient = ctx.createLinearGradient(0, headerHeight - 3, this.width, headerHeight - 3);
+    borderGradient.addColorStop(0, 'rgba(113, 104, 224, 0)');
+    borderGradient.addColorStop(0.3, 'rgba(113, 104, 224, 0.3)');
+    borderGradient.addColorStop(0.7, 'rgba(149, 128, 234, 0.3)');
+    borderGradient.addColorStop(1, 'rgba(149, 128, 234, 0)');
+    ctx.fillStyle = borderGradient;
+    ctx.fillRect(0, headerHeight - 3, this.width, 3);
 
     const buttonSize = isMobile ? 46 : 52;
     const buttonSpacing = isMobile ? 12 : 16;
