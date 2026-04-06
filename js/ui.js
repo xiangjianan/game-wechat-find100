@@ -2505,10 +2505,9 @@ export default class UI {
     const scheme = this.getScheme();
     const buttonSize = isMobile ? 40 : 64;
     const paddingX = isMobile ? 16 : 20;
-    const offsetY = isMobile ? 8 : 12;
-    
+
     const buttonX = paddingX;
-    const buttonY = footerY - offsetY + bottomSafeArea / 2;
+    const buttonY = footerY + (footerHeight - buttonSize) / 2;
     
     const isHintHovered = this.mouseX >= buttonX && this.mouseX <= buttonX + buttonSize &&
                           this.mouseY >= buttonY && this.mouseY <= buttonY + buttonSize;
