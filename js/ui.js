@@ -505,6 +505,31 @@ export default class UI {
       ctx.beginPath();
       ctx.arc(iconCenterX, iconCenterY - s * 0.25, s * 0.12, 0, Math.PI * 2);
       ctx.stroke();
+    } else if (icon === 'medal') {
+      ctx.strokeStyle = iconColor || '#F59E0B';
+      // 奖牌圆形外框
+      ctx.beginPath();
+      ctx.arc(iconCenterX, iconCenterY - s * 0.05, s * 0.7, 0, Math.PI * 2);
+      ctx.stroke();
+      // 顶部挂环
+      ctx.beginPath();
+      ctx.arc(iconCenterX, iconCenterY - s * 0.8, s * 0.18, Math.PI, 0);
+      ctx.stroke();
+      // 星星装饰
+      ctx.beginPath();
+      ctx.arc(iconCenterX, iconCenterY - s * 0.05, s * 0.12, 0, Math.PI * 2);
+      ctx.stroke();
+      // 底部丝带
+      ctx.beginPath();
+      ctx.moveTo(iconCenterX - s * 0.5, iconCenterY + s * 0.5);
+      ctx.lineTo(iconCenterX - s * 0.15, iconCenterY + s * 0.15);
+      ctx.lineTo(iconCenterX - s * 0.3, iconCenterY + s * 0.8);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(iconCenterX + s * 0.5, iconCenterY + s * 0.5);
+      ctx.lineTo(iconCenterX + s * 0.15, iconCenterY + s * 0.15);
+      ctx.lineTo(iconCenterX + s * 0.3, iconCenterY + s * 0.8);
+      ctx.stroke();
     } else if (icon === 'share') {
       ctx.strokeStyle = iconColor || '#8B5CF6';
       // 三个节点
