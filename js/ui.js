@@ -1147,28 +1147,10 @@ export default class UI {
     const shareButtonHeight = isMobile ? 44 : 50;
 
     buttons.push({
-      id: 'scoreHistory',
-      text: '历史最高分',
-      subtitle: '查看最佳成绩',
-      type: 'card',
-      x: margin,
-      y: shareRowY,
-      width: (this.width - margin * 2 - cardGap) / 2,
-      height: shareButtonHeight,
-      icon: 'medal',
-      iconBg: '#FEF3C7',
-      iconColor: '#F59E0B',
-      cardBg: 'rgba(255, 252, 245, 0.95)',
-      cardBorder: 'rgba(245, 158, 11, 0.2)',
-      cardHoverGlow: 'rgba(245, 158, 11, 0.15)',
-      action: () => { if (this.onOpenScoreHistory) this.onOpenScoreHistory(); }
-    });
-
-    buttons.push({
       id: 'share',
       text: '分享给朋友',
       type: 'card',
-      x: margin + (this.width - margin * 2 - cardGap) / 2 + cardGap,
+      x: margin,
       y: shareRowY,
       width: (this.width - margin * 2 - cardGap) / 2,
       height: shareButtonHeight,
@@ -1179,6 +1161,24 @@ export default class UI {
       cardBorder: 'rgba(139, 92, 246, 0.2)',
       cardHoverGlow: 'rgba(139, 92, 246, 0.15)',
       action: () => { if (this.onShare) this.onShare(); }
+    });
+
+    buttons.push({
+      id: 'scoreHistory',
+      text: '历史最高分',
+      subtitle: '查看最佳成绩',
+      type: 'card',
+      x: margin + (this.width - margin * 2 - cardGap) / 2 + cardGap,
+      y: shareRowY,
+      width: (this.width - margin * 2 - cardGap) / 2,
+      height: shareButtonHeight,
+      icon: 'medal',
+      iconBg: '#FEF3C7',
+      iconColor: '#F59E0B',
+      cardBg: 'rgba(255, 252, 245, 0.95)',
+      cardBorder: 'rgba(245, 158, 11, 0.2)',
+      cardHoverGlow: 'rgba(245, 158, 11, 0.15)',
+      action: () => { if (this.onOpenScoreHistory) this.onOpenScoreHistory(); }
     });
 
     return buttons;
