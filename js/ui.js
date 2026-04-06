@@ -136,6 +136,22 @@ export default class UI {
     this.shopProducts = null;
 
     this.shimmerTime = 0;
+
+    // Score history
+    this.showScoreHistory = false;
+    this.scoreHistoryData = { 1: [], 2: [] };
+    this.scoreHistoryTab = 1;
+    this.scoreHistoryScrollOffset = 0;
+    this.scoreHistoryTouchStartY = 0;
+    this.scoreHistoryLastTouchY = 0;
+    this.scoreHistoryIsTouching = false;
+    this.scoreHistoryScrollVelocity = 0;
+    this.scoreHistoryLastScrollDelta = 0;
+    this.scoreHistoryLastScrollTime = 0;
+    this.onOpenScoreHistory = null;
+
+    // High score celebration
+    this.highScoreCelebration = null;
   }
 
   getScheme() {
@@ -811,6 +827,7 @@ export default class UI {
     this.updateScrollInertia(deltaTime);
     this.updateHintButtonAnimation(deltaTime);
     this.updateSkillsScrollInertia(deltaTime);
+    this.updateScoreHistoryScrollInertia(deltaTime);
     this.updateEggEffect(deltaTime);
     this.updateRewardNotifications(deltaTime);
 
@@ -988,6 +1005,7 @@ export default class UI {
     this.showAchievements = false;
     this.showShop = false;
     this.showSkills = false;
+    this.showScoreHistory = false;
 
     this.buttons = this._buildMenuButtons();
   }
@@ -1104,12 +1122,30 @@ export default class UI {
     const shareButtonHeight = isMobile ? 44 : 50;
 
     buttons.push({
-      id: 'share',
-      text: '分享给朋友',
+      id: 'scoreHistory',
+      text: '历史最高分',
+      subtitle: '查看最佳成绩',
       type: 'card',
       x: margin,
       y: shareRowY,
-      width: this.width - margin * 2,
+      width: (this.width - margin * 2 - cardGap) / 2,
+      height: shareButtonHeight,
+      icon: 'medal',
+      iconBg: '#FEF3C7',
+      iconColor: '#F59E0B',
+      cardBg: 'rgba(255, 252, 245, 0.95)',
+      cardBorder: 'rgba(245, 158, 11, 0.2)',
+      cardHoverGlow: 'rgba(245, 158, 11, 0.15)',
+      action: () => { if (this.onOpenScoreHistory) this.onOpenScoreHistory(); }
+    });
+
+    buttons.push({
+      id: 'share',
+      text: '分享给朋友',
+      type: 'card',
+      x: margin + (this.width - margin * 2 - cardGap) / 2 + cardGap,
+      y: shareRowY,
+      width: (this.width - margin * 2 - cardGap) / 2,
       height: shareButtonHeight,
       icon: 'share',
       iconBg: '#EDE9FE',
@@ -1303,6 +1339,55 @@ export default class UI {
           this.clickedButton = null;
           this.clickAnimation = 0;
           this.onCloseAchievements();
+          this.hoveredButton = null;
+        }, 150);
+        return true;
+      }
+      return true;
+    }
+
+    if (this.showScoreHistory) {
+      const isMobile = this.width < 768;
+      const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
+      const modalHeight = isMobile ? this.height - 60 : this.height - 80;
+      const modalX = (this.width - modalWidth) / 2;
+      const modalY = (this.height - modalHeight) / 2;
+
+      // Tab clicks
+      const tabY = modalY + (isMobile ? 75 : 90);
+      const tabGap = isMobile ? 10 : 12;
+      const tabWidth = (modalWidth - (isMobile ? 30 : 40)) / 2;
+      const tabHeight = isMobile ? 38 : 44;
+      const tabStartX = modalX + (isMobile ? 15 : 20);
+
+      for (let i = 1; i <= 2; i++) {
+        const tX = tabStartX + (i - 1) * (tabWidth + tabGap);
+        if (x >= tX && x <= tX + tabWidth &&
+            y >= tabY && y <= tabY + tabHeight) {
+          if (this.scoreHistoryTab !== i) {
+            this.scoreHistoryTab = i;
+            this.scoreHistoryScrollOffset = 0;
+            if (this.onPlayClickSound) this.onPlayClickSound();
+          }
+          return true;
+        }
+      }
+
+      // Close button
+      const buttonWidth = isMobile ? 180 : 220;
+      const buttonHeight = isMobile ? 48 : 56;
+      const buttonX = (this.width - buttonWidth) / 2;
+      const buttonY = modalY + modalHeight - (isMobile ? 70 : 80);
+
+      if (x >= buttonX && x <= buttonX + buttonWidth &&
+          y >= buttonY && y <= buttonY + buttonHeight) {
+        this.clickedButton = 'scoreHistory_close';
+        this.clickAnimation = 1;
+        if (this.onPlayClickSound) this.onPlayClickSound();
+        setTimeout(() => {
+          this.clickedButton = null;
+          this.clickAnimation = 0;
+          this.showScoreHistory = false;
           this.hoveredButton = null;
         }, 150);
         return true;
@@ -1935,6 +2020,17 @@ export default class UI {
       return;
     }
 
+    if (this.showScoreHistory) {
+      this.renderMenu(ctx);
+      this.renderScoreHistory(ctx);
+      this.renderEffects(ctx);
+      this.renderAchievementNotifications(ctx);
+      if (this.showModal) {
+        this.renderModal(ctx);
+      }
+      return;
+    }
+
     if (this.showInstructions) {
       this.renderInstructions(ctx);
       this.renderEffects(ctx);
@@ -1967,6 +2063,7 @@ export default class UI {
 
     this.renderEffects(ctx);
     this.renderAchievementNotifications(ctx);
+    this.renderHighScoreCelebration(ctx);
   }
 
   updateMenuAnimation(deltaTime) {
@@ -2798,13 +2895,397 @@ export default class UI {
 
   updateScrollInertia(deltaTime) {
     if (!this.showAchievements || this.isTouching) return;
-    
+
     if (Math.abs(this.scrollVelocity) > this.scrollMinVelocity) {
       this.achievementScrollOffset += this.scrollVelocity;
       this.scrollVelocity *= this.scrollFriction;
     } else {
       this.scrollVelocity = 0;
     }
+  }
+
+  // ── Score History ──
+
+  handleScoreHistoryScroll(deltaY) {
+    if (!this.showScoreHistory) return;
+    this.scoreHistoryScrollOffset += deltaY;
+    this.scoreHistoryScrollVelocity = deltaY;
+    this.scoreHistoryLastScrollTime = Date.now();
+  }
+
+  handleScoreHistoryTouchStart(y) {
+    if (!this.showScoreHistory) return;
+    this.scoreHistoryTouchStartY = y;
+    this.scoreHistoryLastTouchY = y;
+    this.scoreHistoryIsTouching = true;
+    this.scoreHistoryScrollVelocity = 0;
+    this.scoreHistoryLastScrollDelta = 0;
+  }
+
+  handleScoreHistoryTouchMove(y) {
+    if (!this.showScoreHistory || !this.scoreHistoryIsTouching) return;
+
+    const now = Date.now();
+    const deltaY = this.scoreHistoryLastTouchY - y;
+    this.scoreHistoryLastTouchY = y;
+
+    const isMobile = this.width < 768;
+    const modalHeight = isMobile ? this.height - 60 : this.height - 80;
+    const listStartY = (this.height - modalHeight) / 2 + (isMobile ? 130 : 150);
+    const listEndY = (this.height - modalHeight) / 2 + modalHeight - (isMobile ? 80 : 90);
+
+    if (y >= listStartY && y <= listEndY) {
+      this.scoreHistoryScrollOffset += deltaY;
+      this.scoreHistoryScrollVelocity = deltaY;
+      this.scoreHistoryLastScrollTime = now;
+    }
+  }
+
+  handleScoreHistoryTouchEnd() {
+    this.scoreHistoryIsTouching = false;
+  }
+
+  updateScoreHistoryScrollInertia(deltaTime) {
+    if (!this.showScoreHistory || this.scoreHistoryIsTouching) return;
+
+    if (Math.abs(this.scoreHistoryScrollVelocity) > 0.5) {
+      this.scoreHistoryScrollOffset += this.scoreHistoryScrollVelocity;
+      this.scoreHistoryScrollVelocity *= 0.95;
+    } else {
+      this.scoreHistoryScrollVelocity = 0;
+    }
+  }
+
+  renderScoreHistory(ctx) {
+    const scheme = this.getScheme();
+    const isMobile = this.width < 768;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
+    const modalHeight = isMobile ? this.height - 60 : this.height - 80;
+    const modalX = (this.width - modalWidth) / 2;
+    const modalY = (this.height - modalHeight) / 2;
+
+    this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
+      shadowOffset: 8,
+      borderWidth: 0
+    });
+
+    // Title
+    const titleY = modalY + (isMobile ? 40 : 50);
+    ctx.fillStyle = scheme.text;
+    ctx.font = `bold ${isMobile ? 28 : 34}px "Arial Black", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('历史最高分', this.width / 2, titleY);
+
+    const titleWidth = ctx.measureText('历史最高分').width;
+    ctx.strokeStyle = '#F59E0B';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(this.width / 2 - titleWidth / 2 - 20, titleY + 25);
+    ctx.lineTo(this.width / 2 + titleWidth / 2 + 20, titleY + 25);
+    ctx.stroke();
+
+    // Tab switcher
+    this.drawScoreHistoryTabs(ctx, modalX, modalY, modalWidth, isMobile);
+
+    // Score list
+    this.renderScoreHistoryList(ctx, modalX, modalY, modalWidth, modalHeight, isMobile);
+
+    // Close button
+    const buttonWidth = isMobile ? 180 : 220;
+    const buttonHeight = isMobile ? 48 : 56;
+    const buttonX = (this.width - buttonWidth) / 2;
+    const buttonY = modalY + modalHeight - (isMobile ? 70 : 80);
+
+    const isHovered = this.hoveredButton === 'scoreHistory_close';
+    const isClicked = this.clickedButton === 'scoreHistory_close';
+
+    let fillColor = scheme.buttonPrimary;
+    if (isHovered) fillColor = this.lightenColor(scheme.buttonPrimary, 0.15);
+
+    let scale = 1;
+    if (isHovered) scale = 1.02;
+    if (isClicked) scale = 0.95;
+
+    const scaledWidth = buttonWidth * scale;
+    const scaledHeight = buttonHeight * scale;
+    const scaledX = (this.width - scaledWidth) / 2;
+    const scaledY = buttonY + (buttonHeight - scaledHeight) / 2;
+
+    this.drawBrutalismRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, fillColor, {
+      shadowOffset: isClicked ? 2 : (isHovered ? 8 : 6),
+      borderWidth: 4
+    });
+
+    ctx.fillStyle = scheme.textLight;
+    ctx.font = `bold ${isMobile ? 18 : 20}px "Arial Black", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('返回', this.width / 2, scaledY + scaledHeight / 2);
+  }
+
+  drawScoreHistoryTabs(ctx, modalX, modalY, modalWidth, isMobile) {
+    const scheme = this.getScheme();
+    const tabY = modalY + (isMobile ? 75 : 90);
+    const tabWidth = (modalWidth - (isMobile ? 30 : 40)) / 2;
+    const tabHeight = isMobile ? 38 : 44;
+    const tabGap = isMobile ? 10 : 12;
+    const tabStartX = modalX + (isMobile ? 15 : 20);
+
+    const tabs = [
+      { id: 1, label: '第一关 Top10' },
+      { id: 2, label: '第二关 Top10' }
+    ];
+
+    tabs.forEach((tab, index) => {
+      const isActive = this.scoreHistoryTab === tab.id;
+      const tabX = tabStartX + index * (tabWidth + tabGap);
+      const isHovered = this.hoveredButton === `scoreTab_${tab.id}`;
+      const isClicked = this.clickedButton === `scoreTab_${tab.id}`;
+
+      let bgColor = isActive ? '#F59E0B' : scheme.cardBg;
+      if (!isActive && isHovered) bgColor = 'rgba(245, 158, 11, 0.1)';
+
+      let scale = 1;
+      if (isClicked) scale = 0.95;
+
+      const sw = tabWidth * scale;
+      const sh = tabHeight * scale;
+      const sx = tabX + (tabWidth - sw) / 2;
+      const sy = tabY + (tabHeight - sh) / 2;
+
+      this.drawBrutalismRect(ctx, sx, sy, sw, sh, bgColor, {
+        shadowOffset: isActive ? 4 : 2,
+        borderWidth: isActive ? 3 : 2,
+        radius: 14
+      });
+
+      ctx.fillStyle = isActive ? '#FFFFFF' : scheme.text;
+      ctx.font = `bold ${isMobile ? 14 : 16}px "Arial Black", Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(tab.label, tabX + tabWidth / 2, tabY + tabHeight / 2);
+    });
+  }
+
+  renderScoreHistoryList(ctx, modalX, modalY, modalWidth, modalHeight, isMobile) {
+    const scheme = this.getScheme();
+    const scores = this.scoreHistoryData[this.scoreHistoryTab] || [];
+
+    const listStartY = modalY + (isMobile ? 130 : 150);
+    const listEndY = modalY + modalHeight - (isMobile ? 80 : 90);
+    const listHeight = listEndY - listStartY;
+    const itemHeight = isMobile ? 60 : 68;
+    const itemPadding = isMobile ? 6 : 8;
+    const itemWidth = modalWidth - (isMobile ? 20 : 30);
+    const itemX = modalX + (isMobile ? 10 : 15);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(modalX, listStartY, modalWidth, listHeight);
+    ctx.clip();
+
+    const totalHeight = scores.length * (itemHeight + itemPadding);
+    const maxScroll = Math.max(0, totalHeight - listHeight);
+    this.scoreHistoryScrollOffset = Math.max(0, Math.min(this.scoreHistoryScrollOffset, maxScroll));
+
+    if (scores.length === 0) {
+      ctx.fillStyle = scheme.textSecondary;
+      ctx.font = `${isMobile ? 16 : 18}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('暂无记录，快去挑战吧！', this.width / 2, listStartY + listHeight / 2);
+    }
+
+    const medals = ['#FFD700', '#C0C0C0', '#CD7F32'];
+
+    scores.forEach((score, index) => {
+      const itemY = listStartY + index * (itemHeight + itemPadding) - this.scoreHistoryScrollOffset;
+
+      if (itemY + itemHeight < listStartY || itemY > listEndY) return;
+
+      const isTop3 = index < 3;
+      const bgColor = isTop3 ? 'rgba(255, 252, 245, 0.95)' : scheme.cardBg;
+
+      this.drawBrutalismRect(ctx, itemX, itemY, itemWidth, itemHeight, bgColor, {
+        shadowOffset: isTop3 ? 4 : 2,
+        borderWidth: isTop3 ? 3 : 2
+      });
+
+      // Rank number
+      const rankX = itemX + (isMobile ? 14 : 18);
+      const rankY = itemY + itemHeight / 2;
+
+      if (isTop3) {
+        ctx.beginPath();
+        ctx.arc(rankX, rankY, isMobile ? 16 : 18, 0, Math.PI * 2);
+        ctx.fillStyle = medals[index];
+        ctx.fill();
+        ctx.fillStyle = '#FFFFFF';
+      } else {
+        ctx.fillStyle = scheme.textSecondary;
+      }
+      ctx.font = `bold ${isMobile ? 14 : 16}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`${index + 1}`, rankX, rankY);
+
+      // Numbers found
+      const infoX = itemX + (isMobile ? 40 : 48);
+      ctx.textAlign = 'left';
+      ctx.fillStyle = scheme.text;
+      ctx.font = `bold ${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
+      ctx.fillText(`找到 ${score.numbersFound} 个`, infoX, itemY + (isMobile ? 20 : 22));
+
+      // Time spent
+      ctx.fillStyle = scheme.textSecondary;
+      ctx.font = `${isMobile ? 12 : 14}px Arial, sans-serif`;
+      ctx.fillText(`用时 ${score.timeSpent.toFixed(2)} 秒`, infoX, itemY + (isMobile ? 42 : 46));
+
+      // Date
+      if (score.timestamp) {
+        const date = new Date(score.timestamp);
+        const dateStr = `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+        ctx.fillStyle = scheme.textSecondary;
+        ctx.font = `${isMobile ? 11 : 12}px Arial, sans-serif`;
+        ctx.textAlign = 'right';
+        ctx.globalAlpha = 0.6;
+        ctx.fillText(dateStr, itemX + itemWidth - (isMobile ? 12 : 15), itemY + (isMobile ? 42 : 46));
+        ctx.globalAlpha = 1;
+      }
+    });
+
+    ctx.restore();
+  }
+
+  // ── High Score Celebration ──
+
+  showHighScoreCelebration(newScore, previousBest, level) {
+    this.highScoreCelebration = {
+      newScore,
+      previousBest,
+      level,
+      startTime: Date.now(),
+      duration: 3000,
+      particles: this._createCelebrationParticles()
+    };
+  }
+
+  _createCelebrationParticles() {
+    const particles = [];
+    for (let i = 0; i < 30; i++) {
+      particles.push({
+        x: this.width / 2,
+        y: this.height / 2 - 40,
+        vx: (Math.random() - 0.5) * 12,
+        vy: (Math.random() - 0.5) * 12 - 4,
+        size: Math.random() * 6 + 3,
+        color: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#F59E0B'][Math.floor(Math.random() * 6)],
+        alpha: 1,
+        rotation: Math.random() * Math.PI * 2,
+        rotationSpeed: (Math.random() - 0.5) * 0.2
+      });
+    }
+    return particles;
+  }
+
+  renderHighScoreCelebration(ctx) {
+    if (!this.highScoreCelebration) return;
+
+    const celeb = this.highScoreCelebration;
+    const elapsed = Date.now() - celeb.startTime;
+
+    if (elapsed > celeb.duration) {
+      this.highScoreCelebration = null;
+      return;
+    }
+
+    const progress = elapsed / celeb.duration;
+    const fadeIn = Math.min(1, progress * 5);
+    const fadeOut = progress > 0.7 ? 1 - (progress - 0.7) / 0.3 : 1;
+    const alpha = fadeIn * fadeOut;
+
+    const scheme = this.getScheme();
+    const isMobile = this.width < 768;
+
+    ctx.save();
+    ctx.globalAlpha = alpha * 0.7;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(0, 0, this.width, this.height);
+    ctx.restore();
+
+    // Particles
+    celeb.particles.forEach(p => {
+      p.x += p.vx * (1 - progress);
+      p.y += p.vy * (1 - progress) + 0.3;
+      p.rotation += p.rotationSpeed;
+      p.alpha = fadeOut;
+
+      ctx.save();
+      ctx.globalAlpha = p.alpha;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rotation);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+      ctx.restore();
+    });
+
+    // Celebration card
+    const cardWidth = isMobile ? this.width - 60 : 360;
+    const cardHeight = isMobile ? 200 : 220;
+    const cardX = (this.width - cardWidth) / 2;
+    const cardY = (this.height - cardHeight) / 2 - 20;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    // Glow
+    ctx.shadowColor = 'rgba(245, 158, 11, 0.6)';
+    ctx.shadowBlur = 30;
+    this.drawBrutalismRect(ctx, cardX, cardY, cardWidth, cardHeight, '#FFFBEB', {
+      shadowOffset: 8,
+      borderWidth: 4,
+      radius: 24
+    });
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
+
+    // Trophy text
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `bold ${isMobile ? 40 : 48}px Arial, sans-serif`;
+    ctx.fillStyle = '#F59E0B';
+    ctx.fillText('🏆', this.width / 2, cardY + (isMobile ? 45 : 55));
+
+    ctx.font = `bold ${isMobile ? 22 : 26}px "Arial Black", Arial, sans-serif`;
+    ctx.fillStyle = '#B45309';
+    ctx.fillText('新纪录！', this.width / 2, cardY + (isMobile ? 90 : 105));
+
+    ctx.font = `bold ${isMobile ? 16 : 18}px Arial, sans-serif`;
+    ctx.fillStyle = '#92400E';
+    ctx.fillText(`找到 ${celeb.newScore.numbersFound} 个 · 用时 ${celeb.newScore.timeSpent.toFixed(2)} 秒`, this.width / 2, cardY + (isMobile ? 125 : 140));
+
+    if (celeb.previousBest) {
+      ctx.font = `${isMobile ? 13 : 14}px Arial, sans-serif`;
+      ctx.fillStyle = '#A16207';
+      ctx.globalAlpha = alpha * 0.7;
+      ctx.fillText(
+        `上次最佳: ${celeb.previousBest.numbersFound} 个 · ${celeb.previousBest.timeSpent.toFixed(2)} 秒`,
+        this.width / 2, cardY + (isMobile ? 155 : 170)
+      );
+    }
+
+    const levelName = celeb.level === 1 ? '第一关' : '第二关';
+    ctx.font = `${isMobile ? 12 : 13}px Arial, sans-serif`;
+    ctx.fillStyle = '#A16207';
+    ctx.globalAlpha = alpha * 0.5;
+    ctx.fillText(levelName, this.width / 2, cardY + (isMobile ? 180 : 200));
+
+    ctx.restore();
   }
 
   updateCombo(count, level) {

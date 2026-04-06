@@ -12,6 +12,7 @@ import SkillManager from './skillManager';
 import EggManager from './eggManager';
 import RewardManager from './rewardManager';
 import ShareManager from './shareManager';
+import ScoreManager from './scoreManager';
 import { CacheManager } from './cacheManager';
 import { getColorScheme } from './constants/colors';
 
@@ -100,9 +101,11 @@ export default class FindGameMain {
     this.eggManager = new EggManager();
     this.rewardManager = new RewardManager();
     this.shareManager = new ShareManager();
+    this.scoreManager = new ScoreManager();
     this.aniId = 0;
 
     this.soundManager.init();
+    this.scoreManager.init();
     CacheManager.init();
     this.shareManager.init();
     this.rankManager.init();
@@ -248,6 +251,9 @@ export default class FindGameMain {
         } else if (this.ui.showShop) {
           this.ui.handleShopTouchStart(y);
           this.handleInput(x, y);
+        } else if (this.ui.showScoreHistory) {
+          this.ui.handleScoreHistoryTouchStart(y);
+          this.handleInput(x, y);
         } else {
           this.ui.handleTouchStart(y);
           this.handleInput(x, y);
@@ -270,6 +276,8 @@ export default class FindGameMain {
           this.ui.handleSkillsTouchMove(y);
         } else if (this.ui.showShop) {
           this.ui.handleShopTouchMove(y);
+        } else if (this.ui.showScoreHistory) {
+          this.ui.handleScoreHistoryTouchMove(y);
         } else {
           this.ui.handleTouchMove(y);
         }
@@ -284,6 +292,8 @@ export default class FindGameMain {
           this.ui.handleSkillsTouchEnd();
         } else if (this.ui.showShop) {
           this.ui.handleShopTouchEnd();
+        } else if (this.ui.showScoreHistory) {
+          this.ui.handleScoreHistoryTouchEnd();
         } else {
           this.ui.handleTouchEnd();
         }
@@ -319,6 +329,9 @@ export default class FindGameMain {
           } else if (this.ui.showShop) {
             this.ui.handleShopTouchStart(y);
             this.handleInput(x, y);
+          } else if (this.ui.showScoreHistory) {
+            this.ui.handleScoreHistoryTouchStart(y);
+            this.handleInput(x, y);
           } else {
             this.ui.handleTouchStart(y);
             this.handleInput(x, y);
@@ -327,7 +340,7 @@ export default class FindGameMain {
           // 静默处理错误
         }
       };
-      
+
       const handleTouchMoveEvent = (e) => {
         try {
           e.preventDefault();
@@ -338,9 +351,11 @@ export default class FindGameMain {
             const x = touch.clientX - rect.left;
             const y = touch.clientY - rect.top;
             this.ui.updateMousePosition(x, y);
-            
+
             if (this.ui.showSkills) {
               this.ui.handleSkillsTouchMove(y);
+            } else if (this.ui.showScoreHistory) {
+              this.ui.handleScoreHistoryTouchMove(y);
             } else {
               this.ui.handleTouchMove(y);
             }
@@ -349,11 +364,13 @@ export default class FindGameMain {
           // 静默处理错误
         }
       };
-      
+
       const handleTouchEndEvent = (e) => {
         try {
           if (this.ui.showSkills) {
             this.ui.handleSkillsTouchEnd();
+          } else if (this.ui.showScoreHistory) {
+            this.ui.handleScoreHistoryTouchEnd();
           } else {
             this.ui.handleTouchEnd();
           }
@@ -389,6 +406,9 @@ export default class FindGameMain {
           } else if (this.ui.showAchievements) {
             e.preventDefault();
             this.ui.handleAchievementsScroll(e.deltaY);
+          } else if (this.ui.showScoreHistory) {
+            e.preventDefault();
+            this.ui.handleScoreHistoryScroll(e.deltaY);
           }
         } catch (error) {
         }
@@ -572,6 +592,14 @@ export default class FindGameMain {
       this.useHint();
     };
 
+    this.ui.onOpenScoreHistory = () => {
+      this.openScoreHistory();
+    };
+
+    this.scoreManager.onHighScore = (level, newScore, previousBest) => {
+      this.handleHighScore(level, newScore, previousBest);
+    };
+
     this.gameManager.onHintUsed = (count) => {
       this.ui.setHintCount(count);
       this.ui.triggerHintButtonAnimation();
@@ -663,6 +691,10 @@ export default class FindGameMain {
   handleGameComplete(time) {
     this.saveGameProgress(time);
 
+    const level = this.gameManager.currentLevel;
+    const numbersFound = this.gameManager.totalNumbers;
+    const scoreResult = this.scoreManager.recordScore(level, numbersFound, time);
+
     const hasNextLevel = this.gameManager.hasNextLevel();
 
     const achievementData = {
@@ -682,7 +714,8 @@ export default class FindGameMain {
       this.ui.showAchievementNotification(unlockedAchievements);
     }
 
-    const message = `完成时间: ${time.toFixed(2)}秒`;
+    const message = `完成时间: ${time.toFixed(2)}秒` +
+      (scoreResult.isNewHighScore ? '\n🎉 新纪录！' : '');
     
     const buttons = [
       {
@@ -727,6 +760,8 @@ export default class FindGameMain {
   handleGameFailed() {
     const progress = this.gameManager.getProgress();
     const time = this.gameManager.getCompletionTime();
+    const level = this.gameManager.currentLevel;
+    const scoreResult = this.scoreManager.recordScore(level, progress, time);
 
     this.achievementManager.checkAchievement('game_fail', {
       level: this.gameManager.currentLevel,
@@ -734,7 +769,8 @@ export default class FindGameMain {
       total: this.gameManager.getTotalProgress()
     });
 
-    const failMessage = `完成进度: ${progress}/${this.gameManager.getTotalProgress()}\n用时: ${time.toFixed(2)}秒`;
+    const failMessage = `完成进度: ${progress}/${this.gameManager.getTotalProgress()}\n用时: ${time.toFixed(2)}秒` +
+      (scoreResult.isNewHighScore ? '\n🎉 新纪录！' : '');
     
     this.ui.showModalDialog(
       'gameFailed',
@@ -1005,6 +1041,25 @@ export default class FindGameMain {
     this.ui.skillScrollVelocity = 0;
     this.ui.skillIsTouching = false;
     this.ui.showSkills = true;
+  }
+
+  openScoreHistory() {
+    this.ui.scoreHistoryData = {
+      1: this.scoreManager.getTopScores(1),
+      2: this.scoreManager.getTopScores(2)
+    };
+    this.ui.showScoreHistory = true;
+    this.ui.scoreHistoryTab = 1;
+    this.ui.scoreHistoryScrollOffset = 0;
+    this.ui.scoreHistoryScrollVelocity = 0;
+    this.ui.scoreHistoryIsTouching = false;
+    this.soundManager.playUiClick();
+  }
+
+  handleHighScore(level, newScore, previousBest) {
+    this.vibrationManager.vibrateCombo(2);
+    this.soundManager.playUiClick();
+    this.ui.showHighScoreCelebration(newScore, previousBest, level);
   }
 
   handleSkillUnlock(skillId) {
