@@ -496,11 +496,15 @@ export default class FindGameMain {
       this.handleGameFailed();
     };
     
-    this.gameManager.onError = (center) => {
+    this.gameManager.onError = (center, penalty) => {
       this.soundManager.playError();
       this.vibrationManager.vibrateError();
       if (this.gameManager.isTimedMode()) {
-        this.ui.showFloatingText(center.x, center.y, '-5秒', '#FF4444');
+        if (penalty > 0) {
+          this.ui.showFloatingText(center.x, center.y, `-${penalty}秒`, '#FF4444');
+        } else {
+          this.ui.showFloatingText(center.x, center.y, '错误', '#FF4444');
+        }
       } else {
         this.ui.showFloatingText(center.x, center.y, '错误', '#FF4444');
       }

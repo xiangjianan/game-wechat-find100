@@ -95,6 +95,8 @@ export default class GameManager {
     this.hintCount = this.itemManager ? this.itemManager.getItemCount('hint') : 0;
     this.hintedPolygon = null;
     
+    this.comboManager.breakCombo();
+    
     if (this.gameMode === 'timed') {
       this.startTimer();
     }
@@ -215,8 +217,11 @@ export default class GameManager {
     
     this.comboManager.onWrongClick();
     
+    let penalty = 0;
     if (this.gameMode === 'timed') {
-      this.timeLeft -= this.timeBonus;
+      const customPenalty = this.skillManager ? this.skillManager.getErrorTimePenalty() : null;
+      penalty = customPenalty !== null ? customPenalty : this.timeBonus;
+      this.timeLeft -= penalty;
       if (this.timeLeft < 0) {
         this.timeLeft = 0;
       }
@@ -224,7 +229,7 @@ export default class GameManager {
     
     if (this.onError) {
       const center = polygon.getCenter();
-      this.onError(center);
+      this.onError(center, penalty);
     }
   }
 

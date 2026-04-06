@@ -164,6 +164,45 @@ export default class SkillManager {
       prerequisite: 'lucky_star_2',
       icon: '⭐'
     });
+
+    this.skills.set('forgiveness_1', {
+      id: 'forgiveness_1',
+      name: '宽容之心 I',
+      category: 'forgiveness',
+      description: '点错扣除时间减少至3秒',
+      effect: { type: 'error_penalty', value: 3 },
+      maxLevel: 1,
+      currentLevel: 0,
+      cost: 1500,
+      prerequisite: null,
+      icon: '🛡'
+    });
+
+    this.skills.set('forgiveness_2', {
+      id: 'forgiveness_2',
+      name: '宽容之心 II',
+      category: 'forgiveness',
+      description: '点错扣除时间减少至1秒',
+      effect: { type: 'error_penalty', value: 1 },
+      maxLevel: 1,
+      currentLevel: 0,
+      cost: 3000,
+      prerequisite: 'forgiveness_1',
+      icon: '🛡'
+    });
+
+    this.skills.set('forgiveness_3', {
+      id: 'forgiveness_3',
+      name: '宽容之心 III',
+      category: 'forgiveness',
+      description: '点错不扣时间',
+      effect: { type: 'error_penalty', value: 0 },
+      maxLevel: 1,
+      currentLevel: 0,
+      cost: 8000,
+      prerequisite: 'forgiveness_2',
+      icon: '🛡'
+    });
   }
 
   canUnlock(skillId) {
@@ -210,7 +249,7 @@ export default class SkillManager {
 
   getSkillProgress() {
     const skillsByCategory = new Map();
-    const categories = ['time', 'combo', 'assist', 'luck'];
+    const categories = ['time', 'combo', 'assist', 'luck', 'forgiveness'];
 
     for (const category of categories) {
       const categorySkills = this.getSkillsByCategory(category).map(skill => {
@@ -271,6 +310,19 @@ export default class SkillManager {
 
   getLuckyBonus() {
     return this.getSkillEffect('lucky_bonus');
+  }
+
+  getErrorTimePenalty() {
+    let minPenalty = null;
+    for (const skillId of this.unlockedSkills) {
+      const skill = this.skills.get(skillId);
+      if (skill && skill.effect.type === 'error_penalty') {
+        if (minPenalty === null || skill.effect.value < minPenalty) {
+          minPenalty = skill.effect.value;
+        }
+      }
+    }
+    return minPenalty;
   }
 
   saveProgress() {
