@@ -17,7 +17,7 @@ export default class RewardManager {
       name: '提示道具',
       icon: '💡',
       baseProbability: 0, // 基础概率为0，需要幸运之星才能触发
-      color: '#FFD700',
+      color: '#5BA88F',
       action: (managers) => {
         if (managers.itemManager) {
           managers.itemManager.addItem('hint', 1);
@@ -32,7 +32,7 @@ export default class RewardManager {
       name: '金币',
       icon: '🪙',
       baseProbability: 0, // 基础概率为0，需要幸运之星才能触发
-      color: '#FFA500',
+      color: '#1A1A2E',
       action: (managers) => {
         const amount = Math.floor(Math.random() * 11) + 5; // 5-15金币
         if (managers.coinManager) {
@@ -48,7 +48,7 @@ export default class RewardManager {
       name: '额外时长',
       icon: '⏰',
       baseProbability: 0, // 基础概率为0，需要幸运之星才能触发
-      color: '#00BFFF',
+      color: '#2D2D4A',
       action: (managers) => {
         const bonus = 3; // 3秒
         if (managers.gameManager) {
