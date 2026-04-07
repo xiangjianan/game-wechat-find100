@@ -1062,9 +1062,9 @@ export default class UI {
         y: startY,
         width: startButtonWidth,
         height: startButtonHeight,
-        color: '#3B82F6',
-        colorEnd: '#60A5FA',
-        glowColor: 'rgba(232, 114, 90, 0.3)',
+        color: '#F97316',
+        colorEnd: '#FB923C',
+        glowColor: 'rgba(249, 115, 22, 0.35)',
         icon: 'play',
         action: () => this.onStartGame()
       },
