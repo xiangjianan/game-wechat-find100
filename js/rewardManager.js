@@ -32,7 +32,7 @@ export default class RewardManager {
       name: '金币',
       icon: '🪙',
       baseProbability: 0, // 基础概率为0，需要幸运之星才能触发
-      color: '#1A1A2E',
+      color: '#E8725A',
       action: (managers) => {
         const amount = Math.floor(Math.random() * 11) + 5; // 5-15金币
         if (managers.coinManager) {
@@ -48,7 +48,7 @@ export default class RewardManager {
       name: '额外时长',
       icon: '⏰',
       baseProbability: 0, // 基础概率为0，需要幸运之星才能触发
-      color: '#2D2D4A',
+      color: '#D4634E',
       action: (managers) => {
         const bonus = 3; // 3秒
         if (managers.gameManager) {

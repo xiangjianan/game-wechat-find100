@@ -1,4 +1,4 @@
-// 三色极简色系: 深墨 #1A1A2E · 青苔 #5BA88F · 暖灰 #E8E4E0
+// 三色极简色系: 珊瑚橘 #E8725A · 青苔 #5BA88F · 暖灰 #E8E4E0
 // 配合白色 #FFFFFF 和 浅灰 #F5F3F0 作为中性底色
 
 export const COLOR_SCHEME = {
@@ -6,44 +6,44 @@ export const COLOR_SCHEME = {
   id: 'minimal-trio',
   background: '#F5F3F0',
   backgroundEnd: '#EDEAE6',
-  primary: '#1A1A2E',
+  primary: '#E8725A',
   secondary: '#5BA88F',
   accent: '#5BA88F',
   danger: '#C0392B',
-  text: '#1A1A2E',
+  text: '#E8725A',
   textSecondary: '#6B6878',
   textLight: '#FFFFFF',
-  border: 'rgba(26, 26, 46, 0.08)',
+  border: 'rgba(232, 114, 90, 0.15)',
   borderActive: 'rgba(91, 168, 143, 0.3)',
-  borderSubtle: 'rgba(26, 26, 46, 0.06)',
+  borderSubtle: 'rgba(232, 114, 90, 0.08)',
   shadow: 'rgba(0, 0, 0, 0.06)',
   cardBg: 'rgba(255, 255, 255, 0.9)',
   cardBgSolid: '#FFFFFF',
-  buttonPrimary: '#1A1A2E',
-  buttonPrimaryEnd: '#2D2D4A',
+  buttonPrimary: '#E8725A',
+  buttonPrimaryEnd: '#D4634E',
   buttonSecondary: '#5BA88F',
   buttonSuccess: '#5BA88F',
   buttonDanger: '#C0392B',
   numberColors: [
-    '#1A1A2E', '#3A3A5C', '#5BA88F', '#1A1A2E', '#3A3A5C',
-    '#5BA88F', '#1A1A2E', '#3A3A5C', '#5BA88F', '#1A1A2E'
+    '#E8725A', '#D4634E', '#5BA88F', '#E8725A', '#D4634E',
+    '#5BA88F', '#E8725A', '#D4634E', '#5BA88F', '#E8725A'
   ],
   polygonColors: [
-    'rgba(26, 26, 46, 0.04)', 'rgba(91, 168, 143, 0.04)',
-    'rgba(26, 26, 46, 0.04)', 'rgba(91, 168, 143, 0.04)',
-    'rgba(26, 26, 46, 0.04)', 'rgba(91, 168, 143, 0.04)',
-    'rgba(26, 26, 46, 0.04)', 'rgba(91, 168, 143, 0.04)',
-    'rgba(26, 26, 46, 0.04)', 'rgba(91, 168, 143, 0.04)',
-    'rgba(26, 26, 46, 0.04)', 'rgba(91, 168, 143, 0.04)',
-    'rgba(26, 26, 46, 0.04)', 'rgba(91, 168, 143, 0.04)',
-    'rgba(26, 26, 46, 0.04)'
+    'rgba(232, 114, 90, 0.05)', 'rgba(91, 168, 143, 0.05)',
+    'rgba(232, 114, 90, 0.05)', 'rgba(91, 168, 143, 0.05)',
+    'rgba(232, 114, 90, 0.05)', 'rgba(91, 168, 143, 0.05)',
+    'rgba(232, 114, 90, 0.05)', 'rgba(91, 168, 143, 0.05)',
+    'rgba(232, 114, 90, 0.05)', 'rgba(91, 168, 143, 0.05)',
+    'rgba(232, 114, 90, 0.05)', 'rgba(91, 168, 143, 0.05)',
+    'rgba(232, 114, 90, 0.05)', 'rgba(91, 168, 143, 0.05)',
+    'rgba(232, 114, 90, 0.05)'
   ],
-  gradientStart: '#1A1A2E',
-  gradientEnd: '#2D2D4A',
-  glowPrimary: 'rgba(26, 26, 46, 0.12)',
+  gradientStart: '#E8725A',
+  gradientEnd: '#D4634E',
+  glowPrimary: 'rgba(232, 114, 90, 0.15)',
   glowAccent: 'rgba(91, 168, 143, 0.15)',
   glassBg: 'rgba(255, 255, 255, 0.75)',
-  glassBorder: 'rgba(26, 26, 46, 0.06)'
+  glassBorder: 'rgba(232, 114, 90, 0.08)'
 };
 
 export function getColorScheme() {

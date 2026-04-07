@@ -234,15 +234,15 @@ export default class UI {
     ctx.globalAlpha = alpha;
 
     // Vibrant glow shadow
-    ctx.shadowColor = isHovered ? 'rgba(26, 26, 46, 0.35)' : 'rgba(26, 26, 46, 0.2)';
+    ctx.shadowColor = isHovered ? 'rgba(232, 114, 90, 0.35)' : 'rgba(232, 114, 90, 0.2)';
     ctx.shadowBlur = isHovered ? 32 : 20;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = isHovered ? 8 : 4;
 
     // Vibrant gradient
     const gradient = ctx.createLinearGradient(scaledX, scaledY, scaledX + scaledWidth, scaledY + scaledHeight);
-    gradient.addColorStop(0, button.color || '#1A1A2E');
-    gradient.addColorStop(1, button.colorEnd || '#2D2D4A');
+    gradient.addColorStop(0, button.color || '#E8725A');
+    gradient.addColorStop(1, button.colorEnd || '#D4634E');
     ctx.fillStyle = gradient;
     this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
     ctx.fill();
@@ -363,7 +363,7 @@ export default class UI {
       this.roundRect(ctx, iconX, iconY, iconSize, iconSize, iconSize / 2);
       ctx.fill();
 
-      ctx.fillStyle = button.iconColor || '#1A1A2E';
+      ctx.fillStyle = button.iconColor || '#E8725A';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
@@ -372,7 +372,7 @@ export default class UI {
 
       this._drawIcon(ctx, button.icon, iconCenterX, iconCenterY, isMobile, button.iconColor);
 
-      ctx.fillStyle = '#1A1A2E';
+      ctx.fillStyle = '#E8725A';
       ctx.font = `600 ${isMobile ? 15 : 17}px Arial, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -392,7 +392,7 @@ export default class UI {
     ctx.fill();
 
     // Draw icon
-    ctx.fillStyle = button.iconColor || '#1A1A2E';
+    ctx.fillStyle = button.iconColor || '#E8725A';
     ctx.font = `bold ${isMobile ? 20 : 24}px Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -404,7 +404,7 @@ export default class UI {
 
     // Title - centered below icon (square card vertical layout)
     const textY = iconY + iconSize + (isMobile ? 14 : 16);
-    ctx.fillStyle = '#1A1A2E';
+    ctx.fillStyle = '#E8725A';
     ctx.font = `600 ${isMobile ? 14 : 16}px Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -427,7 +427,7 @@ export default class UI {
     ctx.lineJoin = 'round';
 
     if (icon === 'book') {
-      ctx.strokeStyle = iconColor || '#1A1A2E';
+      ctx.strokeStyle = iconColor || '#E8725A';
       // 左页
       ctx.beginPath();
       ctx.moveTo(iconCenterX, iconCenterY - s * 0.8);
@@ -473,7 +473,7 @@ export default class UI {
       ctx.lineTo(iconCenterX - s * 0.1, iconCenterY + s * 0.05);
       ctx.stroke();
     } else if (icon === 'trophy') {
-      ctx.strokeStyle = iconColor || '#1A1A2E';
+      ctx.strokeStyle = iconColor || '#E8725A';
       // 杯身
       ctx.beginPath();
       ctx.moveTo(iconCenterX - s * 0.55, iconCenterY - s * 0.7);
@@ -506,7 +506,7 @@ export default class UI {
       ctx.arc(iconCenterX, iconCenterY - s * 0.25, s * 0.12, 0, Math.PI * 2);
       ctx.stroke();
     } else if (icon === 'medal') {
-      ctx.strokeStyle = iconColor || '#1A1A2E';
+      ctx.strokeStyle = iconColor || '#E8725A';
       // 奖牌圆形外框
       ctx.beginPath();
       ctx.arc(iconCenterX, iconCenterY - s * 0.05, s * 0.7, 0, Math.PI * 2);
@@ -531,7 +531,7 @@ export default class UI {
       ctx.lineTo(iconCenterX + s * 0.3, iconCenterY + s * 0.8);
       ctx.stroke();
     } else if (icon === 'share') {
-      ctx.strokeStyle = iconColor || '#1A1A2E';
+      ctx.strokeStyle = iconColor || '#E8725A';
       // 三个节点
       ctx.beginPath();
       ctx.arc(iconCenterX - s * 0.55, iconCenterY + s * 0.3, s * 0.2, 0, Math.PI * 2);
@@ -601,13 +601,13 @@ export default class UI {
     }
 
     ctx.save();
-    ctx.shadowColor = 'rgba(26, 26, 46, 0.15)';
+    ctx.shadowColor = 'rgba(232, 114, 90, 0.15)';
     ctx.shadowBlur = 10;
     ctx.shadowOffsetY = 2;
 
     const activeGradient = ctx.createLinearGradient(activeX, y, activeX + segmentWidth, y + height);
-    activeGradient.addColorStop(0, '#1A1A2E');
-    activeGradient.addColorStop(1, '#2D2D4A');
+    activeGradient.addColorStop(0, '#E8725A');
+    activeGradient.addColorStop(1, '#D4634E');
     ctx.fillStyle = activeGradient;
     this.roundRect(ctx, activeX + 3 + offsetX, y + 3 + offsetY, segmentWidth - 6, height - 6, radius - 3);
     ctx.fill();
@@ -823,9 +823,9 @@ export default class UI {
       if (reward.type === 'hint') {
         bgColor = '#5BA88F';
       } else if (reward.type === 'coin') {
-        bgColor = '#1A1A2E';
+        bgColor = '#E8725A';
       } else if (reward.type === 'time') {
-        bgColor = '#2D2D4A';
+        bgColor = '#D4634E';
       }
 
       this.drawBrutalismRect(ctx, notificationX, notificationY, notificationWidth, notificationHeight, bgColor, {
@@ -1062,9 +1062,9 @@ export default class UI {
         y: startY,
         width: startButtonWidth,
         height: startButtonHeight,
-        color: '#1A1A2E',
-        colorEnd: '#2D2D4A',
-        glowColor: 'rgba(26, 26, 46, 0.3)',
+        color: '#E8725A',
+        colorEnd: '#D4634E',
+        glowColor: 'rgba(232, 114, 90, 0.3)',
         icon: 'play',
         action: () => this.onStartGame()
       },
@@ -1080,10 +1080,10 @@ export default class UI {
         height: cardHeight,
         icon: 'book',
         iconBg: '#EDEAE6',
-        iconColor: '#1A1A2E',
+        iconColor: '#E8725A',
         cardBg: 'rgba(255, 255, 255, 0.95)',
-        cardBorder: 'rgba(26, 26, 46, 0.1)',
-        cardHoverGlow: 'rgba(26, 26, 46, 0.08)',
+        cardBorder: 'rgba(232, 114, 90, 0.1)',
+        cardHoverGlow: 'rgba(232, 114, 90, 0.08)',
         action: () => this.onShowInstructions()
       },
       // 商店 - 蓝色卡片
@@ -1134,10 +1134,10 @@ export default class UI {
         height: cardHeight,
         icon: 'trophy',
         iconBg: '#EDEAE6',
-        iconColor: '#1A1A2E',
+        iconColor: '#E8725A',
         cardBg: 'rgba(255, 255, 255, 0.95)',
-        cardBorder: 'rgba(26, 26, 46, 0.1)',
-        cardHoverGlow: 'rgba(26, 26, 46, 0.08)',
+        cardBorder: 'rgba(232, 114, 90, 0.1)',
+        cardHoverGlow: 'rgba(232, 114, 90, 0.08)',
         action: () => this.onOpenAchievements()
       }
     ];
@@ -1156,10 +1156,10 @@ export default class UI {
       height: shareButtonHeight,
       icon: 'share',
       iconBg: '#EDEAE6',
-      iconColor: '#1A1A2E',
+      iconColor: '#E8725A',
       cardBg: 'rgba(255, 255, 255, 0.95)',
-      cardBorder: 'rgba(26, 26, 46, 0.1)',
-      cardHoverGlow: 'rgba(26, 26, 46, 0.08)',
+      cardBorder: 'rgba(232, 114, 90, 0.1)',
+      cardHoverGlow: 'rgba(232, 114, 90, 0.08)',
       action: () => { if (this.onShare) this.onShare(); }
     });
 
@@ -2188,11 +2188,11 @@ export default class UI {
   renderFloatingOrbs(ctx) {
     const t = Date.now() / 1000;
     const orbs = [
-      { x: this.width * 0.1, y: this.height * 0.15, r: 140, color: 'rgba(26, 26, 46, 0.04)' },
+      { x: this.width * 0.1, y: this.height * 0.15, r: 140, color: 'rgba(232, 114, 90, 0.05)' },
       { x: this.width * 0.9, y: this.height * 0.25, r: 180, color: 'rgba(91, 168, 143, 0.04)' },
-      { x: this.width * 0.5, y: this.height * 0.55, r: 160, color: 'rgba(26, 26, 46, 0.03)' },
+      { x: this.width * 0.5, y: this.height * 0.55, r: 160, color: 'rgba(232, 114, 90, 0.04)' },
       { x: this.width * 0.15, y: this.height * 0.75, r: 120, color: 'rgba(91, 168, 143, 0.03)' },
-      { x: this.width * 0.8, y: this.height * 0.7, r: 150, color: 'rgba(26, 26, 46, 0.02)' }
+      { x: this.width * 0.8, y: this.height * 0.7, r: 150, color: 'rgba(232, 114, 90, 0.03)' }
     ];
 
     orbs.forEach((orb, i) => {
@@ -2214,9 +2214,9 @@ export default class UI {
     const scheme = this.getScheme();
     const chars = ['数', '一', '数', '噻'];
     const tileColors = [
-      { start: '#1A1A2E', end: '#2D2D4A' },
+      { start: '#E8725A', end: '#D4634E' },
       { start: '#5BA88F', end: '#7BC4AC' },
-      { start: '#1A1A2E', end: '#2D2D4A' },
+      { start: '#E8725A', end: '#D4634E' },
       { start: '#5BA88F', end: '#7BC4AC' }
     ];
     const tileNumbers = ['1', '2', '3', '4'];
@@ -2452,7 +2452,7 @@ export default class UI {
     ctx.arc(coinIconX + coinIconSize / 2, coinIconY + coinIconSize / 2, coinIconSize / 2, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = '#1A1A2E';
+    ctx.fillStyle = '#E8725A';
     ctx.font = `bold ${isMobile ? 11 : 13}px Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -3125,7 +3125,7 @@ export default class UI {
       ctx.fillText('暂无记录，快去挑战吧！', this.width / 2, listStartY + listHeight / 2);
     }
 
-    const medals = ['#1A1A2E', '#5BA88F', '#6B6878'];
+    const medals = ['#E8725A', '#5BA88F', '#6B6878'];
 
     scores.forEach((score, index) => {
       const itemY = listStartY + index * (itemHeight + itemPadding) - this.scoreHistoryScrollOffset;
@@ -3208,7 +3208,7 @@ export default class UI {
         vx: (Math.random() - 0.5) * 12,
         vy: (Math.random() - 0.5) * 12 - 4,
         size: Math.random() * 6 + 3,
-        color: ['#1A1A2E', '#2D2D4A', '#5BA88F', '#7BC4AC', '#6B6878', '#1A1A2E'][Math.floor(Math.random() * 6)],
+        color: ['#E8725A', '#D4634E', '#5BA88F', '#7BC4AC', '#6B6878', '#E8725A'][Math.floor(Math.random() * 6)],
         alpha: 1,
         rotation: Math.random() * Math.PI * 2,
         rotationSpeed: (Math.random() - 0.5) * 0.2
@@ -3286,7 +3286,7 @@ export default class UI {
     ctx.fillText('🏆', this.width / 2, cardY + (isMobile ? 45 : 55));
 
     ctx.font = `bold ${isMobile ? 22 : 26}px "Arial Black", Arial, sans-serif`;
-    ctx.fillStyle = '#1A1A2E';
+    ctx.fillStyle = '#E8725A';
     ctx.fillText('新纪录！', this.width / 2, cardY + (isMobile ? 90 : 105));
 
     ctx.font = `bold ${isMobile ? 16 : 18}px Arial, sans-serif`;
@@ -3295,7 +3295,7 @@ export default class UI {
 
     if (celeb.previousBest) {
       ctx.font = `${isMobile ? 13 : 14}px Arial, sans-serif`;
-      ctx.fillStyle = '#1A1A2E';
+      ctx.fillStyle = '#E8725A';
       ctx.globalAlpha = alpha * 0.7;
       ctx.fillText(
         `上次最佳: ${celeb.previousBest.numbersFound} 个 · ${celeb.previousBest.timeSpent.toFixed(2)} 秒`,
@@ -3305,7 +3305,7 @@ export default class UI {
 
     const levelName = celeb.level === 1 ? '第一关' : '第二关';
     ctx.font = `${isMobile ? 12 : 13}px Arial, sans-serif`;
-    ctx.fillStyle = '#1A1A2E';
+    ctx.fillStyle = '#E8725A';
     ctx.globalAlpha = alpha * 0.5;
     ctx.fillText(levelName, this.width / 2, cardY + (isMobile ? 180 : 200));
 
@@ -3721,13 +3721,13 @@ export default class UI {
     ctx.fill();
     ctx.restore();
 
-    ctx.fillStyle = '#1A1A2E';
+    ctx.fillStyle = '#E8725A';
     ctx.font = `bold ${isMobile ? 13 : 15}px Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('¥', coinX + coinSize / 2, coinY + coinSize / 2 + 1);
 
-    ctx.fillStyle = '#1A1A2E';
+    ctx.fillStyle = '#E8725A';
     ctx.font = `600 ${isMobile ? 15 : 17}px Arial, sans-serif`;
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
@@ -4118,7 +4118,7 @@ export default class UI {
           ctx.textBaseline = 'middle';
           ctx.fillText('已解锁', unlockButtonX + unlockButtonWidth / 2, unlockButtonY + unlockButtonHeight / 2);
         } else if (skill.canUnlock) {
-          let unlockButtonColor = '#1A1A2E';
+          let unlockButtonColor = '#E8725A';
           if (isUnlockButtonHovered) {
             unlockButtonColor = this.lightenColor('#5BA88F', 0.15);
           }
