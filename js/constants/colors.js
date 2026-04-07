@@ -1,49 +1,49 @@
-// 波普糖果色系: 明蓝 #4A90D9 · 明黄 #F5C542 · 粉白 #FFF8F0
-// 点缀: 珊瑚 #E8725A · 薄荷 #5EC4B6 · 薰衣草 #9B8EC4
+// 波普糖果色系 (高饱和): 蔚蓝 #3B82F6 · 亮黄 #FBBF24 · 粉白 #FFFAF5
+// 点缀: 鲜珊瑚 #EF6C4A · 翠薄荷 #14B8A6 · 紫水晶 #8B5CF6
 
 export const COLOR_SCHEME = {
   name: '波普糖果',
   id: 'pop-candy',
-  background: '#FFF8F0',
-  backgroundEnd: '#FFF0E6',
-  primary: '#4A90D9',
-  secondary: '#F5C542',
-  accent: '#5EC4B6',
-  danger: '#E8725A',
-  text: '#4A90D9',
-  textSecondary: '#8B8B8B',
+  background: '#FFFAF5',
+  backgroundEnd: '#FFF3E8',
+  primary: '#3B82F6',
+  secondary: '#FBBF24',
+  accent: '#14B8A6',
+  danger: '#EF4444',
+  text: '#3B82F6',
+  textSecondary: '#6B7280',
   textLight: '#FFFFFF',
-  border: 'rgba(74, 144, 217, 0.12)',
-  borderActive: 'rgba(245, 197, 66, 0.4)',
-  borderSubtle: 'rgba(74, 144, 217, 0.08)',
-  shadow: 'rgba(0, 0, 0, 0.06)',
-  cardBg: 'rgba(255, 255, 255, 0.92)',
+  border: 'rgba(59, 130, 246, 0.15)',
+  borderActive: 'rgba(251, 191, 36, 0.45)',
+  borderSubtle: 'rgba(59, 130, 246, 0.1)',
+  shadow: 'rgba(0, 0, 0, 0.08)',
+  cardBg: 'rgba(255, 255, 255, 0.94)',
   cardBgSolid: '#FFFFFF',
-  buttonPrimary: '#4A90D9',
-  buttonPrimaryEnd: '#6AA8E8',
-  buttonSecondary: '#F5C542',
-  buttonSuccess: '#5EC4B6',
-  buttonDanger: '#E8725A',
+  buttonPrimary: '#3B82F6',
+  buttonPrimaryEnd: '#60A5FA',
+  buttonSecondary: '#FBBF24',
+  buttonSuccess: '#14B8A6',
+  buttonDanger: '#EF4444',
   numberColors: [
-    '#4A90D9', '#E8725A', '#5EC4B6', '#F5C542', '#9B8EC4',
-    '#4A90D9', '#E8725A', '#5EC4B6', '#F5C542', '#9B8EC4'
+    '#3B82F6', '#EF4444', '#14B8A6', '#FBBF24', '#8B5CF6',
+    '#F97316', '#3B82F6', '#EF4444', '#14B8A6', '#8B5CF6'
   ],
   polygonColors: [
-    'rgba(74, 144, 217, 0.05)', 'rgba(245, 197, 66, 0.05)',
-    'rgba(94, 196, 182, 0.05)', 'rgba(232, 114, 90, 0.05)',
-    'rgba(155, 142, 196, 0.05)', 'rgba(74, 144, 217, 0.05)',
-    'rgba(245, 197, 66, 0.05)', 'rgba(94, 196, 182, 0.05)',
-    'rgba(232, 114, 90, 0.05)', 'rgba(155, 142, 196, 0.05)',
-    'rgba(74, 144, 217, 0.05)', 'rgba(245, 197, 66, 0.05)',
-    'rgba(94, 196, 182, 0.05)', 'rgba(232, 114, 90, 0.05)',
-    'rgba(155, 142, 196, 0.05)'
+    'rgba(59, 130, 246, 0.06)', 'rgba(251, 191, 36, 0.06)',
+    'rgba(20, 184, 166, 0.06)', 'rgba(239, 68, 68, 0.06)',
+    'rgba(139, 92, 246, 0.06)', 'rgba(249, 115, 22, 0.06)',
+    'rgba(59, 130, 246, 0.06)', 'rgba(251, 191, 36, 0.06)',
+    'rgba(20, 184, 166, 0.06)', 'rgba(239, 68, 68, 0.06)',
+    'rgba(139, 92, 246, 0.06)', 'rgba(249, 115, 22, 0.06)',
+    'rgba(59, 130, 246, 0.06)', 'rgba(251, 191, 36, 0.06)',
+    'rgba(20, 184, 166, 0.06)'
   ],
-  gradientStart: '#4A90D9',
-  gradientEnd: '#6AA8E8',
-  glowPrimary: 'rgba(74, 144, 217, 0.2)',
-  glowAccent: 'rgba(245, 197, 66, 0.2)',
-  glassBg: 'rgba(255, 255, 255, 0.8)',
-  glassBorder: 'rgba(74, 144, 217, 0.08)'
+  gradientStart: '#3B82F6',
+  gradientEnd: '#60A5FA',
+  glowPrimary: 'rgba(59, 130, 246, 0.25)',
+  glowAccent: 'rgba(251, 191, 36, 0.25)',
+  glassBg: 'rgba(255, 255, 255, 0.85)',
+  glassBorder: 'rgba(59, 130, 246, 0.1)'
 };
 
 export function getColorScheme() {
