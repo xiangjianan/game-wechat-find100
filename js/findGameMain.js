@@ -1053,7 +1053,6 @@ export default class FindGameMain {
     this.ui.scoreHistoryScrollOffset = 0;
     this.ui.scoreHistoryScrollVelocity = 0;
     this.ui.scoreHistoryIsTouching = false;
-    this.soundManager.playUiClick();
   }
 
   handleHighScore(level, newScore, previousBest) {
