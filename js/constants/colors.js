@@ -10,7 +10,7 @@ export const COLOR_SCHEME = {
   secondary: '#FBBF24',
   accent: '#14B8A6',
   danger: '#EF4444',
-  text: '#3B82F6',
+  text: '#374151',
   textSecondary: '#6B7280',
   textLight: '#FFFFFF',
   border: 'rgba(59, 130, 246, 0.15)',

@@ -372,7 +372,7 @@ export default class UI {
 
       this._drawIcon(ctx, button.icon, iconCenterX, iconCenterY, isMobile, button.iconColor);
 
-      ctx.fillStyle = '#3B82F6';
+      ctx.fillStyle = '#374151';
       ctx.font = `600 ${isMobile ? 15 : 17}px Arial, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -404,7 +404,7 @@ export default class UI {
 
     // Title - centered below icon (square card vertical layout)
     const textY = iconY + iconSize + (isMobile ? 14 : 16);
-    ctx.fillStyle = '#3B82F6';
+    ctx.fillStyle = '#374151';
     ctx.font = `600 ${isMobile ? 14 : 16}px Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -2452,7 +2452,7 @@ export default class UI {
     ctx.arc(coinIconX + coinIconSize / 2, coinIconY + coinIconSize / 2, coinIconSize / 2, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = '#3B82F6';
+    ctx.fillStyle = '#374151';
     ctx.font = `bold ${isMobile ? 11 : 13}px Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -3286,7 +3286,7 @@ export default class UI {
     ctx.fillText('🏆', this.width / 2, cardY + (isMobile ? 45 : 55));
 
     ctx.font = `bold ${isMobile ? 22 : 26}px "Arial Black", Arial, sans-serif`;
-    ctx.fillStyle = '#3B82F6';
+    ctx.fillStyle = '#374151';
     ctx.fillText('新纪录！', this.width / 2, cardY + (isMobile ? 90 : 105));
 
     ctx.font = `bold ${isMobile ? 16 : 18}px Arial, sans-serif`;
@@ -3295,7 +3295,7 @@ export default class UI {
 
     if (celeb.previousBest) {
       ctx.font = `${isMobile ? 13 : 14}px Arial, sans-serif`;
-      ctx.fillStyle = '#3B82F6';
+      ctx.fillStyle = '#6B7280';
       ctx.globalAlpha = alpha * 0.7;
       ctx.fillText(
         `上次最佳: ${celeb.previousBest.numbersFound} 个 · ${celeb.previousBest.timeSpent.toFixed(2)} 秒`,
@@ -3305,7 +3305,7 @@ export default class UI {
 
     const levelName = celeb.level === 1 ? '第一关' : '第二关';
     ctx.font = `${isMobile ? 12 : 13}px Arial, sans-serif`;
-    ctx.fillStyle = '#3B82F6';
+    ctx.fillStyle = '#6B7280';
     ctx.globalAlpha = alpha * 0.5;
     ctx.fillText(levelName, this.width / 2, cardY + (isMobile ? 180 : 200));
 
@@ -3721,13 +3721,13 @@ export default class UI {
     ctx.fill();
     ctx.restore();
 
-    ctx.fillStyle = '#3B82F6';
+    ctx.fillStyle = '#FFFFFF';
     ctx.font = `bold ${isMobile ? 13 : 15}px Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('¥', coinX + coinSize / 2, coinY + coinSize / 2 + 1);
 
-    ctx.fillStyle = '#3B82F6';
+    ctx.fillStyle = '#374151';
     ctx.font = `600 ${isMobile ? 15 : 17}px Arial, sans-serif`;
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
