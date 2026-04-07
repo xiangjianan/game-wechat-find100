@@ -541,15 +541,15 @@ export default class FindGameMain {
       
       if (this.gameManager.isTimedMode()) {
         if (comboCount >= 5) {
-          this.ui.showFloatingText(center.x, center.y, `+${comboCount}秒`, '#14B8A6');
+          this.ui.showFloatingText(center.x, center.y, `+${comboCount}秒`, '#FBBF24');
         } else {
-          this.ui.showFloatingText(center.x, center.y, '+5秒', '#14B8A6');
+          this.ui.showFloatingText(center.x, center.y, '+5秒', '#FBBF24');
         }
       } else {
         if (comboCount >= 5) {
-          this.ui.showFloatingText(center.x, center.y, `正确 ${comboCount}连击`, '#14B8A6');
+          this.ui.showFloatingText(center.x, center.y, `正确 ${comboCount}连击`, '#FBBF24');
         } else {
-          this.ui.showFloatingText(center.x, center.y, '正确', '#14B8A6');
+          this.ui.showFloatingText(center.x, center.y, '正确', '#FBBF24');
         }
       }
     };
