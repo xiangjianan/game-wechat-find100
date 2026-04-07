@@ -19,9 +19,9 @@ export const COLOR_SCHEME = {
   shadow: 'rgba(0, 0, 0, 0.08)',
   cardBg: 'rgba(255, 255, 255, 0.94)',
   cardBgSolid: '#FFFFFF',
-  buttonPrimary: '#D97706',
-  buttonPrimaryEnd: '#E8A840',
-  buttonSecondary: '#E8A840',
+  buttonPrimary: '#6366F1',
+  buttonPrimaryEnd: '#818CF8',
+  buttonSecondary: '#818CF8',
   buttonSuccess: '#14B8A6',
   buttonDanger: '#EF4444',
   numberColors: [
@@ -38,8 +38,8 @@ export const COLOR_SCHEME = {
     'rgba(59, 130, 246, 0.06)', 'rgba(251, 191, 36, 0.06)',
     'rgba(20, 184, 166, 0.06)'
   ],
-  gradientStart: '#D97706',
-  gradientEnd: '#E8A840',
+  gradientStart: '#6366F1',
+  gradientEnd: '#818CF8',
   glowPrimary: 'rgba(59, 130, 246, 0.25)',
   glowAccent: 'rgba(251, 191, 36, 0.25)',
   glassBg: 'rgba(255, 255, 255, 0.85)',
