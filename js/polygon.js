@@ -191,7 +191,7 @@ export default class Polygon {
     ctx.translate(-center.x, -center.y);
 
     if (this.isHinted) {
-      ctx.shadowColor = '#5BA88F';
+      ctx.shadowColor = '#A89585';
       ctx.shadowBlur = 25 * this.hintGlowIntensity;
     }
 
@@ -206,10 +206,10 @@ export default class Polygon {
     if (this.isClicked) {
       fillColor = stateColors.clicked;
     } else if (this.isEagleEyeHighlighted) {
-      fillColor = '#5BA88F';
+      fillColor = '#A89585';
     } else if (this.isHinted) {
       const intensity = this.hintGlowIntensity;
-      fillColor = this.interpolateColor('#5BA88F', '#7BC4AC', intensity);
+      fillColor = this.interpolateColor('#A89585', '#BDAEA0', intensity);
     } else if (this.isHighlighted) {
       fillColor = stateColors.highlighted;
     } else {
@@ -220,7 +220,7 @@ export default class Polygon {
     ctx.fill();
 
     if (this.isError) {
-      ctx.fillStyle = `rgba(192, 57, 43, ${this.errorAlpha})`;
+      ctx.fillStyle = `rgba(139, 94, 94, ${this.errorAlpha})`;
       ctx.fill();
     }
 

@@ -521,12 +521,12 @@ export default class FindGameMain {
       this.vibrationManager.vibrateError();
       if (this.gameManager.isTimedMode()) {
         if (penalty > 0) {
-          this.ui.showFloatingText(center.x, center.y, `-${penalty}秒`, '#C0392B');
+          this.ui.showFloatingText(center.x, center.y, `-${penalty}秒`, '#8B5E5E');
         } else {
-          this.ui.showFloatingText(center.x, center.y, '错误', '#C0392B');
+          this.ui.showFloatingText(center.x, center.y, '错误', '#8B5E5E');
         }
       } else {
-        this.ui.showFloatingText(center.x, center.y, '错误', '#C0392B');
+        this.ui.showFloatingText(center.x, center.y, '错误', '#8B5E5E');
       }
     };
     
@@ -541,15 +541,15 @@ export default class FindGameMain {
       
       if (this.gameManager.isTimedMode()) {
         if (comboCount >= 5) {
-          this.ui.showFloatingText(center.x, center.y, `+${comboCount}秒`, '#5BA88F');
+          this.ui.showFloatingText(center.x, center.y, `+${comboCount}秒`, '#A89585');
         } else {
-          this.ui.showFloatingText(center.x, center.y, '+5秒', '#5BA88F');
+          this.ui.showFloatingText(center.x, center.y, '+5秒', '#A89585');
         }
       } else {
         if (comboCount >= 5) {
-          this.ui.showFloatingText(center.x, center.y, `正确 ${comboCount}连击`, '#5BA88F');
+          this.ui.showFloatingText(center.x, center.y, `正确 ${comboCount}连击`, '#A89585');
         } else {
-          this.ui.showFloatingText(center.x, center.y, '正确', '#5BA88F');
+          this.ui.showFloatingText(center.x, center.y, '正确', '#A89585');
         }
       }
     };
@@ -634,7 +634,7 @@ export default class FindGameMain {
     this.soundManager.playUiClick();
     this.vibrationManager.vibrateCorrect();
     this.ui.triggerEggEffect();
-    this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `+${egg.reward.amount} 💰`, '#5BA88F');
+    this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `+${egg.reward.amount} 💰`, '#A89585');
 
     this.ui.achievementsData = this.achievementManager.getAllAchievements();
 
@@ -804,9 +804,9 @@ export default class FindGameMain {
 
   renderGameBackground(ctx) {
     const gradient = ctx.createLinearGradient(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    gradient.addColorStop(0, '#F5F3F0');
-    gradient.addColorStop(0.5, '#EDEAE6');
-    gradient.addColorStop(1, '#F0EDEA');
+    gradient.addColorStop(0, '#F0EBE3');
+    gradient.addColorStop(0.5, '#E8E2D9');
+    gradient.addColorStop(1, '#EBE6DD');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
   }
@@ -992,7 +992,7 @@ export default class FindGameMain {
     if (product.id === 'reset_game') {
       if (this.coinManager.getCoins() < product.price) {
         this.soundManager.playError();
-        this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, '金币不足!', '#C0392B');
+        this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, '金币不足!', '#8B5E5E');
         return;
       }
       this.soundManager.playUiClick();
@@ -1011,7 +1011,7 @@ export default class FindGameMain {
           {
             id: 'confirm',
             text: '确认重置',
-            color: '#C0392B',
+            color: '#8B5E5E',
             action: () => {
               this.ui.hideModal();
               this.handleResetGame();
@@ -1026,11 +1026,11 @@ export default class FindGameMain {
 
     if (result.success) {
       this.soundManager.playUiClick();
-      this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `+${result.itemsAdded} 💡`, '#5BA88F');
+      this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `+${result.itemsAdded} 💡`, '#A89585');
     } else {
       this.soundManager.playError();
       if (result.reason === 'not_enough_coins') {
-        this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, '金币不足!', '#C0392B');
+        this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, '金币不足!', '#8B5E5E');
       }
     }
   }
@@ -1070,11 +1070,11 @@ export default class FindGameMain {
 
     if (result) {
       this.soundManager.playUiClick();
-      this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `解锁 ${skill.name}!`, '#5BA88F', 'skills');
+      this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `解锁 ${skill.name}!`, '#A89585', 'skills');
       this.ui.skillsData = this.skillManager.getSkillProgress();
     } else {
       this.soundManager.playError();
-      this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, '金币不足!', '#C0392B', 'skills');
+      this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, '金币不足!', '#8B5E5E', 'skills');
     }
   }
 

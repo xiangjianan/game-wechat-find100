@@ -11,10 +11,10 @@ export default class ComboManager {
     this.onComboLevelUp = null;
     
     this.comboLevels = [
-      { threshold: 5, name: '火热', color: '#5BA88F', vibration: 'light' },
-      { threshold: 10, name: '燃烧', color: '#D4634E', vibration: 'medium' },
-      { threshold: 15, name: '狂暴', color: '#E8725A', vibration: 'heavy' },
-      { threshold: 20, name: '无敌', color: '#5BA88F', vibration: 'heavy' }
+      { threshold: 5, name: '火热', color: '#A89585', vibration: 'light' },
+      { threshold: 10, name: '燃烧', color: '#5A6E87', vibration: 'medium' },
+      { threshold: 15, name: '狂暴', color: '#6B7F99', vibration: 'heavy' },
+      { threshold: 20, name: '无敌', color: '#A89585', vibration: 'heavy' }
     ];
   }
 
@@ -160,7 +160,7 @@ export default class ComboManager {
 
   getComboColor() {
     const level = this.getCurrentComboLevel();
-    return level ? level.color : '#E8725A';
+    return level ? level.color : '#6B7F99';
   }
 
   getVibrationIntensity() {

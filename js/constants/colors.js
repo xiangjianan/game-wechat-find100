@@ -1,49 +1,49 @@
-// 三色极简色系: 珊瑚橘 #E8725A · 青苔 #5BA88F · 暖灰 #E8E4E0
-// 配合白色 #FFFFFF 和 浅灰 #F5F3F0 作为中性底色
+// 日式和风色系: 灰蓝 #6B7F99 · 大地 #A89585 · 和纸 #F0EBE3
+// 配合白色 #FFFFFF 作为中性底色
 
 export const COLOR_SCHEME = {
-  name: '极简三色',
-  id: 'minimal-trio',
-  background: '#F5F3F0',
-  backgroundEnd: '#EDEAE6',
-  primary: '#E8725A',
-  secondary: '#5BA88F',
-  accent: '#5BA88F',
-  danger: '#C0392B',
-  text: '#E8725A',
-  textSecondary: '#6B6878',
+  name: '日式和风',
+  id: 'wabi-sabi',
+  background: '#F0EBE3',
+  backgroundEnd: '#E8E2D9',
+  primary: '#6B7F99',
+  secondary: '#A89585',
+  accent: '#A89585',
+  danger: '#8B5E5E',
+  text: '#6B7F99',
+  textSecondary: '#8B8B8B',
   textLight: '#FFFFFF',
-  border: 'rgba(232, 114, 90, 0.15)',
-  borderActive: 'rgba(91, 168, 143, 0.3)',
-  borderSubtle: 'rgba(232, 114, 90, 0.08)',
-  shadow: 'rgba(0, 0, 0, 0.06)',
+  border: 'rgba(107, 127, 153, 0.12)',
+  borderActive: 'rgba(168, 149, 133, 0.3)',
+  borderSubtle: 'rgba(107, 127, 153, 0.08)',
+  shadow: 'rgba(0, 0, 0, 0.05)',
   cardBg: 'rgba(255, 255, 255, 0.9)',
   cardBgSolid: '#FFFFFF',
-  buttonPrimary: '#E8725A',
-  buttonPrimaryEnd: '#D4634E',
-  buttonSecondary: '#5BA88F',
-  buttonSuccess: '#5BA88F',
-  buttonDanger: '#C0392B',
+  buttonPrimary: '#6B7F99',
+  buttonPrimaryEnd: '#5A6E87',
+  buttonSecondary: '#A89585',
+  buttonSuccess: '#A89585',
+  buttonDanger: '#8B5E5E',
   numberColors: [
-    '#E8725A', '#D4634E', '#5BA88F', '#E8725A', '#D4634E',
-    '#5BA88F', '#E8725A', '#D4634E', '#5BA88F', '#E8725A'
+    '#6B7F99', '#5A6E87', '#A89585', '#6B7F99', '#5A6E87',
+    '#A89585', '#6B7F99', '#5A6E87', '#A89585', '#6B7F99'
   ],
   polygonColors: [
-    'rgba(232, 114, 90, 0.05)', 'rgba(91, 168, 143, 0.05)',
-    'rgba(232, 114, 90, 0.05)', 'rgba(91, 168, 143, 0.05)',
-    'rgba(232, 114, 90, 0.05)', 'rgba(91, 168, 143, 0.05)',
-    'rgba(232, 114, 90, 0.05)', 'rgba(91, 168, 143, 0.05)',
-    'rgba(232, 114, 90, 0.05)', 'rgba(91, 168, 143, 0.05)',
-    'rgba(232, 114, 90, 0.05)', 'rgba(91, 168, 143, 0.05)',
-    'rgba(232, 114, 90, 0.05)', 'rgba(91, 168, 143, 0.05)',
-    'rgba(232, 114, 90, 0.05)'
+    'rgba(107, 127, 153, 0.04)', 'rgba(168, 149, 133, 0.04)',
+    'rgba(107, 127, 153, 0.04)', 'rgba(168, 149, 133, 0.04)',
+    'rgba(107, 127, 153, 0.04)', 'rgba(168, 149, 133, 0.04)',
+    'rgba(107, 127, 153, 0.04)', 'rgba(168, 149, 133, 0.04)',
+    'rgba(107, 127, 153, 0.04)', 'rgba(168, 149, 133, 0.04)',
+    'rgba(107, 127, 153, 0.04)', 'rgba(168, 149, 133, 0.04)',
+    'rgba(107, 127, 153, 0.04)', 'rgba(168, 149, 133, 0.04)',
+    'rgba(107, 127, 153, 0.04)'
   ],
-  gradientStart: '#E8725A',
-  gradientEnd: '#D4634E',
-  glowPrimary: 'rgba(232, 114, 90, 0.15)',
-  glowAccent: 'rgba(91, 168, 143, 0.15)',
+  gradientStart: '#6B7F99',
+  gradientEnd: '#5A6E87',
+  glowPrimary: 'rgba(107, 127, 153, 0.15)',
+  glowAccent: 'rgba(168, 149, 133, 0.15)',
   glassBg: 'rgba(255, 255, 255, 0.75)',
-  glassBorder: 'rgba(232, 114, 90, 0.08)'
+  glassBorder: 'rgba(107, 127, 153, 0.08)'
 };
 
 export function getColorScheme() {
