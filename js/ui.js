@@ -241,7 +241,7 @@ export default class UI {
 
     // Vibrant gradient
     const gradient = ctx.createLinearGradient(scaledX, scaledY, scaledX + scaledWidth, scaledY + scaledHeight);
-    gradient.addColorStop(0, button.color || '#3B82F6');
+    gradient.addColorStop(0, button.color || '#F97316');
     gradient.addColorStop(1, button.colorEnd || '#60A5FA');
     ctx.fillStyle = gradient;
     this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
@@ -606,8 +606,8 @@ export default class UI {
     ctx.shadowOffsetY = 2;
 
     const activeGradient = ctx.createLinearGradient(activeX, y, activeX + segmentWidth, y + height);
-    activeGradient.addColorStop(0, '#3B82F6');
-    activeGradient.addColorStop(1, '#60A5FA');
+    activeGradient.addColorStop(0, '#F97316');
+    activeGradient.addColorStop(1, '#FB923C');
     ctx.fillStyle = activeGradient;
     this.roundRect(ctx, activeX + 3 + offsetX, y + 3 + offsetY, segmentWidth - 6, height - 6, radius - 3);
     ctx.fill();
@@ -4118,9 +4118,9 @@ export default class UI {
           ctx.textBaseline = 'middle';
           ctx.fillText('已解锁', unlockButtonX + unlockButtonWidth / 2, unlockButtonY + unlockButtonHeight / 2);
         } else if (skill.canUnlock) {
-          let unlockButtonColor = '#3B82F6';
+          let unlockButtonColor = '#F97316';
           if (isUnlockButtonHovered) {
-            unlockButtonColor = this.lightenColor('#FBBF24', 0.15);
+            unlockButtonColor = this.lightenColor('#F97316', 0.15);
           }
 
           let unlockButtonScale = 1;
