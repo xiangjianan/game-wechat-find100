@@ -848,12 +848,92 @@ export default class FindGameMain {
   }
 
   renderGameBackground(ctx) {
-    const gradient = ctx.createLinearGradient(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    gradient.addColorStop(0, '#FFFAF5');
-    gradient.addColorStop(0.5, '#FFF3E8');
-    gradient.addColorStop(1, '#FFF7F0');
+    const bgState = this.ui.getBackgroundState();
+    const intensity = bgState.comboIntensity;
+
+    if (intensity < 0.1) {
+      // Static background
+      const gradient = ctx.createLinearGradient(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+      gradient.addColorStop(0, '#FFFAF5');
+      gradient.addColorStop(0.5, '#FFF3E8');
+      gradient.addColorStop(1, '#FFF7F0');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+      return;
+    }
+
+    const phase = bgState.phase;
+    const t = Date.now() / 1000;
+
+    // Flowing gradient based on combo intensity
+    const baseColors = ['#FFFAF5', '#FFF3E8', '#FFF7F0'];
+    const warmColors = ['#FFF3E8', '#FFE8D6', '#FFF0E0'];
+    const hotColors = ['#FFE4CC', '#FFD4B8', '#FFE0C8'];
+
+    const blendFactor = Math.min(1, (intensity - 0.5) / 1.0);
+
+    function hexToRgb(hex) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return [r, g, b];
+    }
+
+    function rgbToHex(r, g, b) {
+      return '#' + [r, g, b].map(v => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('');
+    }
+
+    function lerpColor(c1, c2, t) {
+      const [r1, g1, b1] = hexToRgb(c1);
+      const [r2, g2, b2] = hexToRgb(c2);
+      return rgbToHex(r1 + (r2 - r1) * t, g1 + (g2 - g1) * t, b1 + (b2 - b1) * t);
+    }
+
+    const colors = baseColors.map((base, i) => {
+      const warm = lerpColor(base, warmColors[i], blendFactor);
+      return lerpColor(warm, hotColors[i], blendFactor * blendFactor);
+    });
+
+    // Animated gradient angle
+    const angleShift = Math.sin(phase) * 0.3;
+    const gx = SCREEN_WIDTH * 0.5 + Math.cos(angleShift) * SCREEN_WIDTH * 0.5;
+    const gy = SCREEN_HEIGHT * 0.5 + Math.sin(angleShift) * SCREEN_HEIGHT * 0.5;
+
+    const gradient = ctx.createLinearGradient(0, 0, gx, gy);
+    // Shift color stops with phase
+    const stopShift = Math.sin(phase * 0.7) * 0.15;
+    gradient.addColorStop(Math.max(0, 0 + stopShift), colors[0]);
+    gradient.addColorStop(Math.max(0, 0.5 + stopShift), colors[1]);
+    gradient.addColorStop(Math.min(1, 1), colors[2]);
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+    // Subtle radial pulse at high combo
+    if (intensity >= 1) {
+      const pulseAlpha = (intensity - 1) * 0.08 * (0.7 + Math.sin(t * 3) * 0.3);
+      const comboColor = bgState.comboLevel ? bgState.comboLevel.color : '#FBBF24';
+      const [pr, pg, pb] = hexToRgb(comboColor);
+      const radial = ctx.createRadialGradient(
+        SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 0,
+        SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, Math.min(SCREEN_WIDTH, SCREEN_HEIGHT) * 0.6
+      );
+      radial.addColorStop(0, `rgba(${pr}, ${pg}, ${pb}, ${pulseAlpha})`);
+      radial.addColorStop(1, `rgba(${pr}, ${pg}, ${pb}, 0)`);
+      ctx.fillStyle = radial;
+      ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    }
+
+    // Background particles
+    const particles = bgState.particles;
+    for (const p of particles) {
+      ctx.save();
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, Math.max(0.5, p.size), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
   }
 
   renderGameAreaBorder(ctx) {
