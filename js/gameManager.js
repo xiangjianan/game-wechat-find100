@@ -50,13 +50,13 @@ export default class GameManager {
 
   setupComboCallbacks() {
     this.comboManager.onComboUpdate = (count, level) => {
-      if (this.gameMode === 'timed' && count >= 1) {
+      if (this.gameMode === 'timed' && count > 3) {
         const timeReward = this.getTimeReward(count);
         this.timeLeft += timeReward;
       }
 
       const coinBonus = this.skillManager ? this.skillManager.getComboCoinBonus() : 0;
-      if (coinBonus > 0 && count > 0) {
+      if (coinBonus > 0 && count > 3) {
         this.coinManager.addCoins(coinBonus, 'combo');
       }
 
@@ -181,7 +181,7 @@ export default class GameManager {
     // 计算实际加时秒数
     let timeReward = 0;
     if (this.gameMode === 'timed') {
-      if (comboCount >= 1) {
+      if (comboCount > 3) {
         // 连击时不再加基础时间，时间奖励由 onComboUpdate 处理
         timeReward = this.getTimeReward(comboCount);
       } else {
@@ -277,7 +277,7 @@ export default class GameManager {
 
   getTimeReward(comboCount) {
     const comboBonus = this.skillManager ? this.skillManager.getComboBonus() : 0;
-    return 5 + comboBonus * comboCount;
+    return 5 + comboBonus * (comboCount - 3);
   }
 
   getComboMultiplier() {

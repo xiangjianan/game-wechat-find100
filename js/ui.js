@@ -3371,7 +3371,7 @@ export default class UI {
       this.comboData.scale = 1.2;
       this.comboData.glowIntensity = level ? 1 : 0.5;
 
-      if (count >= 1 && count !== previousCount) {
+      if (count > 3 && count !== previousCount) {
         this.createComboParticles(level, count, center);
         this.comboData.scale = 1.4;
       }

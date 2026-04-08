@@ -1,8 +1,6 @@
 export default class ComboManager {
   constructor() {
     this.comboCount = 0;
-    this.warmUpCount = 0;
-    this.warmUpThreshold = 3;
     this.maxCombo = 0;
     this.comboTimer = null;
     this.comboTimeLimit = 2000;
@@ -21,15 +19,6 @@ export default class ComboManager {
   }
 
   onCorrectClick() {
-    if (this.warmUpCount < this.warmUpThreshold) {
-      this.warmUpCount++;
-      this.resetComboTimer();
-      if (this.onComboUpdate) {
-        this.onComboUpdate(0, null);
-      }
-      return null;
-    }
-
     this.comboCount++;
     this.resetComboTimer();
 
@@ -56,13 +45,13 @@ export default class ComboManager {
   }
 
   calculateMultiplier() {
-    if (this.comboCount < 1) return 1.0;
-    return 1.0 + this.comboCount * 0.1;
+    if (this.comboCount <= 3) return 1.0;
+    return 1.0 + (this.comboCount - 3) * 0.1;
   }
 
   getTimeBonus() {
-    if (this.comboCount < 1) return 0;
-    return this.comboCount;
+    if (this.comboCount <= 3) return 0;
+    return this.comboCount - 3;
   }
 
   onWrongClick() {
@@ -84,14 +73,13 @@ export default class ComboManager {
   }
 
   breakCombo() {
-    if (this.comboCount > 0 || this.warmUpCount > 0) {
+    if (this.comboCount > 0) {
       if (this.onComboBreak) {
         this.onComboBreak(this.comboCount, this.lastComboLevel);
       }
     }
 
     this.comboCount = 0;
-    this.warmUpCount = 0;
     this.lastComboLevel = null;
     this.comboMultiplier = 1.0;
 
@@ -148,13 +136,12 @@ export default class ComboManager {
   }
 
   isActive() {
-    return this.comboCount > 0 || this.warmUpCount > 0;
+    return this.comboCount > 0;
   }
 
   reset() {
     this.clearComboTimer();
     this.comboCount = 0;
-    this.warmUpCount = 0;
     this.lastComboLevel = null;
     this.comboMultiplier = 1.0;
     this.maxCombo = 0;
