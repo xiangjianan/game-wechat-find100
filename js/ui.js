@@ -3554,7 +3554,7 @@ export default class UI {
   }
 
   renderComboDisplay(ctx) {
-    if (this.comboData.count < 1) return;
+    if (this.comboData.count < 4) return;
     
     const scheme = this.getScheme();
     const isMobile = this.width < 768;
