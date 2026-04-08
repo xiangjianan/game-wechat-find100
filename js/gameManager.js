@@ -361,7 +361,7 @@ export default class GameManager {
   }
 
   checkMilestone() {
-    if (!this.onMilestone || this.totalNumbers < 10) return;
+    if (!this.onMilestone || this.totalNumbers <= 10) return;
 
     const progress = this.currentNumber - 1;
     const pct = progress / this.totalNumbers;
