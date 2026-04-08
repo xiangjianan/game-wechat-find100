@@ -274,8 +274,8 @@ export default class GameManager {
   }
 
   getTimeReward(comboCount) {
-    const isUnlocked = this.skillManager && this.skillManager.isUnlocked('combo_boost');
-    return isUnlocked ? comboCount + 5 : 5;
+    const comboBonus = this.skillManager ? this.skillManager.getComboBonus() : 0;
+    return 5 + comboBonus;
   }
 
   getComboMultiplier() {

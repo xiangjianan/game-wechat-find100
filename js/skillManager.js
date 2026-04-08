@@ -60,16 +60,42 @@ export default class SkillManager {
       icon: '⏰'
     });
 
-    this.skills.set('combo_boost', {
-      id: 'combo_boost',
-      name: '连击增益',
+    this.skills.set('combo_boost_1', {
+      id: 'combo_boost_1',
+      name: '连击增益 I',
+      category: 'combo',
+      description: '5连击后，每次连击额外增加1秒时长',
+      effect: { type: 'combo_bonus', value: 1 },
+      maxLevel: 1,
+      currentLevel: 0,
+      cost: 2000,
+      prerequisite: null,
+      icon: '🔥'
+    });
+
+    this.skills.set('combo_boost_2', {
+      id: 'combo_boost_2',
+      name: '连击增益 II',
+      category: 'combo',
+      description: '5连击后，每次连击额外增加3秒时长',
+      effect: { type: 'combo_bonus', value: 3 },
+      maxLevel: 1,
+      currentLevel: 0,
+      cost: 4000,
+      prerequisite: 'combo_boost_1',
+      icon: '🔥'
+    });
+
+    this.skills.set('combo_boost_3', {
+      id: 'combo_boost_3',
+      name: '连击增益 III',
       category: 'combo',
       description: '5连击后，每次连击额外增加5秒时长',
       effect: { type: 'combo_bonus', value: 5 },
       maxLevel: 1,
       currentLevel: 0,
-      cost: 3000,
-      prerequisite: null,
+      cost: 8000,
+      prerequisite: 'combo_boost_2',
       icon: '🔥'
     });
 
