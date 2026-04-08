@@ -7,9 +7,9 @@ export default class ShareManager {
       '这个数字游戏太上头了！'
     ];
     this.shareImages = [
-      'https://mmocgame.qpic.cn/wechatgame/Clv3KhwAnOkOsITPWCrY0Zel2aiaooXmGSqRicrxTk1HfriaH6wUYFyHuB1ibA7NPe1v/0',
-      'https://mmocgame.qpic.cn/wechatgame/6D4a0aLh3aT8nr5RKql0SOU4382ia6cibzo7MibrDLzEH2wbEd2EWY2BsuB2VOIX1icT/0',
-      'https://mmocgame.qpic.cn/wechatgame/RHF4KEb2RhaYdWXd8icNcQCDJ3pl5h287zbiaqBEkXop9htlpJYTSWhsq6l7mNr32h/0'
+      'https://mmocgame.qpic.cn/wechatgame/ia9bI9ZkVFJ0CQMNicgq67tocDwKuP04ZDq7wLKNJBbHHJBH4OQ21TFMiawj5A72wCD/0',
+      'https://mmocgame.qpic.cn/wechatgame/ZSNQDes4Pge8bRywMDtto8JeM9x6lHUALVbnZBx92CaDlhLVdEayqKC98OovB4gm/0',
+      'https://mmocgame.qpic.cn/wechatgame/RptOPklgbiaXPTic6NlTM54IcazvL5BlrqwibHfrDEzZhWn5U6V89ic14nJQHmFAthCg/0'
     ];
   }
 
