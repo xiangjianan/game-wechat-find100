@@ -628,6 +628,11 @@ export default class FindGameMain {
       this.soundManager.playUiClick();
     };
 
+    this.gameManager.onMilestone = (milestone) => {
+      this.ui.showMilestoneEffect(milestone);
+      this.soundManager.playUiClick();
+    };
+
     this.ui.onUseHint = () => {
       this.useHint();
     };

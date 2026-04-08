@@ -43,6 +43,7 @@ export default class GameManager {
     this.rewardManager = null;
     this.eagleEyeTimeoutId = null;
     this.onRewardTriggered = null;
+    this.onMilestone = null;
 
     this.setupComboCallbacks();
     this.eggManager.init();
@@ -153,6 +154,11 @@ export default class GameManager {
 
     this.currentNumber++;
     this.clickCount++;
+
+    // 里程碑检测：25%、50%、75%
+    this.checkMilestone();
+
+    // 鹰眼技能：3秒后高亮下一个数字
 
     // 鹰眼技能：3秒后高亮下一个数字
     if (this.skillManager && this.skillManager.isUnlocked('eagle_eye') && this.currentNumber <= this.totalNumbers) {
@@ -352,6 +358,27 @@ export default class GameManager {
 
   getProgress() {
     return this.currentNumber - 1;
+  }
+
+  checkMilestone() {
+    if (!this.onMilestone || this.totalNumbers < 10) return;
+
+    const progress = this.currentNumber - 1;
+    const pct = progress / this.totalNumbers;
+
+    const milestones = [
+      { pct: 0.25, label: '25%', color: '#3B82F6' },
+      { pct: 0.5,  label: '半程', color: '#F97316' },
+      { pct: 0.75, label: '75%', color: '#8B5CF6' }
+    ];
+
+    for (const m of milestones) {
+      const target = Math.round(m.pct * this.totalNumbers);
+      if (progress === target) {
+        this.onMilestone(m);
+        break;
+      }
+    }
   }
 
   getTotalProgress() {
