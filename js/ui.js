@@ -252,20 +252,24 @@ export default class UI {
     ctx.shadowOffsetX = 0;
     ctx.shadowColor = 'transparent';
 
-    // Top gloss
+    // Top gloss (clipped to rounded shape)
+    ctx.save();
+    this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
+    ctx.clip();
     const shineGradient = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.5);
     shineGradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
     shineGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.08)');
     shineGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
     ctx.fillStyle = shineGradient;
-    ctx.fillRect(scaledX + 1, scaledY + 1, scaledWidth - 2, scaledHeight * 0.55);
+    ctx.fillRect(scaledX, scaledY, scaledWidth, scaledHeight * 0.55);
 
     // Bottom edge glow
     const bottomShine = ctx.createLinearGradient(scaledX, scaledY + scaledHeight * 0.7, scaledX, scaledY + scaledHeight);
     bottomShine.addColorStop(0, 'rgba(255, 255, 255, 0)');
     bottomShine.addColorStop(1, 'rgba(255, 255, 255, 0.08)');
     ctx.fillStyle = bottomShine;
-    ctx.fillRect(scaledX + 1, scaledY + scaledHeight * 0.7, scaledWidth - 2, scaledHeight * 0.3 - 1);
+    ctx.fillRect(scaledX, scaledY + scaledHeight * 0.7, scaledWidth, scaledHeight * 0.3);
+    ctx.restore();
 
     // Text
     ctx.fillStyle = '#FFFFFF';
@@ -339,13 +343,17 @@ export default class UI {
     ctx.shadowOffsetY = 0;
     ctx.shadowColor = 'transparent';
 
-    // Gloss effect - subtle top shine using fillRect (safe)
+    // Gloss effect - subtle top shine (clipped to rounded shape)
+    ctx.save();
+    this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
+    ctx.clip();
     const cardShine = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.4);
     cardShine.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
     cardShine.addColorStop(0.5, 'rgba(255, 255, 255, 0.1)');
     cardShine.addColorStop(1, 'rgba(255, 255, 255, 0)');
     ctx.fillStyle = cardShine;
-    ctx.fillRect(scaledX + 1, scaledY + 1, scaledWidth - 2, scaledHeight * 0.4);
+    ctx.fillRect(scaledX, scaledY, scaledWidth, scaledHeight * 0.4);
+    ctx.restore();
 
     // Colored border
     ctx.strokeStyle = button.cardBorder || 'rgba(148, 163, 184, 0.15)';
