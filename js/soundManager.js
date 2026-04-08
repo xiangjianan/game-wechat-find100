@@ -41,6 +41,13 @@ export default class SoundManager {
         this.useGeneratedAudio = true;
       });
       
+      this.sounds.coin = wx.createInnerAudioContext();
+      this.sounds.coin.src = 'audio/coin.wav';
+      this.sounds.coin.volume = this.volume * 0.6;
+      this.sounds.coin.onError(() => {
+        this.sounds.coin = null;
+      });
+
       this.sounds.egg = wx.createInnerAudioContext();
       this.sounds.egg.src = 'audio/egg.wav';
       this.sounds.egg.onError(() => {
@@ -120,6 +127,22 @@ export default class SoundManager {
     try {
       this.sounds.complete.stop();
       this.sounds.complete.play();
+    } catch (e) {}
+  }
+
+  playCoin() {
+    if (!this.enabled) return;
+
+    if (this.sounds.coin) {
+      try {
+        this.sounds.coin.stop();
+        this.sounds.coin.play();
+        return;
+      } catch (e) {}
+    }
+
+    try {
+      AudioGenerator.generateClickSound();
     } catch (e) {}
   }
 

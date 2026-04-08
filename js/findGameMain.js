@@ -595,6 +595,7 @@ export default class FindGameMain {
       if (coinBonus > 0 && count > 3) {
         this.ui.coins = this.gameManager.coinManager.getCoins();
         this.ui.showCoinFlyEffect(coinBonus, center);
+        this.soundManager.playCoin();
       }
 
       const comboThresholds = [5, 10, 20];
