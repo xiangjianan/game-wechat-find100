@@ -2,7 +2,7 @@ export default class ComboManager {
   constructor() {
     this.comboCount = 0;
     this.warmUpCount = 0;
-    this.warmUpThreshold = 5;
+    this.warmUpThreshold = 3;
     this.maxCombo = 0;
     this.comboTimer = null;
     this.comboTimeLimit = 2000;
