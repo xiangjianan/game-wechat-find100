@@ -61,13 +61,13 @@ export default class GameManager {
       }
 
       if (this.onComboUpdate) {
-        this.onComboUpdate(count, level, coinBonus);
+        this.onComboUpdate(count, level, coinBonus, this._lastClickCenter);
       }
     };
-    
+
     this.comboManager.onComboLevelUp = (level, count) => {
       if (this.onComboLevelUp) {
-        this.onComboLevelUp(level, count);
+        this.onComboLevelUp(level, count, this._lastClickCenter);
       }
     };
     
@@ -174,6 +174,7 @@ export default class GameManager {
 
     const comboLevel = this.comboManager.onCorrectClick();
     const comboCount = this.comboManager.getComboCount();
+    const center = polygon.getCenter();
 
     // 计算实际加时秒数
     let timeReward = 0;
@@ -188,8 +189,9 @@ export default class GameManager {
       }
     }
 
+    this._lastClickCenter = center;
+
     if (this.onCorrectClick) {
-      const center = polygon.getCenter();
       this.onCorrectClick(center, comboLevel, timeReward);
     }
 

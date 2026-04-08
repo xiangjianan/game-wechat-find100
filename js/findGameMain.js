@@ -552,12 +552,12 @@ export default class FindGameMain {
       }
     };
     
-    this.gameManager.onComboUpdate = (count, level, coinBonus) => {
-      this.ui.updateCombo(count, level);
+    this.gameManager.onComboUpdate = (count, level, coinBonus, center) => {
+      this.ui.updateCombo(count, level, center);
 
       if (coinBonus > 0 && count > 5) {
         this.ui.coins = this.gameManager.coinManager.getCoins();
-        this.ui.showCoinFlyEffect(coinBonus);
+        this.ui.showCoinFlyEffect(coinBonus, center);
       }
 
       const comboThresholds = [5, 10, 20];
@@ -573,8 +573,8 @@ export default class FindGameMain {
       }
     };
     
-    this.gameManager.onComboLevelUp = (level, count) => {
-      this.ui.onComboLevelUp(level, count);
+    this.gameManager.onComboLevelUp = (level, count, center) => {
+      this.ui.onComboLevelUp(level, count, center);
       this.vibrationManager.vibrateCombo(level.vibration);
     };
     

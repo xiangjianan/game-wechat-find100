@@ -3340,20 +3340,20 @@ export default class UI {
     ctx.restore();
   }
 
-  updateCombo(count, level) {
+  updateCombo(count, level, center) {
     const previousCount = this.comboData.count;
     const previousLevel = this.comboData.level;
-    
+
     this.comboData.count = count;
     this.comboData.level = level;
-    
+
     if (count > 0) {
       this.comboData.animation = Math.min(1, this.comboData.animation + 0.1);
       this.comboData.scale = 1.2;
       this.comboData.glowIntensity = level ? 1 : 0.5;
-      
+
       if (count >= 5 && count !== previousCount) {
-        this.createComboParticles(level, count);
+        this.createComboParticles(level, count, center);
         this.comboData.scale = 1.4;
       }
     } else {
@@ -3366,9 +3366,9 @@ export default class UI {
     }
   }
 
-  onComboLevelUp(level, count) {
+  onComboLevelUp(level, count, center) {
     this.comboData.scale = 1.6;
-    this.createComboParticles(level, count);
+    this.createComboParticles(level, count, center);
   }
 
   onComboBreak(count, level) {
@@ -3377,20 +3377,22 @@ export default class UI {
     this.comboData.level = null;
   }
 
-  createComboParticles(level, count) {
+  createComboParticles(level, count, center) {
     const particleCount = Math.min(count || 5, 15);
     const color = level ? level.color : '#FBBF24';
-    
+    const originX = center ? center.x : this.width / 2;
+    const originY = center ? center.y : this.height / 3;
+
     // 限制最大粒子数量
     const maxParticles = 50;
     if (this.comboParticles.length >= maxParticles) {
       this.comboParticles.splice(0, particleCount);
     }
-    
+
     for (let i = 0; i < particleCount; i++) {
       this.comboParticles.push({
-        x: this.width / 2 + (Math.random() - 0.5) * 100,
-        y: this.height / 3 + (Math.random() - 0.5) * 50,
+        x: originX + (Math.random() - 0.5) * 30,
+        y: originY + (Math.random() - 0.5) * 30,
         vx: (Math.random() - 0.5) * 12,
         vy: (Math.random() - 0.5) * 12 - 3,
         size: Math.random() * 10 + 5,
@@ -3401,11 +3403,12 @@ export default class UI {
     }
   }
 
-  showCoinFlyEffect(amount) {
+  showCoinFlyEffect(amount, center) {
     const isMobile = this.width < 768;
     const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
-    const headerHeight = isMobile ? Math.max(100, topSafeArea + 56) : 120;
-    const startY = headerHeight + (isMobile ? 20 : 24);
+
+    const startX = center ? center.x : this.width / 2;
+    const startY = center ? center.y : (isMobile ? 200 : 250);
 
     // 目标：金币盒子位置
     const coinBoxWidth = isMobile ? 80 : 100;
@@ -3419,8 +3422,8 @@ export default class UI {
     const particleCount = Math.min(amount / 5, 6);
     for (let i = 0; i < particleCount; i++) {
       this.coinFlyAnimations.push({
-        startX: this.width / 2 + (Math.random() - 0.5) * 40,
-        startY: startY + (Math.random() - 0.5) * 20,
+        startX: startX + (Math.random() - 0.5) * 30,
+        startY: startY + (Math.random() - 0.5) * 30,
         endX: endX,
         endY: endY,
         progress: 0,
