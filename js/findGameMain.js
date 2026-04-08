@@ -544,7 +544,7 @@ export default class FindGameMain {
           this.ui.showFloatingText(center.x, center.y, `+${timeReward}秒`, '#FBBF24');
         }
       } else {
-        if (comboCount >= 5) {
+        if (comboCount >= 1) {
           this.ui.showFloatingText(center.x, center.y, `正确 ${comboCount}连击`, '#FBBF24');
         } else {
           this.ui.showFloatingText(center.x, center.y, '正确', '#FBBF24');
@@ -555,7 +555,7 @@ export default class FindGameMain {
     this.gameManager.onComboUpdate = (count, level, coinBonus, center) => {
       this.ui.updateCombo(count, level, center);
 
-      if (coinBonus > 0 && count > 5) {
+      if (coinBonus > 0 && count > 0) {
         this.ui.coins = this.gameManager.coinManager.getCoins();
         this.ui.showCoinFlyEffect(coinBonus, center);
       }

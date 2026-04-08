@@ -3352,7 +3352,7 @@ export default class UI {
       this.comboData.scale = 1.2;
       this.comboData.glowIntensity = level ? 1 : 0.5;
 
-      if (count >= 5 && count !== previousCount) {
+      if (count >= 1 && count !== previousCount) {
         this.createComboParticles(level, count, center);
         this.comboData.scale = 1.4;
       }
@@ -3535,7 +3535,7 @@ export default class UI {
   }
 
   renderComboDisplay(ctx) {
-    if (this.comboData.count < 5) return;
+    if (this.comboData.count < 1) return;
     
     const scheme = this.getScheme();
     const isMobile = this.width < 768;

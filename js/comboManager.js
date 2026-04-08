@@ -1,6 +1,8 @@
 export default class ComboManager {
   constructor() {
     this.comboCount = 0;
+    this.warmUpCount = 0;
+    this.warmUpThreshold = 5;
     this.maxCombo = 0;
     this.comboTimer = null;
     this.comboTimeLimit = 2000;
@@ -9,7 +11,7 @@ export default class ComboManager {
     this.onComboUpdate = null;
     this.onComboBreak = null;
     this.onComboLevelUp = null;
-    
+
     this.comboLevels = [
       { threshold: 5, name: '火热', color: '#FBBF24', vibration: 'light' },
       { threshold: 10, name: '燃烧', color: '#14B8A6', vibration: 'medium' },
@@ -19,9 +21,18 @@ export default class ComboManager {
   }
 
   onCorrectClick() {
+    if (this.warmUpCount < this.warmUpThreshold) {
+      this.warmUpCount++;
+      this.resetComboTimer();
+      if (this.onComboUpdate) {
+        this.onComboUpdate(0, null);
+      }
+      return null;
+    }
+
     this.comboCount++;
     this.resetComboTimer();
-    
+
     if (this.comboCount > this.maxCombo) {
       this.maxCombo = this.comboCount;
     }
@@ -29,7 +40,7 @@ export default class ComboManager {
     const level = this.getCurrentComboLevel();
     if (level && level !== this.lastComboLevel) {
       this.lastComboLevel = level;
-      
+
       if (this.onComboLevelUp) {
         this.onComboLevelUp(level, this.comboCount);
       }
@@ -45,12 +56,12 @@ export default class ComboManager {
   }
 
   calculateMultiplier() {
-    if (this.comboCount < 5) return 1.0;
-    return 1.0 + (this.comboCount - 4) * 0.1;
+    if (this.comboCount < 1) return 1.0;
+    return 1.0 + this.comboCount * 0.1;
   }
 
   getTimeBonus() {
-    if (this.comboCount < 5) return 0;
+    if (this.comboCount < 1) return 0;
     return this.comboCount;
   }
 
@@ -73,16 +84,17 @@ export default class ComboManager {
   }
 
   breakCombo() {
-    if (this.comboCount > 0) {
+    if (this.comboCount > 0 || this.warmUpCount > 0) {
       if (this.onComboBreak) {
         this.onComboBreak(this.comboCount, this.lastComboLevel);
       }
     }
-    
+
     this.comboCount = 0;
+    this.warmUpCount = 0;
     this.lastComboLevel = null;
     this.comboMultiplier = 1.0;
-    
+
     this.clearComboTimer();
 
     if (this.onComboUpdate) {
@@ -136,12 +148,13 @@ export default class ComboManager {
   }
 
   isActive() {
-    return this.comboCount > 0;
+    return this.comboCount > 0 || this.warmUpCount > 0;
   }
 
   reset() {
     this.clearComboTimer();
     this.comboCount = 0;
+    this.warmUpCount = 0;
     this.lastComboLevel = null;
     this.comboMultiplier = 1.0;
     this.maxCombo = 0;
