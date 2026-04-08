@@ -3362,14 +3362,13 @@ export default class UI {
     }
     
     if (level && level !== previousLevel) {
-      this.flashScreen(level.color, 0.3);
+      // 升级闪光由 onComboLevelUp 统一处理
     }
   }
 
   onComboLevelUp(level, count) {
     this.comboData.scale = 1.6;
     this.createComboParticles(level, count);
-    this.flashScreen(level.color, 0.4);
   }
 
   onComboBreak(count, level) {
