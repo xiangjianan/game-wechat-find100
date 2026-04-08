@@ -59,6 +59,8 @@ export default class Polygon {
     this.isHinted = false;
     this.hintPulse = 0;
     this.hintGlowIntensity = 0;
+    this.eagleEyePulse = 0;
+    this.eagleEyeGlowIntensity = 0;
     
     // 缓存计算结果
     this._center = null;
@@ -120,8 +122,12 @@ export default class Polygon {
     this.isEagleEyeHighlighted = enabled;
     if (enabled) {
       this.targetScale = 1.08;
+      this.eagleEyePulse = 0;
+      this.eagleEyeGlowIntensity = 0;
     } else {
       this.targetScale = 1;
+      this.eagleEyePulse = 0;
+      this.eagleEyeGlowIntensity = 0;
     }
   }
 
@@ -166,6 +172,14 @@ export default class Polygon {
       this.hintPulse = 0;
       this.hintGlowIntensity = 0;
     }
+
+    if (this.isEagleEyeHighlighted) {
+      this.eagleEyePulse += 0.08;
+      this.eagleEyeGlowIntensity = 0.5 + Math.sin(this.eagleEyePulse) * 0.5;
+    } else {
+      this.eagleEyePulse = 0;
+      this.eagleEyeGlowIntensity = 0;
+    }
   }
 
   getTransform() {
@@ -193,6 +207,9 @@ export default class Polygon {
     if (this.isHinted) {
       ctx.shadowColor = '#F97316';
       ctx.shadowBlur = 25 * this.hintGlowIntensity;
+    } else if (this.isEagleEyeHighlighted) {
+      ctx.shadowColor = '#F97316';
+      ctx.shadowBlur = 25 * this.eagleEyeGlowIntensity;
     }
 
     ctx.beginPath();
@@ -206,7 +223,7 @@ export default class Polygon {
     if (this.isClicked) {
       fillColor = stateColors.clicked;
     } else if (this.isEagleEyeHighlighted) {
-      fillColor = '#F97316';
+      fillColor = this.interpolateColor('#F97316', '#FDBA74', this.eagleEyeGlowIntensity);
     } else if (this.isHinted) {
       const intensity = this.hintGlowIntensity;
       fillColor = this.interpolateColor('#F97316', '#FDBA74', intensity);
@@ -228,13 +245,17 @@ export default class Polygon {
     ctx.shadowColor = 'rgba(0, 0, 0, 0)';
 
     ctx.strokeStyle = scheme.borderSubtle;
-    ctx.lineWidth = this.isHinted ? 4 : 1.5;
+    ctx.lineWidth = (this.isHinted || this.isEagleEyeHighlighted) ? 4 : 1.5;
     ctx.lineCap = 'square';
     ctx.lineJoin = 'miter';
     ctx.stroke();
 
     if (this.isHinted) {
       ctx.strokeStyle = `rgba(234, 138, 46, ${0.5 + this.hintGlowIntensity * 0.5})`;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    } else if (this.isEagleEyeHighlighted) {
+      ctx.strokeStyle = `rgba(234, 138, 46, ${0.5 + this.eagleEyeGlowIntensity * 0.5})`;
       ctx.lineWidth = 3;
       ctx.stroke();
     }
