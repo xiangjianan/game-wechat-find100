@@ -236,6 +236,9 @@ export default class FindGameMain {
 
   setupEventListeners() {
     let touchStartPos = null;
+    let touchMoved = false;
+
+    const isScrollable = () => this.ui.showSkills || this.ui.showShop || this.ui.showAchievements || this.ui.showScoreHistory;
 
     const handleTouchStart = (res) => {
       try {
@@ -246,6 +249,7 @@ export default class FindGameMain {
         const y = touch.clientY;
 
         touchStartPos = { x, y };
+        touchMoved = false;
 
         this.ui.updateMousePosition(x, y);
 
@@ -257,6 +261,8 @@ export default class FindGameMain {
           this.ui.handleScoreHistoryTouchStart(y);
         } else {
           this.ui.handleTouchStart(y);
+          // 非滚动场景立即响应点击
+          this.handleInput(x, y);
         }
       } catch (error) {
         // 静默处理错误
@@ -270,6 +276,15 @@ export default class FindGameMain {
         const touch = res.touches[0];
         const x = touch.clientX;
         const y = touch.clientY;
+
+        if (touchStartPos) {
+          const dx = x - touchStartPos.x;
+          const dy = y - touchStartPos.y;
+          if (Math.sqrt(dx * dx + dy * dy) > 10) {
+            touchMoved = true;
+          }
+        }
+
         this.ui.updateMousePosition(x, y);
 
         if (this.ui.showSkills) {
@@ -288,18 +303,11 @@ export default class FindGameMain {
 
     const handleTouchEnd = (res) => {
       try {
-        if (touchStartPos) {
-          const endTouch = res.changedTouches && res.changedTouches[0];
-          if (endTouch) {
-            const dx = endTouch.clientX - touchStartPos.x;
-            const dy = endTouch.clientY - touchStartPos.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < 10) {
-              this.handleInput(touchStartPos.x, touchStartPos.y);
-            }
-          }
-          touchStartPos = null;
+        // 滚动面板场景：touchend 时判断是否为点击
+        if (isScrollable() && touchStartPos && !touchMoved) {
+          this.handleInput(touchStartPos.x, touchStartPos.y);
         }
+        touchStartPos = null;
 
         if (this.ui.showSkills) {
           this.ui.handleSkillsTouchEnd();
@@ -335,6 +343,7 @@ export default class FindGameMain {
           const y = touch.clientY - rect.top;
 
           touchStartPos = { x, y };
+          touchMoved = false;
 
           this.ui.updateMousePosition(x, y);
 
@@ -346,6 +355,8 @@ export default class FindGameMain {
             this.ui.handleScoreHistoryTouchStart(y);
           } else {
             this.ui.handleTouchStart(y);
+            // 非滚动场景立即响应点击
+            this.handleInput(x, y);
           }
         } catch (error) {
           // 静默处理错误
@@ -361,6 +372,15 @@ export default class FindGameMain {
             const rect = canvas.getBoundingClientRect();
             const x = touch.clientX - rect.left;
             const y = touch.clientY - rect.top;
+
+            if (touchStartPos) {
+              const dx = x - touchStartPos.x;
+              const dy = y - touchStartPos.y;
+              if (Math.sqrt(dx * dx + dy * dy) > 10) {
+                touchMoved = true;
+              }
+            }
+
             this.ui.updateMousePosition(x, y);
 
             if (this.ui.showSkills) {
@@ -378,21 +398,11 @@ export default class FindGameMain {
 
       const handleTouchEndEvent = (e) => {
         try {
-          if (touchStartPos) {
-            const endTouch = e.changedTouches && e.changedTouches[0];
-            if (endTouch) {
-              const rect = canvas.getBoundingClientRect();
-              const ex = endTouch.clientX - rect.left;
-              const ey = endTouch.clientY - rect.top;
-              const dx = ex - touchStartPos.x;
-              const dy = ey - touchStartPos.y;
-              const dist = Math.sqrt(dx * dx + dy * dy);
-              if (dist < 10) {
-                this.handleInput(touchStartPos.x, touchStartPos.y);
-              }
-            }
-            touchStartPos = null;
+          // 滚动面板场景：touchend 时判断是否为点击
+          if (isScrollable() && touchStartPos && !touchMoved) {
+            this.handleInput(touchStartPos.x, touchStartPos.y);
           }
+          touchStartPos = null;
 
           if (this.ui.showSkills) {
             this.ui.handleSkillsTouchEnd();
