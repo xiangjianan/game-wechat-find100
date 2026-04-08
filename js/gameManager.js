@@ -277,7 +277,8 @@ export default class GameManager {
 
   getTimeReward(comboCount) {
     const comboBonus = this.skillManager ? this.skillManager.getComboBonus() : 0;
-    return 5 + comboBonus * (comboCount - 3);
+    const timeBonusSkill = this.skillManager ? this.skillManager.getTimeBonusPerClick() : 0;
+    return 5 + timeBonusSkill + comboBonus * (comboCount - 3);
   }
 
   getComboMultiplier() {
