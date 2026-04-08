@@ -530,20 +530,18 @@ export default class FindGameMain {
       }
     };
     
-    this.gameManager.onCorrectClick = (center, comboLevel) => {
+    this.gameManager.onCorrectClick = (center, comboLevel, timeReward) => {
       this.soundManager.playClick();
       this.vibrationManager.vibrateCorrect();
-      
+
       const comboCount = this.gameManager.getComboCount();
       if (comboLevel) {
         this.vibrationManager.vibrateCombo(comboLevel.vibration);
       }
-      
+
       if (this.gameManager.isTimedMode()) {
-        if (comboCount >= 5) {
-          this.ui.showFloatingText(center.x, center.y, `+${comboCount}秒`, '#FBBF24');
-        } else {
-          this.ui.showFloatingText(center.x, center.y, '+5秒', '#FBBF24');
+        if (timeReward > 0) {
+          this.ui.showFloatingText(center.x, center.y, `+${timeReward}秒`, '#FBBF24');
         }
       } else {
         if (comboCount >= 5) {

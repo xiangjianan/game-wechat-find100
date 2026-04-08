@@ -51,16 +51,15 @@ export default class GameManager {
   setupComboCallbacks() {
     this.comboManager.onComboUpdate = (count, level) => {
       if (this.gameMode === 'timed' && count >= 5) {
-        const isUnlocked = this.skillManager && this.skillManager.isUnlocked('combo_boost');
-        const timeReward = isUnlocked ? count + 5 : 5;
+        const timeReward = this.getTimeReward(count);
         this.timeLeft += timeReward;
       }
-      
+
       const coinBonus = this.skillManager ? this.skillManager.getComboCoinBonus() : 0;
       if (coinBonus > 0 && count > 5) {
         this.coinManager.addCoins(coinBonus, 'combo');
       }
-      
+
       if (this.onComboUpdate) {
         this.onComboUpdate(count, level);
       }
@@ -176,18 +175,22 @@ export default class GameManager {
     const comboLevel = this.comboManager.onCorrectClick();
     const comboCount = this.comboManager.getComboCount();
 
-    if (this.onCorrectClick) {
-      const center = polygon.getCenter();
-      this.onCorrectClick(center, comboLevel);
-    }
-
+    // 计算实际加时秒数
+    let timeReward = 0;
     if (this.gameMode === 'timed') {
       if (comboCount >= 5) {
         // 连击时不再加基础时间，时间奖励由 onComboUpdate 处理
+        timeReward = this.getTimeReward(comboCount);
       } else {
         const timeBonusSkill = this.skillManager ? this.skillManager.getTimeBonusPerClick() : 0;
-        this.timeLeft += this.timeBonus + timeBonusSkill;
+        timeReward = this.timeBonus + timeBonusSkill;
+        this.timeLeft += timeReward;
       }
+    }
+
+    if (this.onCorrectClick) {
+      const center = polygon.getCenter();
+      this.onCorrectClick(center, comboLevel, timeReward);
     }
 
     // 检查奖励触发
@@ -268,6 +271,11 @@ export default class GameManager {
 
   getComboCount() {
     return this.comboManager.getComboCount();
+  }
+
+  getTimeReward(comboCount) {
+    const isUnlocked = this.skillManager && this.skillManager.isUnlocked('combo_boost');
+    return isUnlocked ? comboCount + 5 : 5;
   }
 
   getComboMultiplier() {
