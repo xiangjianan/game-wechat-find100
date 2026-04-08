@@ -579,6 +579,7 @@ export default class FindGameMain {
       if (this.gameManager.isTimedMode()) {
         if (timeReward > 0) {
           this.ui.showFloatingText(center.x, center.y, `+${timeReward}秒`, '#FBBF24');
+          this.ui.showTimerBonus(timeReward);
         }
       } else {
         if (comboCount > 3) {

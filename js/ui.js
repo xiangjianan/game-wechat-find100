@@ -36,6 +36,7 @@ export default class UI {
     this.floatingTexts = [];
     this.coinFlyAnimations = [];
     this.coinBoxBounce = 0;
+    this.timerBonusAnimations = [];
     this.flashAlpha = 0;
     this.flashTargetAlpha = 0;
     this.milestoneFlash = null;
@@ -681,6 +682,67 @@ export default class UI {
     });
   }
 
+  showTimerBonus(seconds) {
+    this.timerBonusAnimations.push({
+      text: `+${seconds}s`,
+      progress: 0,
+      duration: 1.0
+    });
+  }
+
+  updateTimerBonusAnimations(deltaTime) {
+    for (let i = this.timerBonusAnimations.length - 1; i >= 0; i--) {
+      const anim = this.timerBonusAnimations[i];
+      anim.progress += deltaTime;
+      if (anim.progress >= anim.duration) {
+        this.timerBonusAnimations.splice(i, 1);
+      }
+    }
+  }
+
+  renderTimerBonusAnimations(ctx) {
+    if (this.timerBonusAnimations.length === 0) return;
+
+    const isMobile = this.width < 768;
+    const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
+    const headerHeight = isMobile ? Math.max(100, topSafeArea + 56) : 120;
+    const buttonSize = isMobile ? 40 : 46;
+    const buttonY = topSafeArea + 6;
+    const timerY = buttonY + buttonSize / 2;
+
+    const centerX = this.width / 2;
+    const timerWidth = isMobile ? 100 : 120;
+
+    for (const anim of this.timerBonusAnimations) {
+      const t = anim.progress / anim.duration;
+
+      // 缩放：弹入效果
+      const scale = t < 0.15 ? (t / 0.15) * 1.2 : 1.2 - 0.2 * ((t - 0.15) / 0.85);
+      // 透明度：后半段渐隐
+      const alpha = t < 0.4 ? 1 : 1 - (t - 0.4) / 0.6;
+      // 上飘
+      const offsetY = -t * 30;
+      // 位置：计时器右侧
+      const x = centerX + timerWidth / 2 + 8;
+      const y = timerY + offsetY;
+
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, alpha);
+      ctx.translate(x, y);
+      ctx.scale(scale, scale);
+
+      ctx.shadowColor = 'rgba(34, 197, 94, 0.5)';
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = '#22C55E';
+      ctx.font = `bold ${isMobile ? 16 : 20}px "Arial Black", Arial, sans-serif`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(anim.text, 0, 0);
+
+      ctx.restore();
+    }
+  }
+
   triggerFlash() {
     this.flashAlpha = 0.5;
   }
@@ -861,6 +923,7 @@ export default class UI {
     this.shimmerTime += deltaTime;
     this.updateComboEffects(deltaTime);
     this.updateCoinFlyAnimations(deltaTime);
+    this.updateTimerBonusAnimations(deltaTime);
     this.updateMilestoneFlash(deltaTime);
     this.updateScrollInertia(deltaTime);
     this.updateHintButtonAnimation(deltaTime);
@@ -2120,6 +2183,7 @@ export default class UI {
 
     this.renderEffects(ctx);
     this.renderCoinFlyAnimations(ctx);
+    this.renderTimerBonusAnimations(ctx);
     this.renderMilestoneFlash(ctx);
     this.renderAchievementNotifications(ctx);
     this.renderHighScoreCelebration(ctx);
