@@ -172,9 +172,11 @@ export default class GameManager {
       }
     }
 
+    const center = polygon.getCenter();
+    this._lastClickCenter = center;
+
     const comboLevel = this.comboManager.onCorrectClick();
     const comboCount = this.comboManager.getComboCount();
-    const center = polygon.getCenter();
 
     // 计算实际加时秒数
     let timeReward = 0;
@@ -188,8 +190,6 @@ export default class GameManager {
         this.timeLeft += timeReward;
       }
     }
-
-    this._lastClickCenter = center;
 
     if (this.onCorrectClick) {
       this.onCorrectClick(center, comboLevel, timeReward);
