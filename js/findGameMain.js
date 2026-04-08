@@ -552,16 +552,21 @@ export default class FindGameMain {
       }
     };
     
-    this.gameManager.onComboUpdate = (count, level) => {
+    this.gameManager.onComboUpdate = (count, level, coinBonus) => {
       this.ui.updateCombo(count, level);
-      
+
+      if (coinBonus > 0 && count > 5) {
+        this.ui.coins = this.gameManager.coinManager.getCoins();
+        this.ui.showCoinFlyEffect(coinBonus);
+      }
+
       const comboThresholds = [5, 10, 20];
       if (comboThresholds.includes(count) && this.gameManager.currentLevel === 2) {
         const unlockedAchievements = this.achievementManager.checkAchievement('combo', {
           count: count,
           level: this.gameManager.currentLevel
         });
-        
+
         if (unlockedAchievements.length > 0) {
           this.ui.showAchievementNotification(unlockedAchievements);
         }

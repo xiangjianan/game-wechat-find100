@@ -61,7 +61,7 @@ export default class GameManager {
       }
 
       if (this.onComboUpdate) {
-        this.onComboUpdate(count, level);
+        this.onComboUpdate(count, level, coinBonus);
       }
     };
     

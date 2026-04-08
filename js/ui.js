@@ -34,6 +34,8 @@ export default class UI {
     this.onPlayClickSound = null;
     
     this.floatingTexts = [];
+    this.coinFlyAnimations = [];
+    this.coinBoxBounce = 0;
     this.flashAlpha = 0;
     this.flashTargetAlpha = 0;
     this.shakeOffset = { x: 0, y: 0 };
@@ -857,6 +859,7 @@ export default class UI {
   updateEffects(deltaTime) {
     this.shimmerTime += deltaTime;
     this.updateComboEffects(deltaTime);
+    this.updateCoinFlyAnimations(deltaTime);
     this.updateScrollInertia(deltaTime);
     this.updateHintButtonAnimation(deltaTime);
     this.updateSkillsScrollInertia(deltaTime);
@@ -2095,6 +2098,7 @@ export default class UI {
     }
 
     this.renderEffects(ctx);
+    this.renderCoinFlyAnimations(ctx);
     this.renderAchievementNotifications(ctx);
     this.renderHighScoreCelebration(ctx);
   }
@@ -2437,8 +2441,21 @@ export default class UI {
     const coinBoxY = buttonY + (buttonSize - coinBoxHeight) / 2;
     const coinRadius = coinBoxHeight / 2;
 
+    // 金币盒子弹跳效果
+    const coinBounce = this.coinBoxBounce;
+    const coinBoxCenterX = coinBoxX + coinBoxWidth / 2;
+    const coinBoxCenterY = coinBoxY + coinBoxHeight / 2;
+    const coinBoxScale = 1 + coinBounce * 0.15;
+
     ctx.save();
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
+    if (coinBounce > 0) {
+      ctx.translate(coinBoxCenterX, coinBoxCenterY);
+      ctx.scale(coinBoxScale, coinBoxScale);
+      ctx.translate(-coinBoxCenterX, -coinBoxCenterY);
+      ctx.shadowColor = 'rgba(245, 197, 66, 0.4)';
+    } else {
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
+    }
     ctx.shadowBlur = 8;
     ctx.shadowOffsetY = 2;
     ctx.fillStyle = scheme.cardBg;
@@ -3379,6 +3396,113 @@ export default class UI {
         alpha: 1,
         life: 1
       });
+    }
+  }
+
+  showCoinFlyEffect(amount) {
+    const isMobile = this.width < 768;
+    const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
+    const headerHeight = isMobile ? Math.max(100, topSafeArea + 56) : 120;
+    const startY = headerHeight + (isMobile ? 20 : 24);
+
+    // 目标：金币盒子位置
+    const coinBoxWidth = isMobile ? 80 : 100;
+    const coinBoxHeight = isMobile ? 36 : 42;
+    const buttonSize = isMobile ? 40 : 46;
+    const buttonY = topSafeArea + 6;
+    const coinBoxY = buttonY + (buttonSize - coinBoxHeight) / 2;
+    const endX = this.width - coinBoxWidth / 2 - (isMobile ? 16 : 24);
+    const endY = coinBoxY + coinBoxHeight / 2;
+
+    const particleCount = Math.min(amount / 5, 6);
+    for (let i = 0; i < particleCount; i++) {
+      this.coinFlyAnimations.push({
+        startX: this.width / 2 + (Math.random() - 0.5) * 40,
+        startY: startY + (Math.random() - 0.5) * 20,
+        endX: endX,
+        endY: endY,
+        progress: 0,
+        delay: i * 0.08,
+        amount: i === 0 ? amount : 0,
+        scale: 1
+      });
+    }
+  }
+
+  updateCoinFlyAnimations(deltaTime) {
+    for (let i = this.coinFlyAnimations.length - 1; i >= 0; i--) {
+      const anim = this.coinFlyAnimations[i];
+      if (anim.delay > 0) {
+        anim.delay -= deltaTime;
+        continue;
+      }
+      anim.progress += deltaTime * 2.5;
+
+      const t = Math.min(1, anim.progress);
+      anim.scale = t < 0.5 ? 1 + t * 0.6 : 1.3 * (1 - (t - 0.5) * 1.6);
+
+      if (anim.progress >= 1) {
+        this.coinBoxBounce = 1;
+        this.coinFlyAnimations.splice(i, 1);
+      }
+    }
+
+    if (this.coinBoxBounce > 0) {
+      this.coinBoxBounce = Math.max(0, this.coinBoxBounce - deltaTime * 5);
+    }
+  }
+
+  renderCoinFlyAnimations(ctx) {
+    for (const anim of this.coinFlyAnimations) {
+      if (anim.delay > 0) continue;
+
+      const t = Math.min(1, anim.progress);
+      // 缓动函数
+      const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+      const x = anim.startX + (anim.endX - anim.startX) * ease;
+      // 弧线：中间向上凸起
+      const arcHeight = -80;
+      const baseY = anim.startY + (anim.endY - anim.startY) * ease;
+      const y = baseY + arcHeight * Math.sin(t * Math.PI);
+
+      const scale = anim.scale;
+      const alpha = t > 0.7 ? 1 - (t - 0.7) / 0.3 : 1;
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(x, y);
+      ctx.scale(scale, scale);
+
+      // 金币圆形
+      const r = 10;
+      ctx.shadowColor = 'rgba(245, 197, 66, 0.4)';
+      ctx.shadowBlur = 8;
+      ctx.fillStyle = '#FBBF24';
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#D97706';
+      ctx.font = 'bold 10px Arial, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('$', 0, 0.5);
+
+      ctx.restore();
+
+      // 显示金额（只在第一个粒子上）
+      if (anim.amount > 0 && t < 0.6) {
+        ctx.save();
+        ctx.globalAlpha = 1 - t / 0.6;
+        ctx.fillStyle = '#FBBF24';
+        ctx.font = 'bold 14px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`+${anim.amount}`, anim.startX, anim.startY - 20 - t * 30);
+        ctx.restore();
+      }
     }
   }
 
