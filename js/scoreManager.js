@@ -25,7 +25,7 @@ export default class ScoreManager {
     }
 
     const entry = {
-      numbersFound,
+      score: numbersFound,
       timeSpent: Math.round(timeSpent * 100) / 100,
       timestamp: Date.now()
     };
@@ -55,12 +55,14 @@ export default class ScoreManager {
   }
 
   /**
-   * Compare two scores: higher numbersFound wins; tie broken by shorter timeSpent.
+   * Compare two scores: higher score wins; tie broken by shorter timeSpent.
    * Returns negative if a is better, positive if b is better, 0 if equal.
    */
   static compareScores(a, b) {
-    if (a.numbersFound !== b.numbersFound) {
-      return b.numbersFound - a.numbersFound;
+    const scoreA = a.score !== undefined ? a.score : a.numbersFound;
+    const scoreB = b.score !== undefined ? b.score : b.numbersFound;
+    if (scoreA !== scoreB) {
+      return scoreB - scoreA;
     }
     return a.timeSpent - b.timeSpent;
   }
@@ -88,7 +90,6 @@ export default class ScoreManager {
     if (!scores) return -1;
     for (let i = 0; i < scores.length; i++) {
       if (scores[i].timestamp === entry.timestamp &&
-          scores[i].numbersFound === entry.numbersFound &&
           scores[i].timeSpent === entry.timeSpent) {
         return i + 1;
       }

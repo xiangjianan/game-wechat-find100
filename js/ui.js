@@ -3183,17 +3183,18 @@ export default class UI {
       ctx.textBaseline = 'middle';
       ctx.fillText(`${index + 1}`, rankX, rankY);
 
-      // Numbers found
+      // Score
+      const scoreValue = score.score !== undefined ? score.score : score.numbersFound;
       const infoX = itemX + (isMobile ? 40 : 48);
       ctx.textAlign = 'left';
       ctx.fillStyle = scheme.text;
       ctx.font = `bold ${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
-      ctx.fillText(`找到 ${score.numbersFound} 个`, infoX, itemY + (isMobile ? 20 : 22));
+      ctx.fillText(`${scoreValue}分`, infoX, itemY + (isMobile ? 20 : 22));
 
       // Time spent
       ctx.fillStyle = scheme.textSecondary;
       ctx.font = `${isMobile ? 12 : 14}px Arial, sans-serif`;
-      ctx.fillText(`用时 ${score.timeSpent.toFixed(2)} 秒`, infoX, itemY + (isMobile ? 42 : 46));
+      ctx.fillText(`用时 ${score.timeSpent.toFixed(1)} 秒`, infoX, itemY + (isMobile ? 42 : 46));
 
       // Date
       if (score.timestamp) {
@@ -3316,14 +3317,16 @@ export default class UI {
 
     ctx.font = `bold ${isMobile ? 16 : 18}px Arial, sans-serif`;
     ctx.fillStyle = '#6B7280';
-    ctx.fillText(`找到 ${celeb.newScore.numbersFound} 个 · 用时 ${celeb.newScore.timeSpent.toFixed(2)} 秒`, this.width / 2, cardY + (isMobile ? 125 : 140));
+    const newScoreValue = celeb.newScore.score !== undefined ? celeb.newScore.score : celeb.newScore.numbersFound;
+    ctx.fillText(`${newScoreValue}分 · 用时 ${celeb.newScore.timeSpent.toFixed(1)} 秒`, this.width / 2, cardY + (isMobile ? 125 : 140));
 
     if (celeb.previousBest) {
       ctx.font = `${isMobile ? 13 : 14}px Arial, sans-serif`;
       ctx.fillStyle = '#6B7280';
       ctx.globalAlpha = alpha * 0.7;
+      const prevScoreValue = celeb.previousBest.score !== undefined ? celeb.previousBest.score : celeb.previousBest.numbersFound;
       ctx.fillText(
-        `上次最佳: ${celeb.previousBest.numbersFound} 个 · ${celeb.previousBest.timeSpent.toFixed(2)} 秒`,
+        `上次最佳: ${prevScoreValue}分 · ${celeb.previousBest.timeSpent.toFixed(1)} 秒`,
         this.width / 2, cardY + (isMobile ? 155 : 170)
       );
     }
