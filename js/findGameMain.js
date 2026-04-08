@@ -235,6 +235,8 @@ export default class FindGameMain {
   }
 
   setupEventListeners() {
+    let touchStartPos = null;
+
     const handleTouchStart = (res) => {
       try {
         if (!res.touches || res.touches.length === 0) return;
@@ -243,20 +245,18 @@ export default class FindGameMain {
         const x = touch.clientX;
         const y = touch.clientY;
 
+        touchStartPos = { x, y };
+
         this.ui.updateMousePosition(x, y);
 
         if (this.ui.showSkills) {
           this.ui.handleSkillsTouchStart(y);
-          this.handleInput(x, y);
         } else if (this.ui.showShop) {
           this.ui.handleShopTouchStart(y);
-          this.handleInput(x, y);
         } else if (this.ui.showScoreHistory) {
           this.ui.handleScoreHistoryTouchStart(y);
-          this.handleInput(x, y);
         } else {
           this.ui.handleTouchStart(y);
-          this.handleInput(x, y);
         }
       } catch (error) {
         // 静默处理错误
@@ -288,6 +288,19 @@ export default class FindGameMain {
 
     const handleTouchEnd = (res) => {
       try {
+        if (touchStartPos) {
+          const endTouch = res.changedTouches && res.changedTouches[0];
+          if (endTouch) {
+            const dx = endTouch.clientX - touchStartPos.x;
+            const dy = endTouch.clientY - touchStartPos.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 10) {
+              this.handleInput(touchStartPos.x, touchStartPos.y);
+            }
+          }
+          touchStartPos = null;
+        }
+
         if (this.ui.showSkills) {
           this.ui.handleSkillsTouchEnd();
         } else if (this.ui.showShop) {
@@ -321,20 +334,18 @@ export default class FindGameMain {
           const x = touch.clientX - rect.left;
           const y = touch.clientY - rect.top;
 
+          touchStartPos = { x, y };
+
           this.ui.updateMousePosition(x, y);
 
           if (this.ui.showSkills) {
             this.ui.handleSkillsTouchStart(y);
-            this.handleInput(x, y);
           } else if (this.ui.showShop) {
             this.ui.handleShopTouchStart(y);
-            this.handleInput(x, y);
           } else if (this.ui.showScoreHistory) {
             this.ui.handleScoreHistoryTouchStart(y);
-            this.handleInput(x, y);
           } else {
             this.ui.handleTouchStart(y);
-            this.handleInput(x, y);
           }
         } catch (error) {
           // 静默处理错误
@@ -367,6 +378,22 @@ export default class FindGameMain {
 
       const handleTouchEndEvent = (e) => {
         try {
+          if (touchStartPos) {
+            const endTouch = e.changedTouches && e.changedTouches[0];
+            if (endTouch) {
+              const rect = canvas.getBoundingClientRect();
+              const ex = endTouch.clientX - rect.left;
+              const ey = endTouch.clientY - rect.top;
+              const dx = ex - touchStartPos.x;
+              const dy = ey - touchStartPos.y;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+              if (dist < 10) {
+                this.handleInput(touchStartPos.x, touchStartPos.y);
+              }
+            }
+            touchStartPos = null;
+          }
+
           if (this.ui.showSkills) {
             this.ui.handleSkillsTouchEnd();
           } else if (this.ui.showScoreHistory) {
