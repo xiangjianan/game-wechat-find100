@@ -1763,24 +1763,35 @@ export default class UI {
     ctx.fillStyle = scheme.text;
     ctx.font = `bold ${isMobile ? 32 : 40}px "Arial Black", Arial, sans-serif`;
     ctx.fillText('通关成功!', centerX, y + (isMobile ? 110 : 130));
-    
+
     const messageLines = this.modalMessage.split('\n');
     let timeValue = '';
-    
+    let foundValue = '';
+
     messageLines.forEach(line => {
       if (line.includes('完成时间')) {
         timeValue = line.replace('完成时间:', '').trim();
       }
+      if (line.includes('找到')) {
+        foundValue = line.replace(/.*找到:/, '').trim();
+      }
     });
-    
+
     ctx.fillStyle = scheme.text;
     ctx.font = `bold ${isMobile ? 16 : 18}px Arial, sans-serif`;
-    ctx.fillText('完成时间', centerX, y + (isMobile ? 175 : 210));
+    if (foundValue) {
+      ctx.fillText(`找到 ${foundValue} 个`, centerX, y + (isMobile ? 170 : 200));
+      ctx.fillText('完成时间', centerX, y + (isMobile ? 200 : 238));
+    } else {
+      ctx.fillText('完成时间', centerX, y + (isMobile ? 175 : 210));
+    }
     
     const timeBoxWidth = isMobile ? 160 : 200;
     const timeBoxHeight = isMobile ? 40 : 48;
     const timeBoxX = centerX - timeBoxWidth / 2;
-    const timeBoxY = y + (isMobile ? 195 : 230);
+    const timeBoxY = foundValue
+      ? (y + (isMobile ? 220 : 258))
+      : (y + (isMobile ? 195 : 230));
     
     this.drawBrutalismRect(ctx, timeBoxX, timeBoxY, timeBoxWidth, timeBoxHeight, scheme.buttonPrimary, {
       shadowOffset: 4,
@@ -1813,8 +1824,9 @@ export default class UI {
     const messageLines = this.modalMessage.split('\n');
     let progressText = '';
     let timeText = '';
+    let foundText = '';
     let scoreText = '';
-    
+
     messageLines.forEach(line => {
       if (line.includes('完成进度')) {
         progressText = line;
@@ -1822,15 +1834,22 @@ export default class UI {
       if (line.includes('用时')) {
         timeText = line;
       }
+      if (line.includes('找到:')) {
+        foundText = line.replace(/.*找到:/, '').trim();
+      }
       if (line.includes('得分')) {
         scoreText = line.replace('得分:', '').trim();
       }
     });
-    
+
     ctx.fillStyle = scheme.text;
     ctx.font = `bold ${isMobile ? 16 : 18}px Arial, sans-serif`;
-    
+
     let textY = y + (isMobile ? 140 : 165);
+    if (foundText) {
+      ctx.fillText(`找到 ${foundText} 个`, centerX, textY);
+      textY += isMobile ? 28 : 32;
+    }
     if (progressText) {
       ctx.fillText(progressText, centerX, textY);
       textY += isMobile ? 28 : 32;
