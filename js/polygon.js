@@ -206,7 +206,7 @@ export default class Polygon {
     if (this.isClicked) {
       fillColor = stateColors.clicked;
     } else if (this.isEagleEyeHighlighted) {
-      fillColor = '#14B8A6';
+      fillColor = '#F97316';
     } else if (this.isHinted) {
       const intensity = this.hintGlowIntensity;
       fillColor = this.interpolateColor('#F97316', '#FDBA74', intensity);
