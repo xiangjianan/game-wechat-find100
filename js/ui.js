@@ -155,6 +155,11 @@ export default class UI {
 
     // High score celebration
     this.highScoreCelebration = null;
+
+    // Dynamic background state
+    this.bgPhase = 0;
+    this.bgParticles = [];
+    this.bgComboIntensity = 0;
   }
 
   getScheme() {
@@ -868,6 +873,7 @@ export default class UI {
     this.updateScoreHistoryScrollInertia(deltaTime);
     this.updateEggEffect(deltaTime);
     this.updateRewardNotifications(deltaTime);
+    this.updateDynamicBackground(deltaTime);
 
     for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
       const ft = this.floatingTexts[i];
@@ -903,6 +909,69 @@ export default class UI {
 
     this.eggTriggerTime += deltaTime;
     // 不再自动关闭，等用户点击关闭
+  }
+
+  updateDynamicBackground(deltaTime) {
+    const comboCount = this.comboData.count || 0;
+    const targetIntensity = comboCount >= 15 ? 2 : (comboCount >= 8 ? 1 : 0);
+
+    // Smooth transition
+    if (this.bgComboIntensity < targetIntensity) {
+      this.bgComboIntensity = Math.min(targetIntensity, this.bgComboIntensity + deltaTime * 3);
+    } else if (this.bgComboIntensity > targetIntensity) {
+      this.bgComboIntensity = Math.max(targetIntensity, this.bgComboIntensity - deltaTime * 2);
+    }
+
+    // Phase offset for flowing gradient
+    if (this.bgComboIntensity > 0.5) {
+      this.bgPhase += deltaTime * this.bgComboIntensity * 0.8;
+    }
+
+    // Background particles for extreme combo
+    if (this.bgComboIntensity >= 1.5) {
+      // Spawn particles
+      const spawnRate = this.bgComboIntensity >= 2 ? 3 : 1;
+      for (let i = 0; i < spawnRate; i++) {
+        if (this.bgParticles.length < 40 && Math.random() < deltaTime * 10) {
+          const comboLevel = this.comboData.level;
+          const colors = comboLevel
+            ? [comboLevel.color, '#FBBF24', '#3B82F6']
+            : ['#FBBF24', '#3B82F6', '#14B8A6'];
+          this.bgParticles.push({
+            x: Math.random() * this.width,
+            y: this.height + 10,
+            vx: (Math.random() - 0.5) * 30,
+            vy: -(80 + Math.random() * 120),
+            size: Math.random() * 4 + 2,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            alpha: 0.4 + Math.random() * 0.3,
+            life: 1
+          });
+        }
+      }
+    }
+
+    // Update particles
+    for (let i = this.bgParticles.length - 1; i >= 0; i--) {
+      const p = this.bgParticles[i];
+      p.x += p.vx * deltaTime;
+      p.y += p.vy * deltaTime;
+      p.life -= deltaTime * 0.5;
+      p.alpha = Math.max(0, p.life * 0.5);
+
+      if (p.life <= 0 || p.y < -20) {
+        this.bgParticles.splice(i, 1);
+      }
+    }
+  }
+
+  getBackgroundState() {
+    return {
+      comboIntensity: this.bgComboIntensity,
+      phase: this.bgPhase,
+      particles: this.bgParticles,
+      comboLevel: this.comboData.level
+    };
   }
 
   renderEffects(ctx) {
