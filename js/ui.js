@@ -38,6 +38,7 @@ export default class UI {
     this.coinBoxBounce = 0;
     this.flashAlpha = 0;
     this.flashTargetAlpha = 0;
+    this.milestoneFlash = null;
     this.shakeOffset = { x: 0, y: 0 };
     this.shakeTime = 0;
 
@@ -860,6 +861,7 @@ export default class UI {
     this.shimmerTime += deltaTime;
     this.updateComboEffects(deltaTime);
     this.updateCoinFlyAnimations(deltaTime);
+    this.updateMilestoneFlash(deltaTime);
     this.updateScrollInertia(deltaTime);
     this.updateHintButtonAnimation(deltaTime);
     this.updateSkillsScrollInertia(deltaTime);
@@ -2118,6 +2120,7 @@ export default class UI {
 
     this.renderEffects(ctx);
     this.renderCoinFlyAnimations(ctx);
+    this.renderMilestoneFlash(ctx);
     this.renderAchievementNotifications(ctx);
     this.renderHighScoreCelebration(ctx);
   }
@@ -3633,6 +3636,65 @@ export default class UI {
   flashScreen(color, intensity) {
     this.flashAlpha = intensity;
     this.flashColor = color;
+  }
+
+  showMilestoneEffect(milestone) {
+    this.milestoneFlash = {
+      label: milestone.label,
+      color: milestone.color,
+      progress: 0,
+      duration: 1.2
+    };
+  }
+
+  updateMilestoneFlash(deltaTime) {
+    if (!this.milestoneFlash) return;
+    this.milestoneFlash.progress += deltaTime;
+    if (this.milestoneFlash.progress >= this.milestoneFlash.duration) {
+      this.milestoneFlash = null;
+    }
+  }
+
+  renderMilestoneFlash(ctx) {
+    if (!this.milestoneFlash) return;
+
+    const m = this.milestoneFlash;
+    const t = m.progress / m.duration;
+    const isMobile = this.width < 768;
+
+    // 背景闪烁：快速出现慢速消失
+    const bgAlpha = t < 0.15 ? (t / 0.15) * 0.3 : 0.3 * (1 - (t - 0.15) / 0.85);
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, bgAlpha);
+    ctx.fillStyle = m.color;
+    ctx.fillRect(0, 0, this.width, this.height);
+    ctx.restore();
+
+    // 大号飘字：缩放 + 上飘 + 渐隐
+    if (t < 0.8) {
+      const textAlpha = t < 0.1 ? t / 0.1 : (1 - (t - 0.1) / 0.7);
+      const scale = t < 0.1 ? 0.5 + (t / 0.1) * 0.5 : 1.0;
+      const floatY = t * 60;
+
+      const cx = this.width / 2;
+      const cy = this.height / 2 - floatY;
+
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, Math.min(1, textAlpha));
+      ctx.translate(cx, cy);
+      ctx.scale(scale, scale);
+
+      // 文字阴影
+      ctx.shadowColor = m.color;
+      ctx.shadowBlur = 30;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = `bold ${isMobile ? 52 : 68}px "Arial Black", Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(m.label, 0, 0);
+
+      ctx.restore();
+    }
   }
 
   renderButtons(ctx) {
