@@ -3189,7 +3189,7 @@ export default class UI {
       ctx.textAlign = 'left';
       ctx.fillStyle = scheme.text;
       ctx.font = `bold ${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
-      ctx.fillText(`${scoreValue}`, infoX, itemY + (isMobile ? 20 : 22));
+      ctx.fillText(`找到 ${scoreValue} 个`, infoX, itemY + (isMobile ? 20 : 22));
 
       // Time spent
       ctx.fillStyle = scheme.textSecondary;
@@ -3318,7 +3318,7 @@ export default class UI {
     ctx.font = `bold ${isMobile ? 16 : 18}px Arial, sans-serif`;
     ctx.fillStyle = '#6B7280';
     const newScoreValue = celeb.newScore.score !== undefined ? celeb.newScore.score : celeb.newScore.numbersFound;
-    ctx.fillText(`${newScoreValue} · 用时 ${celeb.newScore.timeSpent.toFixed(1)} 秒`, this.width / 2, cardY + (isMobile ? 125 : 140));
+    ctx.fillText(`找到 ${newScoreValue} 个 · 用时 ${celeb.newScore.timeSpent.toFixed(1)} 秒`, this.width / 2, cardY + (isMobile ? 125 : 140));
 
     if (celeb.previousBest) {
       ctx.font = `${isMobile ? 13 : 14}px Arial, sans-serif`;
@@ -3326,7 +3326,7 @@ export default class UI {
       ctx.globalAlpha = alpha * 0.7;
       const prevScoreValue = celeb.previousBest.score !== undefined ? celeb.previousBest.score : celeb.previousBest.numbersFound;
       ctx.fillText(
-        `上次最佳: ${prevScoreValue} · ${celeb.previousBest.timeSpent.toFixed(1)} 秒`,
+        `上次最佳: ${prevScoreValue} 个 · ${celeb.previousBest.timeSpent.toFixed(1)} 秒`,
         this.width / 2, cardY + (isMobile ? 155 : 170)
       );
     }
