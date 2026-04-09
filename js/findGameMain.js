@@ -661,6 +661,7 @@ export default class FindGameMain {
     this.coinManager.reset();
     this.skillManager.reset();
     this.itemManager.reset();
+    this.scoreManager.reset();
 
     if (typeof wx !== 'undefined' && wx.removeStorageSync) {
       try {
