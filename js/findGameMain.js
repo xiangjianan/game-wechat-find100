@@ -221,7 +221,7 @@ export default class FindGameMain {
           id: 'resume',
           text: '继续游戏',
           action: () => {
-            this.ui.hideModal();
+            this.ui.hideModalImmediate();
             this.gameManager.resumeTimer();
           }
         },
@@ -229,7 +229,7 @@ export default class FindGameMain {
           id: 'restart',
           text: '重新开始',
           action: () => {
-            this.ui.hideModal();
+            this.ui.hideModalImmediate();
             this.clearSavedGameState();
             this.resetGame();
           }
@@ -730,6 +730,7 @@ export default class FindGameMain {
     const count = this.gameManager.polygonCount;
     const level = this.gameManager.currentLevel;
     const mode = this.ui.getGameMode();
+    this.vignetteIntensity = 0;
     this.gameManager.initGame(count, level, mode);
   }
 
@@ -772,7 +773,7 @@ export default class FindGameMain {
         id: 'playAgain',
         text: '再玩一次',
         action: () => {
-          this.ui.hideModal();
+          this.ui.hideModalImmediate();
           const level = this.gameManager.currentLevel;
           const count = this.ui.levelConfig[level].count;
           this.startGame(count, level);
@@ -782,18 +783,18 @@ export default class FindGameMain {
         id: 'menu',
         text: '返回首页',
         action: () => {
-          this.ui.hideModal();
+          this.ui.hideModalImmediate();
           this.backToMenu();
         }
       }
     ];
-    
+
     if (hasNextLevel) {
       buttons.unshift({
         id: 'nextLevel',
         text: '下一关',
         action: () => {
-          this.ui.hideModal();
+          this.ui.hideModalImmediate();
           this.startNextLevel(2);
         }
       });
@@ -831,7 +832,7 @@ export default class FindGameMain {
           id: 'tryAgain',
           text: '再试一次',
           action: () => {
-            this.ui.hideModal();
+            this.ui.hideModalImmediate();
             this.resetGame();
           }
         },
@@ -839,7 +840,7 @@ export default class FindGameMain {
           id: 'menu',
           text: '返回首页',
           action: () => {
-            this.ui.hideModal();
+            this.ui.hideModalImmediate();
             this.backToMenu();
           }
         }
@@ -1221,7 +1222,7 @@ export default class FindGameMain {
             text: '确认重置',
             color: '#EF4444',
             action: () => {
-              this.ui.hideModal();
+              this.ui.hideModalImmediate();
               this.handleResetGame();
             }
           }

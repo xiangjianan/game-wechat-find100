@@ -1743,6 +1743,12 @@ export default class UI {
     this.modalTargetAnimation = 0;
   }
 
+  hideModalImmediate() {
+    this.showModal = false;
+    this.modalAnimation = 0;
+    this.modalTargetAnimation = 0;
+  }
+
   updateModalAnimation(deltaTime) {
     if (this.showModal) {
       if (this.modalAnimation < this.modalTargetAnimation) {
