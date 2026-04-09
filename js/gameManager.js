@@ -96,7 +96,22 @@ export default class GameManager {
     this.hintedPolygon = null;
     
     this.comboManager.breakCombo();
-    
+
+    // 鹰眼技能：游戏开始时为第一个数字启动3秒定时器
+    if (this.skillManager && this.skillManager.isUnlocked('eagle_eye')) {
+      const firstPolygon = this.polygons.find(p => p.number === 1);
+      if (firstPolygon) {
+        if (this.eagleEyeTimeoutId) {
+          clearTimeout(this.eagleEyeTimeoutId);
+          this.eagleEyeTimeoutId = null;
+        }
+        this.eagleEyeTimeoutId = setTimeout(() => {
+          firstPolygon.setEagleEyeHighlight(true);
+          this.eagleEyeTimeoutId = null;
+        }, 3000);
+      }
+    }
+
     if (this.gameMode === 'timed') {
       this.startTimer();
     }
