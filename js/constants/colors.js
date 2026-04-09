@@ -1,5 +1,5 @@
 // 波普糖果色系 (高饱和): 蔚蓝 #3B82F6 · 亮黄 #FBBF24 · 粉白 #FFFAF5
-// 点缀: 鲜珊瑚 #EF6C4A · 翠薄荷 #14B8A6 · 紫水晶 #8B5CF6
+// 点缀: 鲜珊瑚 #EF6C4A · 翠绿 #10B981 · 紫水晶 #8B5CF6
 
 export const COLOR_SCHEME = {
   name: '波普糖果',
@@ -8,7 +8,7 @@ export const COLOR_SCHEME = {
   backgroundEnd: '#FFF3E8',
   primary: '#3B82F6',
   secondary: '#FBBF24',
-  accent: '#14B8A6',
+  accent: '#10B981',
   danger: '#EF4444',
   text: '#374151',
   textSecondary: '#6B7280',
@@ -22,11 +22,11 @@ export const COLOR_SCHEME = {
   buttonPrimary: '#F97316',
   buttonPrimaryEnd: '#FB923C',
   buttonSecondary: '#FB923C',
-  buttonSuccess: '#14B8A6',
+  buttonSuccess: '#10B981',
   buttonDanger: '#EF4444',
   numberColors: [
-    '#3B82F6', '#EF4444', '#14B8A6', '#FBBF24', '#8B5CF6',
-    '#F97316', '#3B82F6', '#EF4444', '#14B8A6', '#8B5CF6'
+    '#3B82F6', '#EF4444', '#10B981', '#FBBF24', '#8B5CF6',
+    '#F97316', '#3B82F6', '#EF4444', '#10B981', '#8B5CF6'
   ],
   polygonColors: [
     'rgba(59, 130, 246, 0.06)', 'rgba(251, 191, 36, 0.06)',
