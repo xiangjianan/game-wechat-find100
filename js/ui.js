@@ -1394,6 +1394,8 @@ export default class UI {
   }
 
   handleClick(x, y) {
+    if (this.clickedButton) return false;
+
     // 彩蛋弹框关闭按钮
     if (this.eggTriggered && this.eggCloseButton) {
       const btn = this.eggCloseButton;
@@ -2080,6 +2082,7 @@ export default class UI {
   }
 
   handleModalClick(x, y) {
+    if (this.clickedButton) return false;
     if (!this.modalButtons || this.modalButtons.length === 0) {
       return false;
     }
