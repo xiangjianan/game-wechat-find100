@@ -958,9 +958,10 @@ export default class FindGameMain {
       const timeLeft = gm.timeLeft;
 
       // --- 危险暗角 ---
-      if (timeLeft < 3) {
-        const target = 1 - (timeLeft / 3);  // 3秒→0, 0秒→1
-        this.vignetteIntensity += (target - this.vignetteIntensity) * Math.min(1, deltaTime * 4);
+      if (timeLeft < 5) {
+        const ratio = timeLeft / 5;  // 1→0
+        const target = Math.pow(1 - ratio, 0.6);  // 非线性：5秒→0, 4秒→0.38, 3秒→0.54, 0秒→1
+        this.vignetteIntensity += (target - this.vignetteIntensity) * Math.min(1, deltaTime * 6);
       } else {
         this.vignetteIntensity = Math.max(0, this.vignetteIntensity - deltaTime * 2);
       }
