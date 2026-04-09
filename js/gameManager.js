@@ -339,6 +339,34 @@ export default class GameManager {
   }
 
   render(ctx) {
+    // 裁剪到圆角矩形区域，使外层大矩形有圆角效果
+    const safeArea = this.generator.safeArea;
+    const isMobile = this.width < 768;
+    const topSafeArea = Math.max(safeArea.top, isMobile ? 44 : 0);
+    const bottomSafeArea = Math.max(safeArea.bottom, isMobile ? 34 : 0);
+    const headerHeight = isMobile ? Math.max(100, topSafeArea + 56) : 130;
+    const footerHeight = isMobile ? Math.max(80, bottomSafeArea + 46) : 60;
+    const borderPadding = 12;
+    const clipX = borderPadding;
+    const clipY = headerHeight + borderPadding;
+    const clipW = this.width - borderPadding * 2;
+    const clipH = this.height - headerHeight - footerHeight - borderPadding * 2;
+    const clipRadius = 10;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(clipX + clipRadius, clipY);
+    ctx.lineTo(clipX + clipW - clipRadius, clipY);
+    ctx.quadraticCurveTo(clipX + clipW, clipY, clipX + clipW, clipY + clipRadius);
+    ctx.lineTo(clipX + clipW, clipY + clipH - clipRadius);
+    ctx.quadraticCurveTo(clipX + clipW, clipY + clipH, clipX + clipW - clipRadius, clipY + clipH);
+    ctx.lineTo(clipX + clipRadius, clipY + clipH);
+    ctx.quadraticCurveTo(clipX, clipY + clipH, clipX, clipY + clipH - clipRadius);
+    ctx.lineTo(clipX, clipY + clipRadius);
+    ctx.quadraticCurveTo(clipX, clipY, clipX + clipRadius, clipY);
+    ctx.closePath();
+    ctx.clip();
+
     // 先绘制所有多边形的形状（底层）
     for (const polygon of this.polygons) {
       polygon.renderShape(ctx);
@@ -347,6 +375,8 @@ export default class GameManager {
     for (const polygon of this.polygons) {
       polygon.renderText(ctx);
     }
+
+    ctx.restore();
   }
 
   getCompletionTime() {
