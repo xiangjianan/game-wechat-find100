@@ -104,6 +104,10 @@ export default class FindGameMain {
     this.scoreManager = new ScoreManager();
     this.aniId = 0;
 
+    // 情绪化计时器视觉效果
+    this.vignetteIntensity = 0;       // 当前暗角强度 (0~1)，平滑过渡
+    this.calmFlowPhase = 0;           // 安心流动相位
+
     this.soundManager.init();
     this.scoreManager.init();
     CacheManager.init();
@@ -937,6 +941,81 @@ export default class FindGameMain {
     }
   }
 
+  renderEmotionalTimerEffects(ctx, deltaTime) {
+    const gm = this.gameManager;
+    if (gm.gameState !== 'playing') {
+      // 非游戏中：快速消退暗角
+      this.vignetteIntensity = Math.max(0, this.vignetteIntensity - deltaTime * 3);
+      if (this.vignetteIntensity < 0.01) {
+        this.vignetteIntensity = 0;
+        return;
+      }
+    } else if (gm.gameMode !== 'timed') {
+      return;
+    }
+
+    if (gm.gameState === 'playing' && gm.gameMode === 'timed') {
+      const timeLeft = gm.timeLeft;
+
+      // --- 危险暗角 ---
+      if (timeLeft < 3) {
+        const target = 1 - (timeLeft / 3);  // 3秒→0, 0秒→1
+        this.vignetteIntensity += (target - this.vignetteIntensity) * Math.min(1, deltaTime * 4);
+      } else {
+        this.vignetteIntensity = Math.max(0, this.vignetteIntensity - deltaTime * 2);
+      }
+
+      // --- 安心流动 ---
+      if (timeLeft > 10) {
+        this.calmFlowPhase += deltaTime * 0.8;
+      }
+    }
+
+    // 绘制危险暗角
+    if (this.vignetteIntensity > 0.01) {
+      const alpha = this.vignetteIntensity * 0.85;
+      const cx = SCREEN_WIDTH / 2;
+      const cy = SCREEN_HEIGHT / 2;
+      const maxR = Math.sqrt(cx * cx + cy * cy);
+
+      const vignette = ctx.createRadialGradient(cx, cy, maxR * 0.2, cx, cy, maxR);
+      vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
+      vignette.addColorStop(0.4, `rgba(0, 0, 0, ${alpha * 0.2})`);
+      vignette.addColorStop(0.7, `rgba(0, 0, 0, ${alpha * 0.5})`);
+      vignette.addColorStop(1, `rgba(0, 0, 0, ${alpha})`);
+      ctx.fillStyle = vignette;
+      ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+      // 低时间时加一层红色叠加
+      if (this.vignetteIntensity > 0.3) {
+        const redAlpha = (this.vignetteIntensity - 0.3) * 0.25;
+        ctx.fillStyle = `rgba(220, 38, 38, ${redAlpha})`;
+        ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+      }
+    }
+
+    // 绘制安心流动
+    if (gm.gameState === 'playing' && gm.gameMode === 'timed' && gm.timeLeft > 10) {
+      const phase = this.calmFlowPhase;
+      const breathAlpha = 0.025 + Math.sin(phase) * 0.015;
+      const cx = SCREEN_WIDTH / 2;
+      const cy = SCREEN_HEIGHT / 2;
+      const r = Math.max(SCREEN_WIDTH, SCREEN_HEIGHT) * 0.7;
+
+      const calm = ctx.createRadialGradient(
+        cx + Math.sin(phase * 0.6) * 40,
+        cy + Math.cos(phase * 0.4) * 30,
+        0,
+        cx, cy, r
+      );
+      calm.addColorStop(0, `rgba(134, 239, 172, ${breathAlpha})`);
+      calm.addColorStop(0.5, `rgba(253, 230, 138, ${breathAlpha * 0.6})`);
+      calm.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = calm;
+      ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    }
+  }
+
   renderGameAreaBorder(ctx) {
     if (this.gameManager.gameState !== 'playing' && 
         this.gameManager.gameState !== 'completed' && 
@@ -1004,6 +1083,8 @@ export default class FindGameMain {
       this.gameManager.getTimeLeft(),
       deltaTime
     );
+
+    this.renderEmotionalTimerEffects(ctx, deltaTime);
   }
 
   loop() {
