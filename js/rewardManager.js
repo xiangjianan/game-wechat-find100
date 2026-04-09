@@ -48,7 +48,7 @@ export default class RewardManager {
       name: '额外时长',
       icon: '⏰',
       baseProbability: 0, // 基础概率为0，需要幸运之星才能触发
-      color: '#14B8A6',
+      color: '#10B981',
       action: (managers) => {
         const bonus = 3; // 3秒
         if (managers.gameManager) {

@@ -12,7 +12,7 @@ export default class ComboManager {
 
     this.comboLevels = [
       { threshold: 5, name: '火热', color: '#FBBF24', vibration: 'light' },
-      { threshold: 10, name: '燃烧', color: '#14B8A6', vibration: 'medium' },
+      { threshold: 10, name: '燃烧', color: '#10B981', vibration: 'medium' },
       { threshold: 15, name: '狂暴', color: '#EF4444', vibration: 'heavy' },
       { threshold: 20, name: '无敌', color: '#FBBF24', vibration: 'heavy' }
     ];

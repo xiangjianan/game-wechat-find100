@@ -936,7 +936,7 @@ export default class UI {
           const comboLevel = this.comboData.level;
           const colors = comboLevel
             ? [comboLevel.color, '#FBBF24', '#3B82F6']
-            : ['#FBBF24', '#3B82F6', '#14B8A6'];
+            : ['#FBBF24', '#3B82F6', '#10B981'];
           this.bgParticles.push({
             x: Math.random() * this.width,
             y: this.height + 10,
@@ -1197,11 +1197,11 @@ export default class UI {
         width: cardWidth,
         height: cardHeight,
         icon: 'lightning',
-        iconBg: '#E6F7F5',
-        iconColor: '#14B8A6',
+        iconBg: '#ECFDF5',
+        iconColor: '#10B981',
         cardBg: 'rgba(255, 255, 255, 0.95)',
-        cardBorder: 'rgba(94, 196, 182, 0.2)',
-        cardHoverGlow: 'rgba(94, 196, 182, 0.12)',
+        cardBorder: 'rgba(16, 185, 129, 0.2)',
+        cardHoverGlow: 'rgba(16, 185, 129, 0.12)',
         action: () => this.onOpenSkills()
       },
       // 成就 - 珊瑚卡片
@@ -2319,7 +2319,7 @@ export default class UI {
     const tileColors = [
       { start: '#3B82F6', end: '#60A5FA' },
       { start: '#EF4444', end: '#F09A88' },
-      { start: '#14B8A6', end: '#5EEAD4' },
+      { start: '#10B981', end: '#6EE7B7' },
       { start: '#FBBF24', end: '#FCD34D' }
     ];
     const tileNumbers = ['1', '2', '3', '4'];
@@ -3241,7 +3241,7 @@ export default class UI {
       ctx.fillText('暂无记录，快去挑战吧！', this.width / 2, listStartY + listHeight / 2);
     }
 
-    const medals = ['#FBBF24', '#3B82F6', '#14B8A6'];
+    const medals = ['#FBBF24', '#3B82F6', '#10B981'];
 
     scores.forEach((score, index) => {
       const itemY = listStartY + index * (itemHeight + itemPadding) - this.scoreHistoryScrollOffset;
@@ -3325,7 +3325,7 @@ export default class UI {
         vx: (Math.random() - 0.5) * 12,
         vy: (Math.random() - 0.5) * 12 - 4,
         size: Math.random() * 6 + 3,
-        color: ['#3B82F6', '#EF4444', '#14B8A6', '#FBBF24', '#8B5CF6', '#3B82F6'][Math.floor(Math.random() * 6)],
+        color: ['#3B82F6', '#EF4444', '#10B981', '#FBBF24', '#8B5CF6', '#3B82F6'][Math.floor(Math.random() * 6)],
         alpha: 1,
         rotation: Math.random() * Math.PI * 2,
         rotationSpeed: (Math.random() - 0.5) * 0.2

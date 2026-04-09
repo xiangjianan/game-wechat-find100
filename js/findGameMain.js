@@ -684,7 +684,7 @@ export default class FindGameMain {
     this.soundManager.playUiClick();
     this.vibrationManager.vibrateCorrect();
     this.ui.triggerEggEffect();
-    this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `+${egg.reward.amount} 💰`, '#14B8A6');
+    this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `+${egg.reward.amount} 💰`, '#10B981');
 
     this.ui.achievementsData = this.achievementManager.getAllAchievements();
 
@@ -1233,7 +1233,7 @@ export default class FindGameMain {
 
     if (result.success) {
       this.soundManager.playUiClick();
-      this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `+${result.itemsAdded} 💡`, '#14B8A6');
+      this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `+${result.itemsAdded} 💡`, '#10B981');
     } else {
       this.soundManager.playError();
       if (result.reason === 'not_enough_coins') {
@@ -1276,7 +1276,7 @@ export default class FindGameMain {
 
     if (result) {
       this.soundManager.playUiClick();
-      this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `解锁 ${skill.name}!`, '#14B8A6', 'skills');
+      this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `解锁 ${skill.name}!`, '#10B981', 'skills');
       this.ui.skillsData = this.skillManager.getSkillProgress();
     } else {
       this.soundManager.playError();
