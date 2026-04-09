@@ -61,12 +61,12 @@ export default class SoundManager {
     }
   }
 
-  playClick() {
+  playClick(comboCount = 0) {
     if (!this.enabled) return;
 
     if (this.useGeneratedAudio) {
       try {
-        AudioGenerator.generateClickSound();
+        AudioGenerator.generateClickSound(comboCount);
       } catch (e) {}
       return;
     }
@@ -74,6 +74,11 @@ export default class SoundManager {
     if (!this.sounds.click) return;
     try {
       this.sounds.click.stop();
+      // 连击越高，播放速率越快（频率越高）
+      const rate = Math.min(1 + comboCount * 0.06, 2.5);
+      if (this.sounds.click.playbackRate !== undefined) {
+        this.sounds.click.playbackRate = rate;
+      }
       this.sounds.click.play();
     } catch (e) {}
   }

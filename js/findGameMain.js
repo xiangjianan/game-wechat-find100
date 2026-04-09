@@ -572,10 +572,10 @@ export default class FindGameMain {
     };
     
     this.gameManager.onCorrectClick = (center, comboLevel, timeReward) => {
-      this.soundManager.playClick();
+      const comboCount = this.gameManager.getComboCount();
+      this.soundManager.playClick(comboCount);
       this.vibrationManager.vibrateCorrect();
 
-      const comboCount = this.gameManager.getComboCount();
       if (comboLevel) {
         this.vibrationManager.vibrateCombo(comboLevel.vibration);
       }

@@ -27,11 +27,12 @@ export class AudioGenerator {
     return this.audioContext;
   }
 
-  static playWxSound(src, volume = 0.5) {
+  static playWxSound(src, volume = 0.5, playbackRate = 1) {
     try {
       const audio = wx.createInnerAudioContext();
       audio.src = src;
       audio.volume = volume;
+      audio.playbackRate = playbackRate;
       audio.play();
     } catch (e) {
       // 静默处理错误
@@ -58,9 +59,10 @@ export class AudioGenerator {
     oscillator.stop(startTime + duration);
   }
 
-  static generateClickSound() {
+  static generateClickSound(comboCount = 0) {
     if (this.isWxEnvironment()) {
-      this.playWxSound('audio/click.wav', 0.18);
+      const rate = Math.min(1 + Math.max(0, comboCount) * 0.06, 2.5);
+      this.playWxSound('audio/click.wav', 0.18, rate);
       return;
     }
 
@@ -68,17 +70,27 @@ export class AudioGenerator {
     if (!audioContext || !audioContext.destination) return;
 
     try {
+      // 连击频率递增：基础800Hz，每连击+60Hz，最高2000Hz
+      const baseFreq = 800;
+      const freqStep = 60;
+      const maxFreq = 2000;
+      const frequency = Math.min(baseFreq + Math.max(0, comboCount) * freqStep, maxFreq);
+
       const gainNode = audioContext.createGain();
       gainNode.connect(audioContext.destination);
       const oscillator = audioContext.createOscillator();
       oscillator.connect(gainNode);
-      oscillator.frequency.value = 800;
+      oscillator.frequency.value = frequency;
       oscillator.type = 'sine';
       const startTime = audioContext.currentTime;
-      gainNode.gain.setValueAtTime(0.15, startTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.1);
+
+      // 连击越高，音量略增、时值略短，营造紧张感
+      const volume = Math.min(0.15 + comboCount * 0.008, 0.35);
+      const duration = Math.max(0.06, 0.1 - comboCount * 0.002);
+      gainNode.gain.setValueAtTime(volume, startTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
       oscillator.start(startTime);
-      oscillator.stop(startTime + 0.1);
+      oscillator.stop(startTime + duration);
     } catch (e) {
       // 静默处理错误
     }
