@@ -2615,8 +2615,23 @@ export default class UI {
 
     const fillWidth = (progressBarWidth * progress) | 0;
     if (fillWidth > 0) {
+      const fillX = centerX - progressBarWidth / 2 + 3;
+      const fillY = progressBarY + 3;
+      const fillH = progressBarHeight - 6;
+      const fillRadius = Math.max(0, Math.min(fillH / 2, (fillWidth - 6) / 2));
       ctx.fillStyle = scheme.buttonPrimary;
-      ctx.fillRect(centerX - progressBarWidth / 2 + 3, progressBarY + 3, fillWidth - 6, progressBarHeight - 6);
+      ctx.beginPath();
+      ctx.moveTo(fillX + fillRadius, fillY);
+      ctx.lineTo(fillX + fillWidth - 6 - fillRadius, fillY);
+      ctx.arcTo(fillX + fillWidth - 6, fillY, fillX + fillWidth - 6, fillY + fillRadius, fillRadius);
+      ctx.lineTo(fillX + fillWidth - 6, fillY + fillH - fillRadius);
+      ctx.arcTo(fillX + fillWidth - 6, fillY + fillH, fillX + fillWidth - 6 - fillRadius, fillY + fillH, fillRadius);
+      ctx.lineTo(fillX + fillRadius, fillY + fillH);
+      ctx.arcTo(fillX, fillY + fillH, fillX, fillY + fillH - fillRadius, fillRadius);
+      ctx.lineTo(fillX, fillY + fillRadius);
+      ctx.arcTo(fillX, fillY, fillX + fillRadius, fillY, fillRadius);
+      ctx.closePath();
+      ctx.fill();
     }
     
     ctx.font = `bold ${isMobile ? 14 : 16}px "Arial Black", Arial, sans-serif`;
