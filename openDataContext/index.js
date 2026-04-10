@@ -69,26 +69,26 @@ function handleMessage(message) {
  */
 function fetchRankData() {
   wx.getFriendCloudStorage({
-    keyList: ['score', 'time', 'level'],
+    keyList: ['numbersFound', 'time', 'hiddenScore'],
     success: (res) => {
       rankData = res.data.map((item, index) => {
-        const scoreData = item.KVDataList.find(kv => kv.key === 'score');
+        const numbersFoundData = item.KVDataList.find(kv => kv.key === 'numbersFound');
         const timeData = item.KVDataList.find(kv => kv.key === 'time');
-        const levelData = item.KVDataList.find(kv => kv.key === 'level');
+        const hiddenScoreData = item.KVDataList.find(kv => kv.key === 'hiddenScore');
 
         return {
           rank: index + 1,
           avatarUrl: item.avatarUrl,
           nickname: item.nickname,
-          score: scoreData ? parseInt(scoreData.value) : 0,
+          numbersFound: numbersFoundData ? parseInt(numbersFoundData.value) : 0,
           time: timeData ? parseFloat(timeData.value) : 0,
-          level: levelData ? parseInt(levelData.value) : 1,
+          hiddenScore: hiddenScoreData ? parseInt(hiddenScoreData.value) : 0,
           openid: item.openid
         };
       });
 
-      // 按分数排序（分数从高到低）
-      rankData.sort((a, b) => b.score - a.score);
+      // 按隐藏分数排序（分数从高到低）
+      rankData.sort((a, b) => b.hiddenScore - a.hiddenScore);
 
       // 更新排名
       rankData.forEach((item, index) => {
@@ -232,19 +232,12 @@ function drawRankItem(item, y, width, height, isFirst) {
   ctx.textBaseline = 'middle';
   ctx.fillText(truncateText(item.nickname, 12), 110, y + height / 2);
 
-  // 分数
+  // 找到数量和耗时
   ctx.fillStyle = config.highlightColor;
-  ctx.font = 'bold 16px sans-serif';
+  ctx.font = 'bold 14px sans-serif';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
-  ctx.fillText(item.score + ' 分', width - 20, y + height / 2);
-
-  // 时间
-  ctx.fillStyle = '#888';
-  ctx.font = '12px sans-serif';
-  ctx.textAlign = 'right';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(item.time.toFixed(2) + 's', width - 100, y + height / 2);
+  ctx.fillText(item.numbersFound + '个 ' + item.time.toFixed(1) + '秒', width - 20, y + height / 2);
 }
 
 /**

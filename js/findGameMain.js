@@ -749,6 +749,9 @@ export default class FindGameMain {
     const numbersFound = this.gameManager.totalNumbers;
     const scoreResult = this.scoreManager.recordScore(level, numbersFound, time);
 
+    // 上传分数到微信排行榜
+    this.rankManager.uploadScore(numbersFound, time, level);
+
     const hasNextLevel = this.gameManager.hasNextLevel();
 
     const achievementData = {
@@ -819,6 +822,11 @@ export default class FindGameMain {
     const time = this.gameManager.getCompletionTime();
     const level = this.gameManager.currentLevel;
     const scoreResult = this.scoreManager.recordScore(level, progress, time);
+
+    // 上传分数到微信排行榜（部分完成也算）
+    if (progress > 0) {
+      this.rankManager.uploadScore(progress, time, level);
+    }
 
     this.achievementManager.checkAchievement('game_fail', {
       level: this.gameManager.currentLevel,
@@ -1176,7 +1184,7 @@ export default class FindGameMain {
     const opened = this.rankManager.open(() => {
       this.ui.hideRankView();
     });
-    if (opened !== false) {
+    if (opened === false) {
       this.ui.showRankView();
     }
   }

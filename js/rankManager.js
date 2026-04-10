@@ -16,6 +16,7 @@ export default class RankManager {
    */
   init() {
     if (!this.isWeChatGame) {
+      console.warn('RankManager: not WeChat environment');
       return false;
     }
 
@@ -23,60 +24,55 @@ export default class RankManager {
       this.sharedCanvas = wx.getSharedCanvas();
       this.sharedCanvasContext = this.sharedCanvas.getContext('2d');
       wx.onMessage(this.handleOpenDataMessage.bind(this));
+      console.log('RankManager: init success');
       return true;
     } catch (error) {
+      console.error('RankManager: init failed', error);
       return false;
     }
   }
 
   /**
-   * 上传分数到排行榜
-   * @param {number} score - 分数（时间越短分数越高）
-   * @param {number} level - 关卡
+   * 计算隐藏排名分数
+   * 排行榜用此分数排名，但不在UI展示
+   * 算法：找到的数字越多分数越高，耗时越短分数越高
    */
-  calculateScore(totalNumbers, time) {
-    const baseScorePerNumber = 100;
-    const baseTimePerNumber = 1.5;
-    const timeBonusMultiplier = 50;
-    
-    const baseScore = totalNumbers * baseScorePerNumber;
-    const expectedTime = totalNumbers * baseTimePerNumber;
-    const timeDiff = expectedTime - time;
-    const timeBonus = Math.max(0, timeDiff * timeBonusMultiplier);
-    const finalScore = Math.floor(baseScore + timeBonus);
-    
-    return Math.max(0, finalScore);
+  calculateScore(numbersFound, time) {
+    return numbersFound - 0.0001 * time;
   }
 
-  uploadScore(time, level = 1, totalNumbers = 10) {
+  uploadScore(numbersFound, time, level = 1) {
     if (!this.isWeChatGame) {
       return;
     }
 
     try {
-      const finalScore = this.calculateScore(totalNumbers, time);
+      const hiddenScore = this.calculateScore(numbersFound, time);
 
       wx.setUserCloudStorage({
         KVDataList: [
           {
-            key: 'score',
-            value: finalScore.toString()
+            key: 'numbersFound',
+            value: numbersFound.toString()
           },
           {
             key: 'time',
             value: time.toString()
           },
           {
-            key: 'level',
-            value: level.toString()
-          },
-          {
-            key: 'totalNumbers',
-            value: totalNumbers.toString()
+            key: 'hiddenScore',
+            value: hiddenScore.toString()
           }
-        ]
+        ],
+        success: () => {
+          console.log('RankManager: uploadScore success', { numbersFound, time, hiddenScore });
+        },
+        fail: (err) => {
+          console.error('RankManager: uploadScore failed', err);
+        }
       });
     } catch (error) {
+      console.error('RankManager: uploadScore exception', error);
     }
   }
 
@@ -131,6 +127,7 @@ export default class RankManager {
       const openDataContext = wx.getOpenDataContext();
       openDataContext.postMessage(message);
     } catch (error) {
+      console.error('RankManager: sendMessageToOpenData failed', error);
     }
   }
 
@@ -166,6 +163,21 @@ export default class RankManager {
     });
 
     return true;
+  }
+
+  /**
+   * 渲染排行榜（将共享画布绘制到主画布）
+   */
+  render(ctx, x, y, width, height) {
+    if (!this.isOpen || !this.sharedCanvas) {
+      return;
+    }
+
+    try {
+      ctx.drawImage(this.sharedCanvas, x, y, width, height);
+    } catch (error) {
+      console.error('RankManager: render failed', error);
+    }
   }
 
   /**
