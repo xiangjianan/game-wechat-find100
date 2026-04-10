@@ -1120,7 +1120,7 @@ export default class UI {
   _buildMenuButtons() {
     const isMobile = this.width < 768;
     const margin = isMobile ? 24 : 48;
-    const startY = this.height * 0.42;
+    const startY = this.height * 0.48;
 
     // 开始游戏按钮 - 全宽大按钮，更高更醒目
     const startButtonWidth = this.width - margin * 2;
@@ -1154,7 +1154,6 @@ export default class UI {
       {
         id: 'instructions',
         text: '游戏规则',
-        subtitle: '了解玩法说明',
         type: 'card',
         x: margin,
         y: cardRow1Y,
@@ -1168,32 +1167,13 @@ export default class UI {
         cardHoverGlow: 'rgba(59, 130, 246, 0.12)',
         action: () => this.onShowInstructions()
       },
-      // 商店 - 黄色卡片
-      {
-        id: 'shop',
-        text: '商店',
-        subtitle: '道具 & 皮肤',
-        type: 'card',
-        x: margin + cardWidth + cardGap,
-        y: cardRow1Y,
-        width: cardWidth,
-        height: cardHeight,
-        icon: 'cart',
-        iconBg: '#FFF8E1',
-        iconColor: '#D97706',
-        cardBg: 'rgba(255, 255, 255, 0.95)',
-        cardBorder: 'rgba(245, 197, 66, 0.2)',
-        cardHoverGlow: 'rgba(245, 197, 66, 0.12)',
-        action: () => this.onOpenShop()
-      },
-      // 技能 - 薄荷卡片
+      // 技能 - 薄荷卡片（合并原商店内容）
       {
         id: 'skills',
         text: '技能',
-        subtitle: '解锁特殊能力',
         type: 'card',
-        x: margin,
-        y: cardRow2Y,
+        x: margin + cardWidth + cardGap,
+        y: cardRow1Y,
         width: cardWidth,
         height: cardHeight,
         icon: 'lightning',
@@ -1204,11 +1184,27 @@ export default class UI {
         cardHoverGlow: 'rgba(16, 185, 129, 0.12)',
         action: () => this.onOpenSkills()
       },
+      // 历史最高分 - 金色卡片
+      {
+        id: 'scoreHistory',
+        text: '历史最高分',
+        type: 'card',
+        x: margin,
+        y: cardRow2Y,
+        width: cardWidth,
+        height: cardHeight,
+        icon: 'medal',
+        iconBg: '#FFF8E1',
+        iconColor: '#D97706',
+        cardBg: 'rgba(255, 255, 255, 0.95)',
+        cardBorder: 'rgba(245, 197, 66, 0.2)',
+        cardHoverGlow: 'rgba(245, 197, 66, 0.12)',
+        action: () => { if (this.onOpenScoreHistory) this.onOpenScoreHistory(); }
+      },
       // 成就 - 珊瑚卡片
       {
         id: 'achievements',
         text: '成就',
-        subtitle: '查看你的战绩',
         type: 'card',
         x: margin + cardWidth + cardGap,
         y: cardRow2Y,
@@ -1223,45 +1219,6 @@ export default class UI {
         action: () => this.onOpenAchievements()
       }
     ];
-
-    // 第三行 - 分享按钮（单按钮居中，较矮）
-    const shareRowY = cardRow2Y + cardHeight + cardGap;
-    const shareButtonHeight = isMobile ? 44 : 50;
-
-    buttons.push({
-      id: 'share',
-      text: '分享给朋友',
-      type: 'card',
-      x: margin,
-      y: shareRowY,
-      width: (this.width - margin * 2 - cardGap) / 2,
-      height: shareButtonHeight,
-      icon: 'share',
-      iconBg: '#F0ECF7',
-      iconColor: '#8B5CF6',
-      cardBg: 'rgba(255, 255, 255, 0.95)',
-      cardBorder: 'rgba(155, 142, 196, 0.2)',
-      cardHoverGlow: 'rgba(155, 142, 196, 0.12)',
-      action: () => { if (this.onShare) this.onShare(); }
-    });
-
-    buttons.push({
-      id: 'scoreHistory',
-      text: '历史最高分',
-      subtitle: '查看最佳成绩',
-      type: 'card',
-      x: margin + (this.width - margin * 2 - cardGap) / 2 + cardGap,
-      y: shareRowY,
-      width: (this.width - margin * 2 - cardGap) / 2,
-      height: shareButtonHeight,
-      icon: 'medal',
-      iconBg: '#FFF8E1',
-      iconColor: '#D97706',
-      cardBg: 'rgba(255, 255, 255, 0.95)',
-      cardBorder: 'rgba(245, 197, 66, 0.2)',
-      cardHoverGlow: 'rgba(245, 197, 66, 0.12)',
-      action: () => { if (this.onOpenScoreHistory) this.onOpenScoreHistory(); }
-    });
 
     return buttons;
   }
@@ -3915,35 +3872,63 @@ export default class UI {
 
       if (this.skillsData && this.mouseY >= listStartY && this.mouseY <= listEndY) {
         let currentY = listStartY - this.skillScrollOffset;
+        const buyBtnW = isMobile ? 50 : 70;
+        const buyBtnH = isMobile ? 28 : 36;
+        const unlockBtnW = isMobile ? 50 : 70;
+        const unlockBtnH = isMobile ? 28 : 36;
 
-        for (const [category, skills] of this.skillsData) {
+        const consumableProducts = (this.shopProducts || []).filter(p => p.id !== 'reset_game');
+        const resetProduct = (this.shopProducts || []).find(p => p.id === 'reset_game');
+
+        // ── 一次性道具悬浮 ──
+        if (consumableProducts.length > 0) {
           currentY += categoryHeaderHeight;
-
-          for (const skill of skills) {
+          for (const product of consumableProducts) {
             if (currentY > listEndY) break;
+            if (currentY + itemHeight < listStartY) { currentY += itemHeight + itemPadding; continue; }
 
-            if (currentY + itemHeight < listStartY) {
-              currentY += itemHeight + itemPadding;
-              continue;
+            const btnX = itemX + itemWidth - buyBtnW - (isMobile ? 10 : 15);
+            const btnY = currentY + (itemHeight - buyBtnH) / 2;
+
+            if (this.mouseX >= btnX && this.mouseX <= btnX + buyBtnW &&
+                this.mouseY >= btnY && this.mouseY <= btnY + buyBtnH) {
+              if (this.coins >= product.price) { this.hoveredButton = `shop_buy_${product.id}`; return; }
             }
-
-            const unlockButtonWidth = isMobile ? 50 : 70;
-            const unlockButtonHeight = isMobile ? 28 : 36;
-            const unlockButtonX = itemX + itemWidth - unlockButtonWidth - (isMobile ? 10 : 15);
-            const unlockButtonY = currentY + (itemHeight - unlockButtonHeight) / 2;
-
-            if (this.mouseX >= unlockButtonX && this.mouseX <= unlockButtonX + unlockButtonWidth &&
-                this.mouseY >= unlockButtonY && this.mouseY <= unlockButtonY + unlockButtonHeight) {
-              if (skill.canUnlock && !skill.isUnlocked) {
-                this.hoveredButton = `skill_unlock_${skill.id}`;
-                return;
-              }
-            }
-
             currentY += itemHeight + itemPadding;
           }
-
           currentY += categorySpacing;
+        }
+
+        // ── 技能悬浮 ──
+        for (const [category, skills] of this.skillsData) {
+          currentY += categoryHeaderHeight;
+          for (const skill of skills) {
+            if (currentY > listEndY) break;
+            if (currentY + itemHeight < listStartY) { currentY += itemHeight + itemPadding; continue; }
+
+            const btnX = itemX + itemWidth - unlockBtnW - (isMobile ? 10 : 15);
+            const btnY = currentY + (itemHeight - unlockBtnH) / 2;
+
+            if (this.mouseX >= btnX && this.mouseX <= btnX + unlockBtnW &&
+                this.mouseY >= btnY && this.mouseY <= btnY + unlockBtnH) {
+              if (skill.canUnlock && !skill.isUnlocked) { this.hoveredButton = `skill_unlock_${skill.id}`; return; }
+            }
+            currentY += itemHeight + itemPadding;
+          }
+          currentY += categorySpacing;
+        }
+
+        // ── 特殊（时光倒流）悬浮 ──
+        if (resetProduct) {
+          currentY += categoryHeaderHeight;
+          if (currentY <= listEndY && currentY + itemHeight >= listStartY) {
+            const btnX = itemX + itemWidth - buyBtnW - (isMobile ? 10 : 15);
+            const btnY = currentY + (itemHeight - buyBtnH) / 2;
+            if (this.mouseX >= btnX && this.mouseX <= btnX + buyBtnW &&
+                this.mouseY >= btnY && this.mouseY <= btnY + buyBtnH) {
+              if (this.coins >= resetProduct.price) { this.hoveredButton = `shop_buy_${resetProduct.id}`; return; }
+            }
+          }
         }
       }
       return;
@@ -4364,9 +4349,108 @@ export default class UI {
 
     let currentY = listStartY - this.skillScrollOffset;
 
+    const itemHeight = isMobile ? 85 : 100;
+    const itemPadding = isMobile ? 10 : 12;
+    const categoryHeaderHeight = isMobile ? 35 : 45;
+    const categorySpacing = isMobile ? 20 : 25;
+
+    // ── 一次性道具（非时光倒流的商店商品）──
+    const consumableProducts = (this.shopProducts || []).filter(p => p.id !== 'reset_game');
+    const resetProduct = (this.shopProducts || []).find(p => p.id === 'reset_game');
+
+    if (consumableProducts.length > 0) {
+      if (currentY + categoryHeaderHeight > listStartY && currentY < listEndY) {
+        ctx.fillStyle = scheme.text;
+        ctx.font = `bold ${isMobile ? 20 : 24}px "Arial Black", Arial, sans-serif`;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('一次性道具', modalX + (isMobile ? 15 : 20), currentY);
+      }
+      currentY += categoryHeaderHeight;
+
+      for (const product of consumableProducts) {
+        if (currentY > listEndY) break;
+        if (currentY + itemHeight < listStartY) {
+          currentY += itemHeight + itemPadding;
+          continue;
+        }
+
+        const itemWidth = modalWidth - (isMobile ? 30 : 40);
+        const itemX = modalX + (isMobile ? 15 : 20);
+        const canBuy = this.coins >= product.price;
+
+        this.drawBrutalismRect(ctx, itemX, currentY, itemWidth, itemHeight, scheme.cardBg, {
+          shadowOffset: 2, borderWidth: 1
+        });
+
+        ctx.font = `bold ${isMobile ? 32 : 40}px Arial, sans-serif`;
+        ctx.fillStyle = scheme.text;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(product.icon, itemX + (isMobile ? 12 : 15), currentY + itemHeight / 2);
+
+        ctx.font = `bold ${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
+        ctx.fillText(product.name, itemX + (isMobile ? 50 : 60), currentY + (isMobile ? 20 : 25));
+
+        ctx.font = `${isMobile ? 11 : 13}px Arial, sans-serif`;
+        ctx.fillText(product.description, itemX + (isMobile ? 50 : 60), currentY + (isMobile ? 45 : 50));
+
+        const priceText = `💰 ${product.price}`;
+        ctx.font = `bold ${isMobile ? 12 : 14}px "Arial Black", Arial, sans-serif`;
+        ctx.textAlign = 'left';
+        ctx.fillText(priceText, itemX + (isMobile ? 50 : 60), currentY + (isMobile ? 70 : 78));
+
+        const buyButtonWidth = isMobile ? 50 : 70;
+        const buyButtonHeight = isMobile ? 28 : 36;
+        const buyButtonX = itemX + itemWidth - buyButtonWidth - (isMobile ? 10 : 15);
+        const buyButtonY = currentY + (itemHeight - buyButtonHeight) / 2;
+
+        const isBuyButtonHovered = this.hoveredButton === `shop_buy_${product.id}`;
+        const isBuyButtonClicked = this.clickedButton === `shop_buy_${product.id}`;
+
+        if (canBuy) {
+          let buyButtonColor = '#F97316';
+          if (isBuyButtonHovered) buyButtonColor = this.lightenColor('#F97316', 0.15);
+          let buyButtonScale = 1;
+          if (isBuyButtonHovered) buyButtonScale = 1.02;
+          if (isBuyButtonClicked) buyButtonScale = 0.95;
+
+          const scaledBuyWidth = buyButtonWidth * buyButtonScale;
+          const scaledBuyHeight = buyButtonHeight * buyButtonScale;
+          const scaledBuyX = buyButtonX + (buyButtonWidth - scaledBuyWidth) / 2;
+          const scaledBuyY = buyButtonY + (buyButtonHeight - scaledBuyHeight) / 2;
+
+          const buyShadowOffset = isBuyButtonClicked ? 2 : (isBuyButtonHovered ? 6 : 4);
+          this.drawBrutalismRect(ctx, scaledBuyX, scaledBuyY, scaledBuyWidth, scaledBuyHeight, buyButtonColor, {
+            shadowOffset: buyShadowOffset, borderWidth: 1
+          });
+
+          ctx.fillStyle = '#FFFFFF';
+          ctx.font = `bold ${isMobile ? 12 : 14}px "Arial Black", Arial, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('购买', scaledBuyX + scaledBuyWidth / 2, scaledBuyY + scaledBuyHeight / 2);
+        } else {
+          this.drawBrutalismRect(ctx, buyButtonX, buyButtonY, buyButtonWidth, buyButtonHeight, '#6B7280', {
+            shadowOffset: 2, borderWidth: 1
+          });
+
+          ctx.fillStyle = '#FFFFFF';
+          ctx.font = `bold ${isMobile ? 10 : 12}px "Arial Black", Arial, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('金币不足', buyButtonX + buyButtonWidth / 2, buyButtonY + buyButtonHeight / 2);
+        }
+
+        currentY += itemHeight + itemPadding;
+      }
+
+      currentY += categorySpacing;
+    }
+
+    // ── 技能分类 ──
     for (const [category, skills] of this.skillsData) {
-      const categoryHeaderHeight = isMobile ? 35 : 45;
-      
+
       if (currentY + categoryHeaderHeight > listStartY && currentY < listEndY) {
         ctx.fillStyle = scheme.text;
         ctx.font = `bold ${isMobile ? 20 : 24}px "Arial Black", Arial, sans-serif`;
@@ -4377,12 +4461,9 @@ export default class UI {
 
       currentY += categoryHeaderHeight;
 
-      const itemHeight = isMobile ? 85 : 100;
-      const itemPadding = isMobile ? 10 : 12;
-
       for (const skill of skills) {
         if (currentY > listEndY) break;
-        
+
         if (currentY + itemHeight < listStartY) {
           currentY += itemHeight + itemPadding;
           continue;
@@ -4391,11 +4472,8 @@ export default class UI {
         const itemWidth = modalWidth - (isMobile ? 30 : 40);
         const itemX = modalX + (isMobile ? 15 : 20);
 
-        const bgColor = scheme.cardBg;
-
-        this.drawBrutalismRect(ctx, itemX, currentY, itemWidth, itemHeight, bgColor, {
-          shadowOffset: 2,
-          borderWidth: 1
+        this.drawBrutalismRect(ctx, itemX, currentY, itemWidth, itemHeight, scheme.cardBg, {
+          shadowOffset: 2, borderWidth: 1
         });
 
         ctx.font = `bold ${isMobile ? 32 : 40}px Arial, sans-serif`;
@@ -4432,9 +4510,7 @@ export default class UI {
           ctx.fillText('已解锁', unlockButtonX + unlockButtonWidth / 2, unlockButtonY + unlockButtonHeight / 2);
         } else if (skill.canUnlock) {
           let unlockButtonColor = '#F97316';
-          if (isUnlockButtonHovered) {
-            unlockButtonColor = this.lightenColor('#F97316', 0.15);
-          }
+          if (isUnlockButtonHovered) unlockButtonColor = this.lightenColor('#F97316', 0.15);
 
           let unlockButtonScale = 1;
           if (isUnlockButtonHovered) unlockButtonScale = 1.02;
@@ -4447,8 +4523,7 @@ export default class UI {
 
           const unlockShadowOffset = isUnlockButtonClicked ? 2 : (isUnlockButtonHovered ? 6 : 4);
           this.drawBrutalismRect(ctx, scaledUnlockX, scaledUnlockY, scaledUnlockWidth, scaledUnlockHeight, unlockButtonColor, {
-            shadowOffset: unlockShadowOffset,
-            borderWidth: 1
+            shadowOffset: unlockShadowOffset, borderWidth: 1
           });
 
           ctx.fillStyle = '#FFFFFF';
@@ -4458,8 +4533,7 @@ export default class UI {
           ctx.fillText('解锁', scaledUnlockX + scaledUnlockWidth / 2, scaledUnlockY + scaledUnlockHeight / 2);
         } else {
           this.drawBrutalismRect(ctx, unlockButtonX, unlockButtonY, unlockButtonWidth, unlockButtonHeight, '#6B7280', {
-            shadowOffset: 2,
-            borderWidth: 1
+            shadowOffset: 2, borderWidth: 1
           });
 
           ctx.fillStyle = '#FFFFFF';
@@ -4480,7 +4554,86 @@ export default class UI {
         currentY += itemHeight + itemPadding;
       }
 
-      currentY += (isMobile ? 20 : 25);
+      currentY += categorySpacing;
+    }
+
+    // ── 特殊（时光倒流）──
+    if (resetProduct) {
+      if (currentY + categoryHeaderHeight > listStartY && currentY < listEndY) {
+        ctx.fillStyle = scheme.text;
+        ctx.font = `bold ${isMobile ? 20 : 24}px "Arial Black", Arial, sans-serif`;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('特殊', modalX + (isMobile ? 15 : 20), currentY);
+      }
+      currentY += categoryHeaderHeight;
+
+      const itemWidth = modalWidth - (isMobile ? 30 : 40);
+      const itemX = modalX + (isMobile ? 15 : 20);
+      const canBuy = this.coins >= resetProduct.price;
+
+      this.drawBrutalismRect(ctx, itemX, currentY, itemWidth, itemHeight, scheme.cardBg, {
+        shadowOffset: 2, borderWidth: 1
+      });
+
+      ctx.font = `bold ${isMobile ? 32 : 40}px Arial, sans-serif`;
+      ctx.fillStyle = scheme.text;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(resetProduct.icon, itemX + (isMobile ? 12 : 15), currentY + itemHeight / 2);
+
+      ctx.font = `bold ${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
+      ctx.fillText(resetProduct.name, itemX + (isMobile ? 50 : 60), currentY + (isMobile ? 20 : 25));
+
+      ctx.font = `${isMobile ? 11 : 13}px Arial, sans-serif`;
+      ctx.fillText(resetProduct.description, itemX + (isMobile ? 50 : 60), currentY + (isMobile ? 45 : 50));
+
+      const priceText = `💰 ${resetProduct.price}`;
+      ctx.font = `bold ${isMobile ? 12 : 14}px "Arial Black", Arial, sans-serif`;
+      ctx.textAlign = 'left';
+      ctx.fillText(priceText, itemX + (isMobile ? 50 : 60), currentY + (isMobile ? 70 : 78));
+
+      const buyButtonWidth = isMobile ? 50 : 70;
+      const buyButtonHeight = isMobile ? 28 : 36;
+      const buyButtonX = itemX + itemWidth - buyButtonWidth - (isMobile ? 10 : 15);
+      const buyButtonY = currentY + (itemHeight - buyButtonHeight) / 2;
+
+      const isBuyButtonHovered = this.hoveredButton === `shop_buy_${resetProduct.id}`;
+      const isBuyButtonClicked = this.clickedButton === `shop_buy_${resetProduct.id}`;
+
+      if (canBuy) {
+        let buyButtonColor = '#F97316';
+        if (isBuyButtonHovered) buyButtonColor = this.lightenColor('#F97316', 0.15);
+        let buyButtonScale = 1;
+        if (isBuyButtonHovered) buyButtonScale = 1.02;
+        if (isBuyButtonClicked) buyButtonScale = 0.95;
+
+        const scaledBuyWidth = buyButtonWidth * buyButtonScale;
+        const scaledBuyHeight = buyButtonHeight * buyButtonScale;
+        const scaledBuyX = buyButtonX + (buyButtonWidth - scaledBuyWidth) / 2;
+        const scaledBuyY = buyButtonY + (buyButtonHeight - scaledBuyHeight) / 2;
+
+        const buyShadowOffset = isBuyButtonClicked ? 2 : (isBuyButtonHovered ? 6 : 4);
+        this.drawBrutalismRect(ctx, scaledBuyX, scaledBuyY, scaledBuyWidth, scaledBuyHeight, buyButtonColor, {
+          shadowOffset: buyShadowOffset, borderWidth: 1
+        });
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = `bold ${isMobile ? 12 : 14}px "Arial Black", Arial, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('购买', scaledBuyX + scaledBuyWidth / 2, scaledBuyY + scaledBuyHeight / 2);
+      } else {
+        this.drawBrutalismRect(ctx, buyButtonX, buyButtonY, buyButtonWidth, buyButtonHeight, '#6B7280', {
+          shadowOffset: 2, borderWidth: 1
+        });
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = `bold ${isMobile ? 10 : 12}px "Arial Black", Arial, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('金币不足', buyButtonX + buyButtonWidth / 2, buyButtonY + buyButtonHeight / 2);
+      }
     }
   }
 
@@ -4548,13 +4701,42 @@ export default class UI {
     const categorySpacing = isMobile ? 20 : 25;
 
     let totalHeight = 0;
-    let categoryCount = 0;
+    let sectionCount = 0;
+
+    // 一次性道具（非时光倒流）
+    const consumableProducts = (this.shopProducts || []).filter(p => p.id !== 'reset_game');
+    const resetProduct = (this.shopProducts || []).find(p => p.id === 'reset_game');
+
+    if (consumableProducts.length > 0) {
+      totalHeight += categoryHeaderHeight;
+      totalHeight += consumableProducts.length * (itemHeight + itemPadding);
+      sectionCount++;
+    }
+
+    // 技能分类
+    let skillCategoryCount = 0;
     for (const [category, skills] of this.skillsData) {
       totalHeight += categoryHeaderHeight;
       totalHeight += skills.length * (itemHeight + itemPadding);
-      categoryCount++;
+      skillCategoryCount++;
     }
-    totalHeight += (categoryCount - 1) * categorySpacing;
+    if (skillCategoryCount > 1) {
+      totalHeight += (skillCategoryCount - 1) * categorySpacing;
+    }
+    if (skillCategoryCount > 0) sectionCount += skillCategoryCount;
+
+    // 特殊（时光倒流）
+    if (resetProduct) {
+      if (sectionCount > 0) totalHeight += categorySpacing;
+      totalHeight += categoryHeaderHeight;
+      totalHeight += 1 * (itemHeight + itemPadding);
+      sectionCount++;
+    }
+
+    // 各 section 之间的间距
+    if (sectionCount > 1 && consumableProducts.length > 0 && skillCategoryCount > 0) {
+      totalHeight += categorySpacing;
+    }
 
     const isMobile2 = this.width < 768;
     const modalHeight = isMobile2 ? this.height - 60 : this.height - 80;
@@ -4732,7 +4914,52 @@ export default class UI {
 
       if (y >= listStartY && y <= listEndY) {
         let currentY = listStartY - this.skillScrollOffset;
+        const itemWidth = modalWidth - (isMobile ? 30 : 40);
+        const itemX = modalX + (isMobile ? 15 : 20);
+        const buyButtonWidth = isMobile ? 50 : 70;
+        const buyButtonHeight = isMobile ? 28 : 36;
+        const unlockButtonWidth = isMobile ? 50 : 70;
+        const unlockButtonHeight = isMobile ? 28 : 36;
 
+        const consumableProducts = (this.shopProducts || []).filter(p => p.id !== 'reset_game');
+        const resetProduct = (this.shopProducts || []).find(p => p.id === 'reset_game');
+
+        // ── 一次性道具点击 ──
+        if (consumableProducts.length > 0) {
+          currentY += categoryHeaderHeight;
+
+          for (const product of consumableProducts) {
+            if (currentY > listEndY) break;
+            if (currentY + itemHeight < listStartY) {
+              currentY += itemHeight + itemPadding;
+              continue;
+            }
+
+            const btnX = itemX + itemWidth - buyButtonWidth - (isMobile ? 10 : 15);
+            const btnY = currentY + (itemHeight - buyButtonHeight) / 2;
+
+            if (y >= btnY && y <= btnY + buyButtonHeight &&
+                x >= btnX && x <= btnX + buyButtonWidth) {
+              if (this.coins >= product.price) {
+                this.clickedButton = `shop_buy_${product.id}`;
+                this.clickAnimation = 1;
+                if (this.onPlayClickSound) this.onPlayClickSound();
+                setTimeout(() => {
+                  this.clickedButton = null;
+                  this.clickAnimation = 0;
+                  if (this.onShopBuy) this.onShopBuy(product);
+                }, 150);
+                return true;
+              }
+            }
+
+            currentY += itemHeight + itemPadding;
+          }
+
+          currentY += categorySpacing;
+        }
+
+        // ── 技能点击 ──
         for (const [category, skills] of this.skillsData) {
           currentY += categoryHeaderHeight;
 
@@ -4744,25 +4971,18 @@ export default class UI {
               continue;
             }
 
-            const itemWidth = modalWidth - (isMobile ? 30 : 40);
-            const itemX = modalX + (isMobile ? 15 : 20);
+            const btnX = itemX + itemWidth - unlockButtonWidth - (isMobile ? 10 : 15);
+            const btnY = currentY + (itemHeight - unlockButtonHeight) / 2;
 
-            const unlockButtonWidth = isMobile ? 50 : 70;
-            const unlockButtonHeight = isMobile ? 28 : 36;
-            const unlockButtonX = itemX + itemWidth - unlockButtonWidth - (isMobile ? 10 : 15);
-            const unlockButtonY = currentY + (itemHeight - unlockButtonHeight) / 2;
-
-            if (y >= unlockButtonY && y <= unlockButtonY + unlockButtonHeight &&
-                x >= unlockButtonX && x <= unlockButtonX + unlockButtonWidth) {
+            if (y >= btnY && y <= btnY + unlockButtonHeight &&
+                x >= btnX && x <= btnX + unlockButtonWidth) {
               if (skill.canUnlock && !skill.isUnlocked) {
                 this.clickedButton = `skill_unlock_${skill.id}`;
                 this.clickAnimation = 1;
                 setTimeout(() => {
                   this.clickedButton = null;
                   this.clickAnimation = 0;
-                  if (this.onSkillUnlock) {
-                    this.onSkillUnlock(skill.id);
-                  }
+                  if (this.onSkillUnlock) this.onSkillUnlock(skill.id);
                 }, 150);
                 return true;
               }
@@ -4772,6 +4992,31 @@ export default class UI {
           }
 
           currentY += categorySpacing;
+        }
+
+        // ── 特殊（时光倒流）点击 ──
+        if (resetProduct) {
+          currentY += categoryHeaderHeight;
+
+          if (currentY <= listEndY && currentY + itemHeight >= listStartY) {
+            const btnX = itemX + itemWidth - buyButtonWidth - (isMobile ? 10 : 15);
+            const btnY = currentY + (itemHeight - buyButtonHeight) / 2;
+
+            if (y >= btnY && y <= btnY + buyButtonHeight &&
+                x >= btnX && x <= btnX + buyButtonWidth) {
+              if (this.coins >= resetProduct.price) {
+                this.clickedButton = `shop_buy_${resetProduct.id}`;
+                this.clickAnimation = 1;
+                if (this.onPlayClickSound) this.onPlayClickSound();
+                setTimeout(() => {
+                  this.clickedButton = null;
+                  this.clickAnimation = 0;
+                  if (this.onShopBuy) this.onShopBuy(resetProduct);
+                }, 150);
+                return true;
+              }
+            }
+          }
         }
       }
     }

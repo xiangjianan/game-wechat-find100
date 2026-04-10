@@ -1240,7 +1240,6 @@ export default class FindGameMain {
     const result = this.shopManager.buy(product.id);
 
     if (result.success) {
-      this.soundManager.playUiClick();
       this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, `+${result.itemsAdded} 💡`, '#10B981');
     } else {
       this.soundManager.playError();
@@ -1252,6 +1251,7 @@ export default class FindGameMain {
 
   openSkills() {
     this.ui.skillsData = this.skillManager.getSkillProgress();
+    this.ui.shopProducts = this.shopManager.getAllProducts();
     this.ui.skillScrollOffset = 0;
     this.ui.skillScrollVelocity = 0;
     this.ui.skillIsTouching = false;

@@ -15,16 +15,6 @@ export default class ShopManager {
       quantity: 1
     });
 
-    this.products.set('hint_5', {
-      id: 'hint_5',
-      itemId: 'hint',
-      name: '提示道具 x5',
-      description: '获得5个提示道具',
-      icon: '💡',
-      price: 25,
-      quantity: 5
-    });
-
     this.products.set('hint_10', {
       id: 'hint_10',
       itemId: 'hint',
@@ -33,6 +23,16 @@ export default class ShopManager {
       icon: '💡',
       price: 50,
       quantity: 10
+    });
+
+    this.products.set('hint_100', {
+      id: 'hint_100',
+      itemId: 'hint',
+      name: '提示道具 x100',
+      description: '获得100个提示道具',
+      icon: '💡',
+      price: 500,
+      quantity: 100
     });
 
     this.products.set('reset_game', {
