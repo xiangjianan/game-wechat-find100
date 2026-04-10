@@ -15,12 +15,12 @@ export default class EggManager {
       name: '倒序之王',
       description: '在自由模式第一关按倒序点击10到1',
       condition: 'reverse_sequence',
-      reward: { type: 'coins', amount: 100000 },
+      reward: { type: 'coins', amount: 10000 },
       achievementId: 'EGG001',
       achievementName: '倒序之王',
       achievementDescription: '发现逆向思维彩蛋',
       achievementIcon: '🔄',
-      achievementReward: { type: 'coins', amount: 100000 },
+      achievementReward: { type: 'coins', amount: 10000 },
       achievementHidden: true
     });
   }

@@ -68,7 +68,7 @@ export default class SkillManager {
       effect: { type: 'combo_bonus', value: 1 },
       maxLevel: 1,
       currentLevel: 0,
-      cost: 2000,
+      cost: 1000,
       prerequisite: null,
       icon: '🔥'
     });
@@ -81,7 +81,7 @@ export default class SkillManager {
       effect: { type: 'combo_bonus', value: 3 },
       maxLevel: 1,
       currentLevel: 0,
-      cost: 4000,
+      cost: 1500,
       prerequisite: 'combo_boost_1',
       icon: '🔥'
     });
@@ -94,7 +94,7 @@ export default class SkillManager {
       effect: { type: 'combo_bonus', value: 5 },
       maxLevel: 1,
       currentLevel: 0,
-      cost: 8000,
+      cost: 2500,
       prerequisite: 'combo_boost_2',
       icon: '🔥'
     });
@@ -225,7 +225,7 @@ export default class SkillManager {
       effect: { type: 'error_penalty', value: 0 },
       maxLevel: 1,
       currentLevel: 0,
-      cost: 8000,
+      cost: 5000,
       prerequisite: 'forgiveness_2',
       icon: '🛡'
     });

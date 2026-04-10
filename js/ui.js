@@ -1090,7 +1090,7 @@ export default class UI {
     // 奖励
     ctx.fillStyle = scheme.buttonSuccess;
     ctx.font = `bold ${isMobile ? 14 : 18}px "Arial Black", Arial, sans-serif`;
-    ctx.fillText('+100,000 coins', centerX, cardY + cardHeight * 0.65);
+    ctx.fillText('+10,000 coins', centerX, cardY + cardHeight * 0.65);
 
     // 关闭按钮
     const closeBtnWidth = isMobile ? 120 : 140;
@@ -2476,7 +2476,7 @@ export default class UI {
     const buttonSpacing = isMobile ? 12 : 16;
     const contentStartY = topSafeArea;
     const contentHeight = headerHeight - topSafeArea;
-    const buttonY = contentStartY + (contentHeight - buttonSize) / 2;
+    const buttonY = contentStartY + (contentHeight - buttonSize) / 2 - 6;
     const buttonStartX = isMobile ? 18 : 26;
 
     this.headerButtons = [

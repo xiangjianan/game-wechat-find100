@@ -773,7 +773,7 @@ export default class FindGameMain {
     // 清除 pendingNotifications，避免后续重复提示
     this.achievementManager.getPendingNotifications();
 
-    const message = `找到: ${numbersFound}\n完成时间: ${time.toFixed(2)}秒` +
+    const message = `找到: ${numbersFound}\n完成时间: ${time.toFixed(1)}秒` +
       (scoreResult.isNewHighScore ? '\n🎉 新纪录！' : '');
     
     const buttons = [
@@ -833,7 +833,7 @@ export default class FindGameMain {
       total: this.gameManager.getTotalProgress()
     });
 
-    const failMessage = `找到: ${progress}\n完成进度: ${progress}/${this.gameManager.getTotalProgress()}\n用时: ${time.toFixed(2)}秒` +
+    const failMessage = `找到: ${progress}\n完成进度: ${progress}/${this.gameManager.getTotalProgress()}\n用时: ${time.toFixed(1)}秒` +
       (scoreResult.isNewHighScore ? '\n🎉 新纪录！' : '');
     
     this.ui.showModalDialog(

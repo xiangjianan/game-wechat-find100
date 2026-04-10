@@ -155,7 +155,7 @@ export default class AchievementManager {
         description: '“谢谢你玩我的游戏”',
         category: 'hidden',
         condition: { type: 'egg_triggered', eggId: 'reverse_king' },
-        reward: { type: 'coins', amount: 100000 },
+        reward: { type: 'coins', amount: 10000 },
         icon: '🔄',
         hidden: true
       }
