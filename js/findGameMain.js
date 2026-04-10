@@ -1172,11 +1172,6 @@ export default class FindGameMain {
   }
 
   openRank() {
-    this.ui.rankData = {
-      1: this.scoreManager.getTopScores(1),
-      2: this.scoreManager.getTopScores(2)
-    };
-    this.ui.rankTab = 1;
     this.ui.showRankView();
     this.rankManager.open(() => {
       this.ui.hideRankView();
