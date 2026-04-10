@@ -8,15 +8,16 @@ let rankData = [];
 let isShow = false;
 let canvas = null;
 let ctx = null;
+let isLoading = false;
 
 // 排行榜配置
 const config = {
-  maxRank: 100,  // 最多显示的排名数
-  itemHeight: 50,  // 每行高度
-  headerHeight: 80,  // 标题栏高度
+  maxRank: 100,
+  itemHeight: 50,
+  headerHeight: 80,
   bgColor: '#1a1a2e',
   textColor: '#ffffff',
-  itemColors: ['#FFD700', '#C0C0C0', '#CD7F32', '#ffffff'],  // 金银铜和其他颜色
+  itemColors: ['#FFD700', '#C0C0C0', '#CD7F32', '#ffffff'],
   highlightColor: '#4CAF50',
   closeBtnColor: '#FF4444'
 };
@@ -31,7 +32,6 @@ function init() {
     console.log('OpenDataContext: init success, canvas size =', canvas.width, 'x', canvas.height);
 
     wx.onMessage(handleMessage);
-    fetchRankData();
   } catch (error) {
     console.error('OpenDataContext: init failed', error);
   }
@@ -45,10 +45,13 @@ function handleMessage(message) {
   switch (message.type) {
     case 'show':
       isShow = true;
+      isLoading = true;
+      render();
       fetchRankData();
       break;
     case 'hide':
       isShow = false;
+      isLoading = false;
       clearCanvas();
       break;
     case 'click':
@@ -67,6 +70,7 @@ function fetchRankData() {
     keyList: ['numbersFound', 'time', 'hiddenScore'],
     success: (res) => {
       console.log('OpenDataContext: getFriendCloudStorage success, count =', res.data.length);
+      isLoading = false;
       rankData = res.data.map((item, index) => {
         const numbersFoundData = item.KVDataList.find(kv => kv.key === 'numbersFound');
         const timeData = item.KVDataList.find(kv => kv.key === 'time');
@@ -98,6 +102,7 @@ function fetchRankData() {
     },
     fail: (error) => {
       console.error('OpenDataContext: getFriendCloudStorage failed', error);
+      isLoading = false;
       rankData = [];
       render();
     }
@@ -111,12 +116,17 @@ function render() {
   if (!isShow) {
     return;
   }
+  if (!ctx) {
+    console.error('OpenDataContext: ctx is null');
+    return;
+  }
 
   clearCanvas();
 
-  const { windowWidth, windowHeight } = wx.getSystemInfoSync();
-  const width = windowWidth;
-  const height = windowHeight;
+  var width = canvas.width;
+  var height = canvas.height;
+
+  console.log('OpenDataContext: render, size =', width, 'x', height, ', isLoading =', isLoading, ', dataCount =', rankData.length);
 
   // 绘制背景
   ctx.fillStyle = config.bgColor;
@@ -125,8 +135,27 @@ function render() {
   // 绘制标题
   drawHeader(width);
 
-  // 绘制排行榜列表
-  drawRankList(width, height);
+  if (isLoading) {
+    // 加载中提示
+    ctx.fillStyle = config.textColor;
+    ctx.font = '18px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('加载中...', width / 2, config.headerHeight + 60);
+  } else if (rankData.length === 0) {
+    // 无数据提示
+    ctx.fillStyle = config.textColor;
+    ctx.font = '18px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('暂无排行数据', width / 2, config.headerHeight + 60);
+    ctx.font = '14px sans-serif';
+    ctx.fillStyle = '#999999';
+    ctx.fillText('完成一局游戏后即可上榜', width / 2, config.headerHeight + 90);
+  } else {
+    // 绘制排行榜列表
+    drawRankList(width, height);
+  }
 
   // 绘制关闭按钮
   drawCloseButton(width);
@@ -176,7 +205,7 @@ function drawRankList(width, height) {
     const item = rankData[i];
     const y = startY + i * itemHeight;
 
-    // 绘制每一行
+    // 绘制每一行（跳过头像，避免异步加载问题）
     drawRankItem(item, y, width, itemHeight, i === 0);
   }
 }
@@ -191,43 +220,28 @@ function drawRankItem(item, y, width, height, isFirst) {
     ctx.fillRect(0, y, width, height);
   }
 
+  // 行分隔线
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(20, y + height);
+  ctx.lineTo(width - 20, y + height);
+  ctx.stroke();
+
   // 排名
   ctx.fillStyle = config.itemColors[Math.min(item.rank - 1, 3)];
   ctx.font = 'bold 18px sans-serif';
-  ctx.textAlign = 'left';
+  ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(item.rank <= 3 ? ['🥇', '🥈', '🥉'][item.rank - 1] : item.rank, 20, y + height / 2);
-
-  // 头像
-  try {
-    const avatarSize = 36;
-    const avatarX = 60;
-    const avatarY = y + (height - avatarSize) / 2;
-
-    // 绘制头像圆圈
-    ctx.beginPath();
-    ctx.arc(avatarX + avatarSize / 2, y + height / 2, avatarSize / 2, 0, Math.PI * 2);
-    ctx.closePath();
-
-    // 创建头像图片
-    const img = wx.createImage();
-    img.src = item.avatarUrl;
-    img.onload = () => {
-      ctx.save();
-      ctx.clip();
-      ctx.drawImage(img, avatarX, avatarY, avatarSize, avatarSize);
-      ctx.restore();
-      render();
-    }
-  } catch (error) {
-  }
+  const rankText = item.rank <= 3 ? ['1st', '2nd', '3rd'][item.rank - 1] : item.rank.toString();
+  ctx.fillText(rankText, 30, y + height / 2);
 
   // 昵称
   ctx.fillStyle = config.textColor;
   ctx.font = '16px sans-serif';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
-  ctx.fillText(truncateText(item.nickname, 12), 110, y + height / 2);
+  ctx.fillText(truncateText(item.nickname, 8), 60, y + height / 2);
 
   // 找到数量和耗时
   ctx.fillStyle = config.highlightColor;
@@ -266,12 +280,14 @@ function drawCloseButton(width) {
  * 处理点击事件
  */
 function handleClick(x, y) {
-  const { windowWidth } = wx.getSystemInfoSync();
-  const btnSize = 40;
+  var width = canvas.width;
+  var btnSize = 40;
 
   // 检查是否点击了关闭按钮
-  if (x >= windowWidth - btnSize && x <= windowWidth &&
-      y >= 0 && y <= btnSize) {
+  if (x >= width - btnSize && x <= width && y >= 0 && y <= btnSize) {
+    isShow = false;
+    isLoading = false;
+    clearCanvas();
     // 通知主游戏关闭排行榜
     wx.postMessage({
       type: 'close',
@@ -284,6 +300,7 @@ function handleClick(x, y) {
  * 截断文本
  */
 function truncateText(text, maxLength) {
+  if (!text) return '';
   if (text.length <= maxLength) {
     return text;
   }
