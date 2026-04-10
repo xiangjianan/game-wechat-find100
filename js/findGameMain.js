@@ -489,6 +489,10 @@ export default class FindGameMain {
       this.soundManager.playUiClick();
     };
 
+    this.rankManager.onFriendData = (data) => {
+      this.ui.friendRankData = data;
+    };
+
     this.ui.onOpenRank = () => {
       this.openRank();
     };
@@ -1172,6 +1176,7 @@ export default class FindGameMain {
   }
 
   openRank() {
+    this.ui.friendRankData = null;
     this.ui.showRankView();
     this.rankManager.open(() => {
       this.ui.hideRankView();

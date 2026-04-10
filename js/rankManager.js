@@ -1,7 +1,7 @@
 /**
  * 排行榜管理器
- * 负责处理微信小游戏排行榜功能
- * 主域通过 postMessage 与开放数据域通信，共享画布由开放数据域绘制后自动叠加显示
+ * 主域通过 postMessage 与开放数据域通信
+ * 开放数据域获取好友数据后通过 wx.postMessage 回传给主域
  */
 export default class RankManager {
   constructor() {
@@ -9,6 +9,8 @@ export default class RankManager {
     this.onCloseCallback = null;
     this.isWeChatGame = typeof wx !== 'undefined';
     this.sharedCanvas = null;
+    this.friendData = [];
+    this.onFriendData = null;
   }
 
   init() {
@@ -16,7 +18,18 @@ export default class RankManager {
       return false;
     }
     try {
-      this.sharedCanvas = wx.getOpenDataContext().canvas;
+      const openDataContext = wx.getOpenDataContext();
+      this.sharedCanvas = openDataContext.canvas;
+
+      // 监听开放数据域回传的好友数据
+      openDataContext.onMessage((message) => {
+        if (message.type === 'friendData') {
+          this.friendData = message.data || [];
+          if (this.onFriendData) {
+            this.onFriendData(this.friendData);
+          }
+        }
+      });
     } catch (e) {
       // ignore
     }
@@ -85,44 +98,6 @@ export default class RankManager {
     } catch (error) {
       console.error('RankManager: postMessage failed', error);
     }
-  }
-
-  handleOpenDataMessage(message) {
-    if (message.type === 'close') {
-      this.close();
-    }
-  }
-
-  handleClick(x, y, width, height) {
-    if (!this.isOpen) {
-      return false;
-    }
-
-    // 关闭按钮位置与开放数据域一致：标题栏左侧
-    const padX = 16;
-    const safeTop = this._getSafeTop();
-    const headerY = safeTop + 10;
-    const headerHeight = 48;
-    const closeSize = 30;
-    const closeX = padX;
-    const closeY = headerY + (headerHeight - closeSize) / 2;
-
-    if (x >= closeX && x <= closeX + closeSize &&
-        y >= closeY && y <= closeY + closeSize) {
-      this.close();
-      return true;
-    }
-
-    return true;
-  }
-
-  _getSafeTop() {
-    try {
-      const sysInfo = wx.getSystemInfoSync();
-      if (sysInfo.safeArea && sysInfo.safeArea.top > 0) return sysInfo.safeArea.top;
-      if (sysInfo.statusBarHeight > 0) return sysInfo.statusBarHeight;
-    } catch (e) {}
-    return 44;
   }
 
   isRankOpen() {
