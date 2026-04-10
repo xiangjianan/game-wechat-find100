@@ -1210,7 +1210,6 @@ export default class FindGameMain {
         this.ui.showFloatingText(this.ui.width / 2, this.ui.height / 2, '金币不足!', '#EF4444');
         return;
       }
-      this.soundManager.playUiClick();
       this.ui.showModalDialog(
         'resetConfirm',
         '⚠ 时光倒流',

@@ -617,13 +617,18 @@ export default class UI {
     }
 
     ctx.save();
-    ctx.shadowColor = 'rgba(59, 130, 246, 0.18)';
+    ctx.shadowColor = isTimedActive ? 'rgba(59, 130, 246, 0.18)' : 'rgba(16, 185, 129, 0.18)';
     ctx.shadowBlur = 10;
     ctx.shadowOffsetY = 2;
 
     const activeGradient = ctx.createLinearGradient(activeX, y, activeX + segmentWidth, y + height);
-    activeGradient.addColorStop(0, '#F97316');
-    activeGradient.addColorStop(1, '#FB923C');
+    if (isTimedActive) {
+      activeGradient.addColorStop(0, '#F97316');
+      activeGradient.addColorStop(1, '#FB923C');
+    } else {
+      activeGradient.addColorStop(0, '#10B981');
+      activeGradient.addColorStop(1, '#34D399');
+    }
     ctx.fillStyle = activeGradient;
     this.roundRect(ctx, activeX + 3 + offsetX, y + 3 + offsetY, segmentWidth - 6, height - 6, radius - 3);
     ctx.fill();
@@ -1120,7 +1125,6 @@ export default class UI {
   _buildMenuButtons() {
     const isMobile = this.width < 768;
     const margin = isMobile ? 24 : 48;
-    const startY = this.height * 0.48;
 
     // 开始游戏按钮 - 全宽大按钮，更高更醒目
     const startButtonWidth = this.width - margin * 2;
@@ -1131,7 +1135,20 @@ export default class UI {
     const cardWidth = (this.width - margin * 2 - cardGap) / 2;
     const cardHeight = isMobile ? 100 : 110;
 
-    const cardRow1Y = startY + startButtonHeight + 18;
+    // 计算模式切换器底部位置（与renderMenu中的计算一致）
+    const titleY = isMobile ? this.height * 0.2 : this.height * 0.18;
+    const sloganY = titleY + (isMobile ? 85 : 108);
+    const switcherHeight = isMobile ? 42 : 48;
+    const switcherBottom = sloganY + (isMobile ? 50 : 56) + switcherHeight;
+
+    // 卡片区域保持原位（基于0.48起始）
+    const origStartY = this.height * 0.48;
+    const cardRow1Y = origStartY + startButtonHeight + 18;
+
+    // 开始按钮到模式切换器和到游戏规则的距离相等
+    const gap = (cardRow1Y - switcherBottom - startButtonHeight) / 2;
+    const startY = switcherBottom + gap;
+
     const cardRow2Y = cardRow1Y + cardHeight + cardGap;
 
     const buttons = [
@@ -2221,7 +2238,7 @@ export default class UI {
     const switcherWidth = isMobile ? 240 : 280;
     const switcherHeight = isMobile ? 42 : 48;
     const switcherX = (this.width - switcherWidth) / 2;
-    const switcherY = sloganY + (isMobile ? 30 : 38);
+    const switcherY = sloganY + (isMobile ? 50 : 56);
 
     ctx.save();
     ctx.globalAlpha = Math.min(1, this.menuAnimation * 2);
@@ -4337,9 +4354,20 @@ export default class UI {
 
   renderSkillsCategories(ctx, modalX, modalY, modalWidth, modalHeight, isMobile) {
     const scheme = this.getScheme();
-    const listStartY = modalY + (isMobile ? 90 : 110);
-    const listEndY = modalY + modalHeight - (isMobile ? 140 : 160);
+    const listStartY = modalY + (isMobile ? 100 : 120);
+    const listEndY = modalY + modalHeight - (isMobile ? 130 : 150);
     const listHeight = listEndY - listStartY;
+
+    const itemHeight = isMobile ? 85 : 100;
+    const itemPadding = isMobile ? 10 : 12;
+    const categoryHeaderHeight = isMobile ? 35 : 45;
+    const categorySpacing = isMobile ? 20 : 25;
+
+    // 裁剪列表区域，防止内容溢出
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(modalX, listStartY, modalWidth, listHeight);
+    ctx.clip();
 
     const categoryNames = {
       'time': '时间技能',
@@ -4347,12 +4375,7 @@ export default class UI {
       'assist': '辅助技能'
     };
 
-    let currentY = listStartY - this.skillScrollOffset;
-
-    const itemHeight = isMobile ? 85 : 100;
-    const itemPadding = isMobile ? 10 : 12;
-    const categoryHeaderHeight = isMobile ? 35 : 45;
-    const categorySpacing = isMobile ? 20 : 25;
+    let currentY = listStartY + categoryHeaderHeight / 2 - this.skillScrollOffset;
 
     // ── 一次性道具（非时光倒流的商店商品）──
     const consumableProducts = (this.shopProducts || []).filter(p => p.id !== 'reset_game');
@@ -4635,6 +4658,8 @@ export default class UI {
         ctx.fillText('金币不足', buyButtonX + buyButtonWidth / 2, buyButtonY + buyButtonHeight / 2);
       }
     }
+
+    ctx.restore();
   }
 
   handleSkillsScroll(deltaY) {
@@ -4740,11 +4765,12 @@ export default class UI {
 
     const isMobile2 = this.width < 768;
     const modalHeight = isMobile2 ? this.height - 60 : this.height - 80;
-    const listStartY = (this.height - modalHeight) / 2 + (isMobile2 ? 90 : 110);
-    const listEndY = (this.height - modalHeight) / 2 + modalHeight - (isMobile2 ? 140 : 160);
+    const listStartY = (this.height - modalHeight) / 2 + (isMobile2 ? 100 : 120);
+    const listEndY = (this.height - modalHeight) / 2 + modalHeight - (isMobile2 ? 130 : 150);
     const listHeight = listEndY - listStartY;
+    const headerOffset = (isMobile2 ? 35 : 45) / 2;
 
-    const maxScroll = Math.max(0, totalHeight - listHeight);
+    const maxScroll = Math.max(0, totalHeight + headerOffset - listHeight);
     this.skillScrollOffset = Math.max(0, Math.min(this.skillScrollOffset, maxScroll));
   }
 
