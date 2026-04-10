@@ -3888,7 +3888,7 @@ export default class UI {
       const categorySpacing = isMobile ? 20 : 25;
 
       if (this.skillsData && this.mouseY >= listStartY && this.mouseY <= listEndY) {
-        let currentY = listStartY - this.skillScrollOffset;
+        let currentY = listStartY + categoryHeaderHeight / 2 - this.skillScrollOffset;
         const buyBtnW = isMobile ? 50 : 70;
         const buyBtnH = isMobile ? 28 : 36;
         const unlockBtnW = isMobile ? 50 : 70;
@@ -4939,7 +4939,7 @@ export default class UI {
       const categorySpacing = isMobile ? 20 : 25;
 
       if (y >= listStartY && y <= listEndY) {
-        let currentY = listStartY - this.skillScrollOffset;
+        let currentY = listStartY + categoryHeaderHeight / 2 - this.skillScrollOffset;
         const itemWidth = modalWidth - (isMobile ? 30 : 40);
         const itemX = modalX + (isMobile ? 15 : 20);
         const buyButtonWidth = isMobile ? 50 : 70;
