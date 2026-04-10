@@ -144,6 +144,9 @@ export default class UI {
     this.showScoreHistory = false;
     this.scoreHistoryData = { 1: [], 2: [] };
     this.scoreHistoryTab = 1;
+    this.rankTab = 1;
+    this.rankData = { 1: [], 2: [] };
+    this.friendRankData = null;
     this.scoreHistoryScrollOffset = 0;
     this.scoreHistoryTouchStartY = 0;
     this.scoreHistoryLastTouchY = 0;
@@ -1236,6 +1239,23 @@ export default class UI {
         cardHoverGlow: 'rgba(232, 114, 90, 0.12)',
         action: () => this.onOpenAchievements()
       }
+      // 排行榜按钮暂时隐藏，等好友数据就绪后恢复
+      // {
+      //   id: 'leaderboard',
+      //   text: '排行榜',
+      //   type: 'card',
+      //   x: margin,
+      //   y: cardRow2Y + cardHeight + cardGap,
+      //   width: startButtonWidth,
+      //   height: isMobile ? 48 : 54,
+      //   icon: 'star',
+      //   iconBg: '#F3E8FF',
+      //   iconColor: '#8B5CF6',
+      //   cardBg: 'rgba(255, 255, 255, 0.95)',
+      //   cardBorder: 'rgba(139, 92, 246, 0.2)',
+      //   cardHoverGlow: 'rgba(139, 92, 246, 0.12)',
+      //   action: () => this.onOpenRank()
+      // }
     ];
 
     return buttons;
@@ -1387,7 +1407,32 @@ export default class UI {
     }
 
     if (this.showRank) {
-      return false;
+      const isMobile = this.width < 768;
+      const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
+      const modalHeight = isMobile ? this.height - 60 : this.height - 80;
+      const modalX = (this.width - modalWidth) / 2;
+      const modalY = (this.height - modalHeight) / 2;
+
+      // Close button
+      const buttonWidth = isMobile ? 180 : 220;
+      const buttonHeight = isMobile ? 48 : 56;
+      const buttonX = (this.width - buttonWidth) / 2;
+      const buttonY = modalY + modalHeight - (isMobile ? 70 : 80);
+
+      if (x >= buttonX && x <= buttonX + buttonWidth &&
+          y >= buttonY && y <= buttonY + buttonHeight) {
+        this.clickedButton = 'rank_close';
+        this.clickAnimation = 1;
+        if (this.onPlayClickSound) this.onPlayClickSound();
+        setTimeout(() => {
+          this.clickedButton = null;
+          this.clickAnimation = 0;
+          this.hoveredButton = null;
+          if (this.onCloseRank) this.onCloseRank();
+        }, 150);
+        return true;
+      }
+      return true;
     }
 
     if (this.showModal) {
@@ -2141,6 +2186,14 @@ export default class UI {
       return;
     }
 
+    if (this.showRank) {
+      this.renderMenu(ctx);
+      this.renderLeaderboard(ctx);
+      this.renderEffects(ctx);
+      this.renderAchievementNotifications(ctx);
+      return;
+    }
+
     if (this.showInstructions) {
       this.renderInstructions(ctx);
       this.renderEffects(ctx);
@@ -2215,7 +2268,7 @@ export default class UI {
     const sloganHighlight = '1';
     const sloganAfter = ' 开始';
     const sloganFont = `${subtitleSize}px Arial, sans-serif`;
-    const highlightFont = `${subtitleSize + 4}px Arial, sans-serif`;
+    const highlightFont = `bold ${subtitleSize + 4}px Arial, sans-serif`;
 
     ctx.font = sloganFont;
     ctx.fillStyle = scheme.textSecondary;
@@ -3103,6 +3156,159 @@ export default class UI {
     }
   }
 
+  // ── Leaderboard ──
+
+  renderLeaderboard(ctx) {
+    const scheme = this.getScheme();
+    const isMobile = this.width < 768;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
+    const modalHeight = isMobile ? this.height - 60 : this.height - 80;
+    const modalX = (this.width - modalWidth) / 2;
+    const modalY = (this.height - modalHeight) / 2;
+
+    this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
+      shadowOffset: 8,
+      borderWidth: 0
+    });
+
+    // Title
+    const titleY = modalY + (isMobile ? 40 : 50);
+    ctx.fillStyle = scheme.text;
+    ctx.font = `bold ${isMobile ? 28 : 34}px "Arial Black", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('好友排行榜', this.width / 2, titleY);
+
+    const titleWidth = ctx.measureText('好友排行榜').width;
+    ctx.strokeStyle = '#FBBF24';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(this.width / 2 - titleWidth / 2 - 20, titleY + 25);
+    ctx.lineTo(this.width / 2 + titleWidth / 2 + 20, titleY + 25);
+    ctx.stroke();
+
+    const friends = this.friendRankData;
+
+    if (friends === null) {
+      // Loading
+      ctx.fillStyle = scheme.textSecondary;
+      ctx.font = `${isMobile ? 16 : 18}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('加载中...', this.width / 2, modalY + modalHeight / 2 - 10);
+    } else if (friends.length === 0) {
+      // No data
+      ctx.fillStyle = scheme.textSecondary;
+      ctx.font = `${isMobile ? 16 : 18}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('暂无好友排行数据', this.width / 2, modalY + modalHeight / 2 - 20);
+      ctx.fillStyle = '#9CA3AF';
+      ctx.font = `${isMobile ? 13 : 14}px Arial, sans-serif`;
+      ctx.fillText('完成一局游戏后即可上榜', this.width / 2, modalY + modalHeight / 2 + 10);
+    } else {
+      // Friend list
+      const listStartY = modalY + (isMobile ? 80 : 95);
+      const listEndY = modalY + modalHeight - (isMobile ? 80 : 90);
+      const listHeight = listEndY - listStartY;
+      const itemHeight = isMobile ? 56 : 64;
+      const itemPadding = isMobile ? 6 : 8;
+      const itemWidth = modalWidth - (isMobile ? 20 : 30);
+      const itemX = modalX + (isMobile ? 10 : 15);
+      const medals = ['#FBBF24', '#3B82F6', '#10B981'];
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(modalX, listStartY, modalWidth, listHeight);
+      ctx.clip();
+
+      friends.forEach((friend, index) => {
+        const itemY = listStartY + index * (itemHeight + itemPadding);
+        if (itemY + itemHeight < listStartY || itemY > listEndY) return;
+
+        const isTop3 = index < 3;
+        const bgColor = isTop3 ? 'rgba(255, 252, 245, 0.95)' : scheme.cardBg;
+        this.drawBrutalismRect(ctx, itemX, itemY, itemWidth, itemHeight, bgColor, {
+          shadowOffset: isTop3 ? 4 : 2,
+          borderWidth: isTop3 ? 3 : 2
+        });
+
+        // Rank badge
+        const rankX = itemX + (isMobile ? 14 : 18);
+        const rankY = itemY + itemHeight / 2;
+        if (isTop3) {
+          ctx.beginPath();
+          ctx.arc(rankX, rankY, isMobile ? 16 : 18, 0, Math.PI * 2);
+          ctx.fillStyle = medals[index];
+          ctx.fill();
+          ctx.fillStyle = '#FFFFFF';
+        } else {
+          ctx.fillStyle = scheme.textSecondary;
+        }
+        ctx.font = `bold ${isMobile ? 14 : 16}px Arial, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`${index + 1}`, rankX, rankY);
+
+        // Nickname
+        const infoX = itemX + (isMobile ? 38 : 46);
+        ctx.textAlign = 'left';
+        ctx.fillStyle = scheme.text;
+        ctx.font = `bold ${isMobile ? 15 : 17}px "Arial Black", Arial, sans-serif`;
+        ctx.fillText(truncateText(friend.nickname, 8), infoX, itemY + (isMobile ? 20 : 22));
+
+        // Score
+        ctx.fillStyle = scheme.textSecondary;
+        ctx.font = `${isMobile ? 12 : 14}px Arial, sans-serif`;
+        ctx.fillText(`找到 ${friend.numbersFound} 个 · 用时 ${friend.time.toFixed(1)} 秒`, infoX, itemY + (isMobile ? 40 : 44));
+      });
+
+      ctx.restore();
+    }
+
+    // Close button
+    const buttonWidth = isMobile ? 180 : 220;
+    const buttonHeight = isMobile ? 48 : 56;
+    const buttonX = (this.width - buttonWidth) / 2;
+    const buttonY = modalY + modalHeight - (isMobile ? 70 : 80);
+
+    const isHovered = this.hoveredButton === 'rank_close';
+    const isClicked = this.clickedButton === 'rank_close';
+
+    let fillColor = scheme.buttonPrimary;
+    if (isHovered) fillColor = this.lightenColor(scheme.buttonPrimary, 0.15);
+
+    let scale = 1;
+    if (isHovered) scale = 1.02;
+    if (isClicked) scale = 0.95;
+
+    const sw = buttonWidth * scale;
+    const sh = buttonHeight * scale;
+    const sx = (this.width - sw) / 2;
+    const sy = buttonY + (buttonHeight - sh) / 2;
+
+    this.drawBrutalismRect(ctx, sx, sy, sw, sh, fillColor, {
+      shadowOffset: isClicked ? 2 : (isHovered ? 8 : 6),
+      borderWidth: 4
+    });
+
+    ctx.fillStyle = scheme.textLight;
+    ctx.font = `bold ${isMobile ? 18 : 20}px "Arial Black", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('返回', this.width / 2, sy + sh / 2);
+  }
+
+  truncateText(text, max) {
+    if (!text) return '';
+    if (text.length <= max) return text;
+    return text.substring(0, max) + '...';
+  }
+
   renderScoreHistory(ctx) {
     const scheme = this.getScheme();
     const isMobile = this.width < 768;
@@ -3285,14 +3491,43 @@ export default class UI {
       const scoreValue = score.score !== undefined ? score.score : score.numbersFound;
       const infoX = itemX + (isMobile ? 40 : 48);
       ctx.textAlign = 'left';
-      ctx.fillStyle = scheme.text;
-      ctx.font = `bold ${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
-      ctx.fillText(`找到 ${scoreValue} 个`, infoX, itemY + (isMobile ? 20 : 22));
+      ctx.font = `${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
+      ctx.textBaseline = 'middle';
+      const scoreLineY = itemY + (isMobile ? 20 : 22);
 
-      // Time spent
+      // "找到 " + 数量高亮 + " 个"
+      ctx.fillStyle = scheme.text;
+      const foundPrefix = '找到 ';
+      const foundPrefixW = ctx.measureText(foundPrefix).width;
+      ctx.fillText(foundPrefix, infoX, scoreLineY);
+
+      ctx.fillStyle = scheme.accent;
+      ctx.font = `bold ${isMobile ? 18 : 20}px "Arial Black", Arial, sans-serif`;
+      const scoreStr = `${scoreValue}`;
+      const scoreW = ctx.measureText(scoreStr).width;
+      ctx.fillText(scoreStr, infoX + foundPrefixW, scoreLineY);
+
+      ctx.fillStyle = scheme.text;
+      ctx.font = `${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
+      ctx.fillText(' 个', infoX + foundPrefixW + scoreW, scoreLineY);
+
+      // Time spent: "用时 " + 时间高亮 + " 秒"
+      const timeLineY = itemY + (isMobile ? 42 : 46);
+      ctx.font = `${isMobile ? 12 : 14}px Arial, sans-serif`;
+      ctx.fillStyle = scheme.textSecondary;
+      const timePrefix = '用时 ';
+      const timePrefixW = ctx.measureText(timePrefix).width;
+      ctx.fillText(timePrefix, infoX, timeLineY);
+
+      ctx.fillStyle = '#F97316';
+      ctx.font = `bold ${isMobile ? 14 : 16}px Arial, sans-serif`;
+      const timeStr = `${score.timeSpent.toFixed(1)}`;
+      const timeW = ctx.measureText(timeStr).width;
+      ctx.fillText(timeStr, infoX + timePrefixW, timeLineY);
+
       ctx.fillStyle = scheme.textSecondary;
       ctx.font = `${isMobile ? 12 : 14}px Arial, sans-serif`;
-      ctx.fillText(`用时 ${score.timeSpent.toFixed(1)} 秒`, infoX, itemY + (isMobile ? 42 : 46));
+      ctx.fillText(' 秒', infoX + timePrefixW + timeW, timeLineY);
 
       // Date
       if (score.timestamp) {

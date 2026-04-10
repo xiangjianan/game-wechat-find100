@@ -1,89 +1,67 @@
 /**
  * 排行榜管理器
- * 负责处理微信小游戏排行榜功能
+ * 主域通过 postMessage 与开放数据域通信
+ * 开放数据域获取好友数据后通过 wx.postMessage 回传给主域
  */
 export default class RankManager {
   constructor() {
-    this.sharedCanvas = null;
-    this.sharedCanvasContext = null;
     this.isOpen = false;
     this.onCloseCallback = null;
-    this.isWeChatGame = typeof wx !== 'undefined' && wx.createOpenDataContext;
+    this.isWeChatGame = typeof wx !== 'undefined';
+    this.sharedCanvas = null;
+    this.friendData = [];
+    this.onFriendData = null;
   }
 
-  /**
-   * 初始化排行榜
-   */
   init() {
     if (!this.isWeChatGame) {
       return false;
     }
-
     try {
-      this.sharedCanvas = wx.getSharedCanvas();
-      this.sharedCanvasContext = this.sharedCanvas.getContext('2d');
-      wx.onMessage(this.handleOpenDataMessage.bind(this));
-      return true;
-    } catch (error) {
-      return false;
+      const openDataContext = wx.getOpenDataContext();
+      this.sharedCanvas = openDataContext.canvas;
+
+      // 监听开放数据域回传的好友数据
+      openDataContext.onMessage((message) => {
+        if (message.type === 'friendData') {
+          this.friendData = message.data || [];
+          if (this.onFriendData) {
+            this.onFriendData(this.friendData);
+          }
+        }
+      });
+    } catch (e) {
+      // ignore
     }
+    return true;
   }
 
-  /**
-   * 上传分数到排行榜
-   * @param {number} score - 分数（时间越短分数越高）
-   * @param {number} level - 关卡
-   */
-  calculateScore(totalNumbers, time) {
-    const baseScorePerNumber = 100;
-    const baseTimePerNumber = 1.5;
-    const timeBonusMultiplier = 50;
-    
-    const baseScore = totalNumbers * baseScorePerNumber;
-    const expectedTime = totalNumbers * baseTimePerNumber;
-    const timeDiff = expectedTime - time;
-    const timeBonus = Math.max(0, timeDiff * timeBonusMultiplier);
-    const finalScore = Math.floor(baseScore + timeBonus);
-    
-    return Math.max(0, finalScore);
+  calculateScore(numbersFound, time) {
+    return numbersFound - 0.0001 * time;
   }
 
-  uploadScore(time, level = 1, totalNumbers = 10) {
+  uploadScore(numbersFound, time, level = 1) {
     if (!this.isWeChatGame) {
       return;
     }
 
-    try {
-      const finalScore = this.calculateScore(totalNumbers, time);
+    const hiddenScore = this.calculateScore(numbersFound, time);
 
-      wx.setUserCloudStorage({
-        KVDataList: [
-          {
-            key: 'score',
-            value: finalScore.toString()
-          },
-          {
-            key: 'time',
-            value: time.toString()
-          },
-          {
-            key: 'level',
-            value: level.toString()
-          },
-          {
-            key: 'totalNumbers',
-            value: totalNumbers.toString()
-          }
-        ]
-      });
-    } catch (error) {
-    }
+    wx.setUserCloudStorage({
+      KVDataList: [
+        { key: 'numbersFound', value: numbersFound.toString() },
+        { key: 'time', value: time.toString() },
+        { key: 'hiddenScore', value: hiddenScore.toString() }
+      ],
+      success: () => {
+        console.log('RankManager: uploadScore success', { numbersFound, time, hiddenScore });
+      },
+      fail: (err) => {
+        console.error('RankManager: uploadScore failed', err);
+      }
+    });
   }
 
-  /**
-   * 打开排行榜
-   * @param {Function} onClose - 关闭回调
-   */
   open(onClose = null) {
     if (!this.isWeChatGame) {
       return false;
@@ -91,26 +69,17 @@ export default class RankManager {
 
     this.isOpen = true;
     this.onCloseCallback = onClose;
-    this.sendMessageToOpenData({
-      type: 'show',
-      data: {}
-    });
+    this.sendMessageToOpenData({ type: 'show' });
     return true;
   }
 
-  /**
-   * 关闭排行榜
-   */
   close() {
     if (!this.isWeChatGame) {
       return;
     }
 
     this.isOpen = false;
-    this.sendMessageToOpenData({
-      type: 'hide',
-      data: {}
-    });
+    this.sendMessageToOpenData({ type: 'hide' });
 
     if (this.onCloseCallback) {
       this.onCloseCallback();
@@ -118,10 +87,6 @@ export default class RankManager {
     }
   }
 
-  /**
-   * 发送消息到开放数据域
-   * @param {Object} message - 消息对象
-   */
   sendMessageToOpenData(message) {
     if (!this.isWeChatGame) {
       return;
@@ -131,46 +96,10 @@ export default class RankManager {
       const openDataContext = wx.getOpenDataContext();
       openDataContext.postMessage(message);
     } catch (error) {
+      console.error('RankManager: postMessage failed', error);
     }
   }
 
-  /**
-   * 处理来自开放数据域的消息
-   * @param {Object} message - 消息对象
-   */
-  handleOpenDataMessage(message) {
-    switch (message.type) {
-      case 'close':
-        this.close();
-        break;
-      default:
-        break;
-    }
-  }
-
-  handleClick(x, y, width, height) {
-    if (!this.isOpen) {
-      return false;
-    }
-
-    const closeBtnSize = 40;
-    if (x >= width - closeBtnSize && x <= width &&
-        y >= 0 && y <= closeBtnSize) {
-      this.close();
-      return true;
-    }
-
-    this.sendMessageToOpenData({
-      type: 'click',
-      data: { x, y }
-    });
-
-    return true;
-  }
-
-  /**
-   * 检查排行榜是否打开
-   */
   isRankOpen() {
     return this.isOpen;
   }

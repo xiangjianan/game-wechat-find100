@@ -489,6 +489,10 @@ export default class FindGameMain {
       this.soundManager.playUiClick();
     };
 
+    this.rankManager.onFriendData = (data) => {
+      this.ui.friendRankData = data;
+    };
+
     this.ui.onOpenRank = () => {
       this.openRank();
     };
@@ -703,11 +707,6 @@ export default class FindGameMain {
       return;
     }
 
-    if (this.rankManager.isRankOpen()) {
-      this.rankManager.handleClick(x, y, SCREEN_WIDTH, SCREEN_HEIGHT);
-      return;
-    }
-
     if (this.ui.handleClick(x, y)) return;
 
     if (this.gameManager.gameState === 'playing') {
@@ -748,6 +747,9 @@ export default class FindGameMain {
     const level = this.gameManager.currentLevel;
     const numbersFound = this.gameManager.totalNumbers;
     const scoreResult = this.scoreManager.recordScore(level, numbersFound, time);
+
+    // 上传分数到微信排行榜
+    this.rankManager.uploadScore(numbersFound, time, level);
 
     const hasNextLevel = this.gameManager.hasNextLevel();
 
@@ -819,6 +821,11 @@ export default class FindGameMain {
     const time = this.gameManager.getCompletionTime();
     const level = this.gameManager.currentLevel;
     const scoreResult = this.scoreManager.recordScore(level, progress, time);
+
+    // 上传分数到微信排行榜（部分完成也算）
+    if (progress > 0) {
+      this.rankManager.uploadScore(progress, time, level);
+    }
 
     this.achievementManager.checkAchievement('game_fail', {
       level: this.gameManager.currentLevel,
@@ -1079,10 +1086,6 @@ export default class FindGameMain {
       this.renderGameAreaBorder(ctx);
     }
 
-    if (this.rankManager.isRankOpen()) {
-      this.rankManager.render(ctx, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    }
-
     this.ui.render(
       ctx,
       this.gameManager.gameState,
@@ -1173,12 +1176,11 @@ export default class FindGameMain {
   }
 
   openRank() {
-    const opened = this.rankManager.open(() => {
+    this.ui.friendRankData = null;
+    this.ui.showRankView();
+    this.rankManager.open(() => {
       this.ui.hideRankView();
     });
-    if (opened !== false) {
-      this.ui.showRankView();
-    }
   }
 
   closeRank() {
