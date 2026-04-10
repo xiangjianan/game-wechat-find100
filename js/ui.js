@@ -2232,7 +2232,7 @@ export default class UI {
     const sloganHighlight = '1';
     const sloganAfter = ' 开始';
     const sloganFont = `${subtitleSize}px Arial, sans-serif`;
-    const highlightFont = `${subtitleSize + 4}px Arial, sans-serif`;
+    const highlightFont = `bold ${subtitleSize + 4}px Arial, sans-serif`;
 
     ctx.font = sloganFont;
     ctx.fillStyle = scheme.textSecondary;
