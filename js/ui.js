@@ -144,6 +144,8 @@ export default class UI {
     this.showScoreHistory = false;
     this.scoreHistoryData = { 1: [], 2: [] };
     this.scoreHistoryTab = 1;
+    this.rankTab = 1;
+    this.rankData = { 1: [], 2: [] };
     this.scoreHistoryScrollOffset = 0;
     this.scoreHistoryTouchStartY = 0;
     this.scoreHistoryLastTouchY = 0;
@@ -1404,7 +1406,51 @@ export default class UI {
     }
 
     if (this.showRank) {
-      return false;
+      const isMobile = this.width < 768;
+      const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
+      const modalHeight = isMobile ? this.height - 60 : this.height - 80;
+      const modalX = (this.width - modalWidth) / 2;
+      const modalY = (this.height - modalHeight) / 2;
+
+      // Tab clicks
+      const tabY = modalY + (isMobile ? 75 : 90);
+      const tabGap = isMobile ? 10 : 12;
+      const tabWidth = (modalWidth - (isMobile ? 30 : 40)) / 2;
+      const tabHeight = isMobile ? 38 : 44;
+      const tabStartX = modalX + (isMobile ? 15 : 20);
+
+      for (let i = 1; i <= 2; i++) {
+        const tX = tabStartX + (i - 1) * (tabWidth + tabGap);
+        if (x >= tX && x <= tX + tabWidth &&
+            y >= tabY && y <= tabY + tabHeight) {
+          if (this.rankTab !== i) {
+            this.rankTab = i;
+            if (this.onPlayClickSound) this.onPlayClickSound();
+          }
+          return true;
+        }
+      }
+
+      // Close button
+      const buttonWidth = isMobile ? 180 : 220;
+      const buttonHeight = isMobile ? 48 : 56;
+      const buttonX = (this.width - buttonWidth) / 2;
+      const buttonY = modalY + modalHeight - (isMobile ? 70 : 80);
+
+      if (x >= buttonX && x <= buttonX + buttonWidth &&
+          y >= buttonY && y <= buttonY + buttonHeight) {
+        this.clickedButton = 'rank_close';
+        this.clickAnimation = 1;
+        if (this.onPlayClickSound) this.onPlayClickSound();
+        setTimeout(() => {
+          this.clickedButton = null;
+          this.clickAnimation = 0;
+          this.hoveredButton = null;
+          if (this.onCloseRank) this.onCloseRank();
+        }, 150);
+        return true;
+      }
+      return true;
     }
 
     if (this.showModal) {
@@ -2155,6 +2201,14 @@ export default class UI {
       if (this.showModal) {
         this.renderModal(ctx);
       }
+      return;
+    }
+
+    if (this.showRank) {
+      this.renderMenu(ctx);
+      this.renderLeaderboard(ctx);
+      this.renderEffects(ctx);
+      this.renderAchievementNotifications(ctx);
       return;
     }
 
@@ -3118,6 +3172,210 @@ export default class UI {
     } else {
       this.scoreHistoryScrollVelocity = 0;
     }
+  }
+
+  // ── Leaderboard ──
+
+  renderLeaderboard(ctx) {
+    const scheme = this.getScheme();
+    const isMobile = this.width < 768;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
+    const modalHeight = isMobile ? this.height - 60 : this.height - 80;
+    const modalX = (this.width - modalWidth) / 2;
+    const modalY = (this.height - modalHeight) / 2;
+
+    this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
+      shadowOffset: 8,
+      borderWidth: 0
+    });
+
+    // Title
+    const titleY = modalY + (isMobile ? 40 : 50);
+    ctx.fillStyle = scheme.text;
+    ctx.font = `bold ${isMobile ? 28 : 34}px "Arial Black", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('排行榜', this.width / 2, titleY);
+
+    const titleWidth = ctx.measureText('排行榜').width;
+    ctx.strokeStyle = '#FBBF24';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(this.width / 2 - titleWidth / 2 - 20, titleY + 25);
+    ctx.lineTo(this.width / 2 + titleWidth / 2 + 20, titleY + 25);
+    ctx.stroke();
+
+    // Tab switcher (关卡1 / 关卡2)
+    this.renderLeaderboardTabs(ctx, modalX, modalY, modalWidth, isMobile);
+
+    // Score list
+    this.renderLeaderboardList(ctx, modalX, modalY, modalWidth, modalHeight, isMobile);
+
+    // Close button
+    const buttonWidth = isMobile ? 180 : 220;
+    const buttonHeight = isMobile ? 48 : 56;
+    const buttonX = (this.width - buttonWidth) / 2;
+    const buttonY = modalY + modalHeight - (isMobile ? 70 : 80);
+
+    const isHovered = this.hoveredButton === 'rank_close';
+    const isClicked = this.clickedButton === 'rank_close';
+
+    let fillColor = scheme.buttonPrimary;
+    if (isHovered) fillColor = this.lightenColor(scheme.buttonPrimary, 0.15);
+
+    let scale = 1;
+    if (isHovered) scale = 1.02;
+    if (isClicked) scale = 0.95;
+
+    const sw = buttonWidth * scale;
+    const sh = buttonHeight * scale;
+    const sx = (this.width - sw) / 2;
+    const sy = buttonY + (buttonHeight - sh) / 2;
+
+    this.drawBrutalismRect(ctx, sx, sy, sw, sh, fillColor, {
+      shadowOffset: isClicked ? 2 : (isHovered ? 8 : 6),
+      borderWidth: 4
+    });
+
+    ctx.fillStyle = scheme.textLight;
+    ctx.font = `bold ${isMobile ? 18 : 20}px "Arial Black", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('返回', this.width / 2, sy + sh / 2);
+  }
+
+  renderLeaderboardTabs(ctx, modalX, modalY, modalWidth, isMobile) {
+    const scheme = this.getScheme();
+    const tabY = modalY + (isMobile ? 75 : 90);
+    const tabWidth = (modalWidth - (isMobile ? 30 : 40)) / 2;
+    const tabHeight = isMobile ? 38 : 44;
+    const tabGap = isMobile ? 10 : 12;
+    const tabStartX = modalX + (isMobile ? 15 : 20);
+
+    const tabs = [
+      { id: 1, label: '第一关 Top10' },
+      { id: 2, label: '第二关 Top10' }
+    ];
+
+    tabs.forEach((tab, index) => {
+      const isActive = this.rankTab === tab.id;
+      const tabX = tabStartX + index * (tabWidth + tabGap);
+      const isHovered = this.hoveredButton === `rankTab_${tab.id}`;
+      const isClicked = this.clickedButton === `rankTab_${tab.id}`;
+
+      let bgColor = isActive ? '#FBBF24' : scheme.cardBg;
+      if (!isActive && isHovered) bgColor = 'rgba(91, 168, 143, 0.1)';
+
+      let scale = 1;
+      if (isClicked) scale = 0.95;
+
+      const sw = tabWidth * scale;
+      const sh = tabHeight * scale;
+      const sx = tabX + (tabWidth - sw) / 2;
+      const sy = tabY + (tabHeight - sh) / 2;
+
+      this.drawBrutalismRect(ctx, sx, sy, sw, sh, bgColor, {
+        shadowOffset: isActive ? 4 : 2,
+        borderWidth: isActive ? 3 : 2,
+        radius: 14
+      });
+
+      ctx.fillStyle = isActive ? '#FFFFFF' : scheme.text;
+      ctx.font = `bold ${isMobile ? 14 : 16}px "Arial Black", Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(tab.label, tabX + tabWidth / 2, tabY + tabHeight / 2);
+    });
+  }
+
+  renderLeaderboardList(ctx, modalX, modalY, modalWidth, modalHeight, isMobile) {
+    const scheme = this.getScheme();
+    const scores = this.rankData[this.rankTab] || [];
+
+    const listStartY = modalY + (isMobile ? 130 : 150);
+    const listEndY = modalY + modalHeight - (isMobile ? 80 : 90);
+    const listHeight = listEndY - listStartY;
+    const itemHeight = isMobile ? 60 : 68;
+    const itemPadding = isMobile ? 6 : 8;
+    const itemWidth = modalWidth - (isMobile ? 20 : 30);
+    const itemX = modalX + (isMobile ? 10 : 15);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(modalX, listStartY, modalWidth, listHeight);
+    ctx.clip();
+
+    if (scores.length === 0) {
+      ctx.fillStyle = scheme.textSecondary;
+      ctx.font = `${isMobile ? 16 : 18}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('暂无记录，快去挑战吧！', this.width / 2, listStartY + listHeight / 2);
+    }
+
+    const medals = ['#FBBF24', '#3B82F6', '#10B981'];
+
+    scores.forEach((score, index) => {
+      const itemY = listStartY + index * (itemHeight + itemPadding);
+
+      if (itemY + itemHeight < listStartY || itemY > listEndY) return;
+
+      const isTop3 = index < 3;
+      const bgColor = isTop3 ? 'rgba(255, 252, 245, 0.95)' : scheme.cardBg;
+
+      this.drawBrutalismRect(ctx, itemX, itemY, itemWidth, itemHeight, bgColor, {
+        shadowOffset: isTop3 ? 4 : 2,
+        borderWidth: isTop3 ? 3 : 2
+      });
+
+      // Rank badge
+      const rankX = itemX + (isMobile ? 14 : 18);
+      const rankY = itemY + itemHeight / 2;
+
+      if (isTop3) {
+        ctx.beginPath();
+        ctx.arc(rankX, rankY, isMobile ? 16 : 18, 0, Math.PI * 2);
+        ctx.fillStyle = medals[index];
+        ctx.fill();
+        ctx.fillStyle = '#FFFFFF';
+      } else {
+        ctx.fillStyle = scheme.textSecondary;
+      }
+      ctx.font = `bold ${isMobile ? 14 : 16}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`${index + 1}`, rankX, rankY);
+
+      // Score info
+      const scoreValue = score.score !== undefined ? score.score : score.numbersFound;
+      const infoX = itemX + (isMobile ? 40 : 48);
+      ctx.textAlign = 'left';
+      ctx.fillStyle = scheme.text;
+      ctx.font = `bold ${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
+      ctx.fillText(`找到 ${scoreValue} 个`, infoX, itemY + (isMobile ? 20 : 22));
+
+      ctx.fillStyle = scheme.textSecondary;
+      ctx.font = `${isMobile ? 12 : 14}px Arial, sans-serif`;
+      ctx.fillText(`用时 ${score.timeSpent.toFixed(1)} 秒`, infoX, itemY + (isMobile ? 42 : 46));
+
+      // Date
+      if (score.timestamp) {
+        const date = new Date(score.timestamp);
+        const dateStr = `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+        ctx.fillStyle = scheme.textSecondary;
+        ctx.font = `${isMobile ? 11 : 12}px Arial, sans-serif`;
+        ctx.textAlign = 'right';
+        ctx.globalAlpha = 0.6;
+        ctx.fillText(dateStr, itemX + itemWidth - (isMobile ? 12 : 15), itemY + (isMobile ? 42 : 46));
+        ctx.globalAlpha = 1;
+      }
+    });
+
+    ctx.restore();
   }
 
   renderScoreHistory(ctx) {

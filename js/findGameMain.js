@@ -703,11 +703,6 @@ export default class FindGameMain {
       return;
     }
 
-    if (this.rankManager.isRankOpen()) {
-      this.rankManager.handleClick(x, y, SCREEN_WIDTH, SCREEN_HEIGHT);
-      return;
-    }
-
     if (this.ui.handleClick(x, y)) return;
 
     if (this.gameManager.gameState === 'playing') {
@@ -1097,11 +1092,6 @@ export default class FindGameMain {
     );
 
     this.renderEmotionalTimerEffects(ctx, deltaTime);
-
-    // 绘制开放数据域共享画布（排行榜）
-    if (this.rankManager.isRankOpen() && this.rankManager.sharedCanvas) {
-      ctx.drawImage(this.rankManager.sharedCanvas, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    }
   }
 
   loop() {
@@ -1182,10 +1172,15 @@ export default class FindGameMain {
   }
 
   openRank() {
+    this.ui.rankData = {
+      1: this.scoreManager.getTopScores(1),
+      2: this.scoreManager.getTopScores(2)
+    };
+    this.ui.rankTab = 1;
+    this.ui.showRankView();
     this.rankManager.open(() => {
       this.ui.hideRankView();
     });
-    this.ui.showRankView();
   }
 
   closeRank() {
