@@ -28,12 +28,12 @@ function init() {
   try {
     canvas = wx.getSharedCanvas();
     ctx = canvas.getContext('2d');
+    console.log('OpenDataContext: init success, canvas size =', canvas.width, 'x', canvas.height);
 
-    // 监听主游戏发送的消息
     wx.onMessage(handleMessage);
-
     fetchRankData();
   } catch (error) {
+    console.error('OpenDataContext: init failed', error);
   }
 }
 
@@ -41,11 +41,11 @@ function init() {
  * 处理来自主游戏的消息
  */
 function handleMessage(message) {
+  console.log('OpenDataContext: received message', message.type);
   switch (message.type) {
     case 'show':
       isShow = true;
       fetchRankData();
-      render();
       break;
     case 'hide':
       isShow = false;
@@ -66,6 +66,7 @@ function fetchRankData() {
   wx.getFriendCloudStorage({
     keyList: ['numbersFound', 'time', 'hiddenScore'],
     success: (res) => {
+      console.log('OpenDataContext: getFriendCloudStorage success, count =', res.data.length);
       rankData = res.data.map((item, index) => {
         const numbersFoundData = item.KVDataList.find(kv => kv.key === 'numbersFound');
         const timeData = item.KVDataList.find(kv => kv.key === 'time');
@@ -96,6 +97,7 @@ function fetchRankData() {
       render();
     },
     fail: (error) => {
+      console.error('OpenDataContext: getFriendCloudStorage failed', error);
       rankData = [];
       render();
     }

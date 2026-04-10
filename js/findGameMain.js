@@ -1087,10 +1087,6 @@ export default class FindGameMain {
       this.renderGameAreaBorder(ctx);
     }
 
-    if (this.rankManager.isRankOpen()) {
-      this.rankManager.render(ctx, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    }
-
     this.ui.render(
       ctx,
       this.gameManager.gameState,
@@ -1181,12 +1177,10 @@ export default class FindGameMain {
   }
 
   openRank() {
-    const opened = this.rankManager.open(() => {
+    this.rankManager.open(() => {
       this.ui.hideRankView();
     });
-    if (opened === false) {
-      this.ui.showRankView();
-    }
+    this.ui.showRankView();
   }
 
   closeRank() {
