@@ -1238,24 +1238,24 @@ export default class UI {
         cardBorder: 'rgba(232, 114, 90, 0.2)',
         cardHoverGlow: 'rgba(232, 114, 90, 0.12)',
         action: () => this.onOpenAchievements()
-      },
-      // 排行榜 - 全宽按钮
-      {
-        id: 'leaderboard',
-        text: '排行榜',
-        type: 'card',
-        x: margin,
-        y: cardRow2Y + cardHeight + cardGap,
-        width: startButtonWidth,
-        height: isMobile ? 48 : 54,
-        icon: 'star',
-        iconBg: '#F3E8FF',
-        iconColor: '#8B5CF6',
-        cardBg: 'rgba(255, 255, 255, 0.95)',
-        cardBorder: 'rgba(139, 92, 246, 0.2)',
-        cardHoverGlow: 'rgba(139, 92, 246, 0.12)',
-        action: () => this.onOpenRank()
       }
+      // 排行榜按钮暂时隐藏，等好友数据就绪后恢复
+      // {
+      //   id: 'leaderboard',
+      //   text: '排行榜',
+      //   type: 'card',
+      //   x: margin,
+      //   y: cardRow2Y + cardHeight + cardGap,
+      //   width: startButtonWidth,
+      //   height: isMobile ? 48 : 54,
+      //   icon: 'star',
+      //   iconBg: '#F3E8FF',
+      //   iconColor: '#8B5CF6',
+      //   cardBg: 'rgba(255, 255, 255, 0.95)',
+      //   cardBorder: 'rgba(139, 92, 246, 0.2)',
+      //   cardHoverGlow: 'rgba(139, 92, 246, 0.12)',
+      //   action: () => this.onOpenRank()
+      // }
     ];
 
     return buttons;
