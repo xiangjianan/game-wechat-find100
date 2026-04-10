@@ -3491,14 +3491,43 @@ export default class UI {
       const scoreValue = score.score !== undefined ? score.score : score.numbersFound;
       const infoX = itemX + (isMobile ? 40 : 48);
       ctx.textAlign = 'left';
-      ctx.fillStyle = scheme.text;
-      ctx.font = `bold ${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
-      ctx.fillText(`找到 ${scoreValue} 个`, infoX, itemY + (isMobile ? 20 : 22));
+      ctx.font = `${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
+      ctx.textBaseline = 'middle';
+      const scoreLineY = itemY + (isMobile ? 20 : 22);
 
-      // Time spent
+      // "找到 " + 数量高亮 + " 个"
+      ctx.fillStyle = scheme.text;
+      const foundPrefix = '找到 ';
+      const foundPrefixW = ctx.measureText(foundPrefix).width;
+      ctx.fillText(foundPrefix, infoX, scoreLineY);
+
+      ctx.fillStyle = scheme.accent;
+      ctx.font = `bold ${isMobile ? 18 : 20}px "Arial Black", Arial, sans-serif`;
+      const scoreStr = `${scoreValue}`;
+      const scoreW = ctx.measureText(scoreStr).width;
+      ctx.fillText(scoreStr, infoX + foundPrefixW, scoreLineY);
+
+      ctx.fillStyle = scheme.text;
+      ctx.font = `${isMobile ? 16 : 18}px "Arial Black", Arial, sans-serif`;
+      ctx.fillText(' 个', infoX + foundPrefixW + scoreW, scoreLineY);
+
+      // Time spent: "用时 " + 时间高亮 + " 秒"
+      const timeLineY = itemY + (isMobile ? 42 : 46);
+      ctx.font = `${isMobile ? 12 : 14}px Arial, sans-serif`;
+      ctx.fillStyle = scheme.textSecondary;
+      const timePrefix = '用时 ';
+      const timePrefixW = ctx.measureText(timePrefix).width;
+      ctx.fillText(timePrefix, infoX, timeLineY);
+
+      ctx.fillStyle = '#F97316';
+      ctx.font = `bold ${isMobile ? 14 : 16}px Arial, sans-serif`;
+      const timeStr = `${score.timeSpent.toFixed(1)}`;
+      const timeW = ctx.measureText(timeStr).width;
+      ctx.fillText(timeStr, infoX + timePrefixW, timeLineY);
+
       ctx.fillStyle = scheme.textSecondary;
       ctx.font = `${isMobile ? 12 : 14}px Arial, sans-serif`;
-      ctx.fillText(`用时 ${score.timeSpent.toFixed(1)} 秒`, infoX, itemY + (isMobile ? 42 : 46));
+      ctx.fillText(' 秒', infoX + timePrefixW + timeW, timeLineY);
 
       // Date
       if (score.timestamp) {
