@@ -2431,10 +2431,11 @@ export default class UI {
   renderHeader(ctx, headerHeight, topSafeArea, isMobile, timeLeft, currentNumber, totalNumbers) {
     const scheme = this.getScheme();
     
-    ctx.fillStyle = scheme.background;
+    // 半透明背景，让连击背景流动效果透出来
+    ctx.fillStyle = 'rgba(255, 250, 245, 0.85)';
     ctx.fillRect(0, 0, this.width, headerHeight);
     
-    ctx.fillStyle = scheme.border;
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.2)';
     ctx.fillRect(0, headerHeight - 4, this.width, 4);
 
     const buttonSize = isMobile ? 46 : 52;
@@ -2595,10 +2596,11 @@ export default class UI {
     const footerY = this.height - footerHeight;
     const centerX = this.width / 2;
     
-    ctx.fillStyle = scheme.background;
+    // 半透明背景，让连击背景流动效果透出来
+    ctx.fillStyle = 'rgba(255, 250, 245, 0.85)';
     ctx.fillRect(0, footerY, this.width, footerHeight);
     
-    ctx.fillStyle = scheme.border;
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.2)';
     ctx.fillRect(0, footerY, this.width, 4);
     
     const progressBarWidth = isMobile ? 220 : 300;
