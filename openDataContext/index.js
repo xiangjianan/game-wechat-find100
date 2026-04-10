@@ -241,20 +241,7 @@ function drawRankItem(item, x, y, width, height, isFirst, isLast) {
 }
 
 function handleClick(clickX, clickY) {
-  var W = canvas.width;
-  var px = config.padX;
-  var headerY = safeTop + 10;
-  var closeSize = 30;
-  var closeX = px;
-  var closeY = headerY + (config.headerHeight - closeSize) / 2;
-
-  if (clickX >= closeX && clickX <= closeX + closeSize &&
-      clickY >= closeY && clickY <= closeY + closeSize) {
-    isShow = false;
-    isLoading = false;
-    clearCanvas();
-    wx.postMessage({ type: 'close', data: {} });
-  }
+  // 关闭按钮由主域处理，openDataContext 不做关闭操作
 }
 
 function clearCanvas() {

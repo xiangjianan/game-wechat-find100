@@ -98,15 +98,31 @@ export default class RankManager {
       return false;
     }
 
-    const closeBtnSize = 40;
-    if (x >= width - closeBtnSize && x <= width &&
-        y >= 0 && y <= closeBtnSize) {
+    // 关闭按钮位置与开放数据域一致：标题栏左侧
+    const padX = 16;
+    const safeTop = this._getSafeTop();
+    const headerY = safeTop + 10;
+    const headerHeight = 48;
+    const closeSize = 30;
+    const closeX = padX;
+    const closeY = headerY + (headerHeight - closeSize) / 2;
+
+    if (x >= closeX && x <= closeX + closeSize &&
+        y >= closeY && y <= closeY + closeSize) {
       this.close();
       return true;
     }
 
-    this.sendMessageToOpenData({ type: 'click', data: { x, y } });
     return true;
+  }
+
+  _getSafeTop() {
+    try {
+      const sysInfo = wx.getSystemInfoSync();
+      if (sysInfo.safeArea && sysInfo.safeArea.top > 0) return sysInfo.safeArea.top;
+      if (sysInfo.statusBarHeight > 0) return sysInfo.statusBarHeight;
+    } catch (e) {}
+    return 44;
   }
 
   isRankOpen() {
