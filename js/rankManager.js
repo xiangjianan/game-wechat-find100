@@ -8,7 +8,7 @@ export default class RankManager {
     this.sharedCanvasContext = null;
     this.isOpen = false;
     this.onCloseCallback = null;
-    this.isWeChatGame = typeof wx !== 'undefined' && wx.createOpenDataContext;
+    this.isWeChatGame = typeof wx !== 'undefined';
   }
 
   /**
@@ -23,13 +23,18 @@ export default class RankManager {
     try {
       this.sharedCanvas = wx.getSharedCanvas();
       this.sharedCanvasContext = this.sharedCanvas.getContext('2d');
-      wx.onMessage(this.handleOpenDataMessage.bind(this));
-      console.log('RankManager: init success');
-      return true;
     } catch (error) {
-      console.error('RankManager: init failed', error);
-      return false;
+      console.warn('RankManager: getSharedCanvas not available', error.message);
     }
+
+    try {
+      wx.onMessage(this.handleOpenDataMessage.bind(this));
+    } catch (error) {
+      console.warn('RankManager: onMessage not available', error.message);
+    }
+
+    console.log('RankManager: init done, isWeChatGame =', this.isWeChatGame);
+    return true;
   }
 
   /**
