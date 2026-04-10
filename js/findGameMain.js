@@ -612,6 +612,8 @@ export default class FindGameMain {
         if (unlockedAchievements.length > 0) {
           this.ui.showAchievementNotification(unlockedAchievements);
         }
+        // 清除 pendingNotifications，避免后续重复提示
+        this.achievementManager.getPendingNotifications();
       }
     };
     
@@ -765,6 +767,9 @@ export default class FindGameMain {
     if (unlockedAchievements.length > 0) {
       this.ui.showAchievementNotification(unlockedAchievements);
     }
+
+    // 清除 pendingNotifications，避免后续重复提示
+    this.achievementManager.getPendingNotifications();
 
     const message = `找到: ${numbersFound}\n完成时间: ${time.toFixed(2)}秒` +
       (scoreResult.isNewHighScore ? '\n🎉 新纪录！' : '');

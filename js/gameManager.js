@@ -26,8 +26,8 @@ export default class GameManager {
     this.onComboBreak = null;
     this.onEggTriggered = null;
 
-    this.timeLeft = 5.0;
-    this.initialTime = 5.0;
+    this.timeLeft = 10.0;
+    this.initialTime = 10.0;
     this.timeBonus = 5.0;
     this.timerInterval = null;
     this.clickCount = 0;
@@ -170,8 +170,7 @@ export default class GameManager {
     this.currentNumber++;
     this.clickCount++;
 
-    // 里程碑检测：25%、50%、75%
-    this.checkMilestone();
+    // 里程碑检测已移除
 
     // 鹰眼技能：3秒后高亮下一个数字
 
@@ -382,6 +381,10 @@ export default class GameManager {
     ctx.closePath();
     ctx.clip();
 
+    // 不透明背景，遮挡连击流动效果
+    ctx.fillStyle = '#FFFAF5';
+    ctx.fillRect(clipX, clipY, clipW, clipH);
+
     // 先绘制所有多边形的形状（底层）
     for (const polygon of this.polygons) {
       polygon.renderShape(ctx);
@@ -542,10 +545,20 @@ export default class GameManager {
 
   useHint() {
     if (this.gameState !== 'playing') return false;
-    if (!this.itemManager || !this.itemManager.hasItem('hint', 1)) return false;
     if (this.currentNumber > this.totalNumbers) return false;
 
-    this.clearHint();
+    // 如果已有提示高亮的目标，不消耗提示次数
+    if (this.hintedPolygon) {
+      // 已有提示，检查目标是否仍是当前数字
+      if (this.hintedPolygon.number === this.currentNumber && !this.hintedPolygon.isClicked) {
+        // 目标未变，不消耗提示
+        return true;
+      }
+      // 目标已失效，清除旧提示
+      this.clearHint();
+    }
+
+    if (!this.itemManager || !this.itemManager.hasItem('hint', 1)) return false;
 
     const targetPolygon = this.polygons.find(p => p.number === this.currentNumber && !p.isClicked);
     if (!targetPolygon) return false;
