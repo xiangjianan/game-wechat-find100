@@ -29,11 +29,6 @@ function init() {
     canvas = wx.getSharedCanvas();
     ctx = canvas.getContext('2d');
 
-    // 设置画布尺寸
-    const { windowWidth, windowHeight } = wx.getSystemInfoSync();
-    canvas.width = windowWidth;
-    canvas.height = windowHeight;
-
     // 监听主游戏发送的消息
     wx.onMessage(handleMessage);
 
