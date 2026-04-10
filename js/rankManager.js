@@ -8,11 +8,17 @@ export default class RankManager {
     this.isOpen = false;
     this.onCloseCallback = null;
     this.isWeChatGame = typeof wx !== 'undefined';
+    this.sharedCanvas = null;
   }
 
   init() {
     if (!this.isWeChatGame) {
       return false;
+    }
+    try {
+      this.sharedCanvas = wx.getOpenDataContext().canvas;
+    } catch (e) {
+      // ignore
     }
     return true;
   }

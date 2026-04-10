@@ -1097,6 +1097,11 @@ export default class FindGameMain {
     );
 
     this.renderEmotionalTimerEffects(ctx, deltaTime);
+
+    // 绘制开放数据域共享画布（排行榜）
+    if (this.rankManager.isRankOpen() && this.rankManager.sharedCanvas) {
+      ctx.drawImage(this.rankManager.sharedCanvas, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    }
   }
 
   loop() {
