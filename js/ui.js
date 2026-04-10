@@ -1139,7 +1139,8 @@ export default class UI {
     const titleY = isMobile ? this.height * 0.2 : this.height * 0.18;
     const sloganY = titleY + (isMobile ? 85 : 108);
     const switcherHeight = isMobile ? 42 : 48;
-    const switcherBottom = sloganY + (isMobile ? 50 : 56) + switcherHeight;
+    const switcherOffset = isMobile ? 16 : 20;
+    const switcherBottom = sloganY + (isMobile ? 50 : 56) + switcherOffset + switcherHeight;
 
     // 卡片区域保持原位（基于0.48起始）
     const origStartY = this.height * 0.48;
@@ -2213,24 +2214,29 @@ export default class UI {
     const sloganBefore = '找回消失的专注，从找到第一个 ';
     const sloganHighlight = '1';
     const sloganAfter = ' 开始';
+    const sloganFont = `${subtitleSize}px Arial, sans-serif`;
+    const highlightFont = `${subtitleSize + 4}px Arial, sans-serif`;
 
-    ctx.font = `${subtitleSize}px Arial, sans-serif`;
+    ctx.font = sloganFont;
     ctx.fillStyle = scheme.textSecondary;
     const wBefore = ctx.measureText(sloganBefore).width;
+    ctx.font = highlightFont;
     const wHighlight = ctx.measureText(sloganHighlight).width;
+    ctx.font = sloganFont;
     const wAfter = ctx.measureText(sloganAfter).width;
     const totalW = wBefore + wHighlight + wAfter;
     const sloganStartX = this.width / 2 - totalW / 2;
 
     ctx.textAlign = 'left';
+    ctx.font = sloganFont;
     ctx.fillText(sloganBefore, sloganStartX, sloganY);
 
     ctx.fillStyle = '#FBBF24';
-    ctx.font = `bold ${subtitleSize}px Arial, sans-serif`;
+    ctx.font = highlightFont;
     ctx.fillText(sloganHighlight, sloganStartX + wBefore, sloganY);
 
     ctx.fillStyle = scheme.textSecondary;
-    ctx.font = `${subtitleSize}px Arial, sans-serif`;
+    ctx.font = sloganFont;
     ctx.fillText(sloganAfter, sloganStartX + wBefore + wHighlight, sloganY);
 
     ctx.restore();
@@ -2238,7 +2244,8 @@ export default class UI {
     const switcherWidth = isMobile ? 240 : 280;
     const switcherHeight = isMobile ? 42 : 48;
     const switcherX = (this.width - switcherWidth) / 2;
-    const switcherY = sloganY + (isMobile ? 50 : 56);
+    const switcherOffset = isMobile ? 16 : 20;
+    const switcherY = sloganY + (isMobile ? 50 : 56) + switcherOffset;
 
     ctx.save();
     ctx.globalAlpha = Math.min(1, this.menuAnimation * 2);
