@@ -36,7 +36,7 @@ function fetchFriendData() {
           avatarUrl: item.avatarUrl || '',
           numbersFound: nf ? parseInt(nf.value) : 0,
           time: td ? parseFloat(td.value) : 0,
-          hiddenScore: hs ? parseInt(hs.value) : 0
+          hiddenScore: hs ? parseFloat(hs.value) : 0
         };
       });
 
