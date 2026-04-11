@@ -2963,7 +2963,7 @@ export default class UI {
 
     ctx.save();
     ctx.beginPath();
-    ctx.rect(modalX, listStartY, modalWidth, listHeight);
+    ctx.rect(modalX, listStartY - 10, modalWidth, listHeight + 10);
     ctx.clip();
 
     const totalHeight = achievements.length * (itemHeight + itemPadding);
