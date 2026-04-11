@@ -615,12 +615,18 @@ export default class FindGameMain {
 
         if (unlockedAchievements.length > 0) {
           this.ui.showAchievementNotification(unlockedAchievements);
+          for (const a of unlockedAchievements) {
+            if (a.reward && a.reward.type === 'coins' && a.reward.amount > 0) {
+              this.ui.showCoinFlyEffect(a.reward.amount, center);
+              this.soundManager.playCoin();
+            }
+          }
         }
         // 清除 pendingNotifications，避免后续重复提示
         this.achievementManager.getPendingNotifications();
       }
     };
-    
+
     this.gameManager.onComboLevelUp = (level, count, center) => {
       this.ui.onComboLevelUp(level, count, center);
       this.vibrationManager.vibrateCombo(level.vibration);
@@ -698,6 +704,12 @@ export default class FindGameMain {
     if (this.achievementManager.hasPendingNotifications()) {
       const unlockedAchievements = this.achievementManager.getPendingNotifications();
       this.ui.showAchievementNotification(unlockedAchievements);
+      for (const a of unlockedAchievements) {
+        if (a.reward && a.reward.type === 'coins' && a.reward.amount > 0) {
+          this.ui.showCoinFlyEffect(a.reward.amount, { x: this.ui.width / 2, y: this.ui.height / 2 });
+          this.soundManager.playCoin();
+        }
+      }
     }
   }
 
@@ -768,6 +780,12 @@ export default class FindGameMain {
 
     if (unlockedAchievements.length > 0) {
       this.ui.showAchievementNotification(unlockedAchievements);
+      for (const a of unlockedAchievements) {
+        if (a.reward && a.reward.type === 'coins' && a.reward.amount > 0) {
+          this.ui.showCoinFlyEffect(a.reward.amount, { x: this.ui.width / 2, y: this.ui.height / 2 });
+          this.soundManager.playCoin();
+        }
+      }
     }
 
     // 清除 pendingNotifications，避免后续重复提示
