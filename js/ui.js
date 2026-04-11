@@ -1408,10 +1408,12 @@ export default class UI {
 
     if (this.showRank) {
       const isMobile = this.width < 768;
+      const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
+      const bottomSafeArea = Math.max(this.safeArea.bottom, isMobile ? 34 : 0);
       const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
-      const modalHeight = isMobile ? this.height - 60 : this.height - 80;
+      const modalHeight = isMobile ? this.height - topSafeArea - bottomSafeArea - 20 : this.height - 80;
       const modalX = (this.width - modalWidth) / 2;
-      const modalY = (this.height - modalHeight) / 2;
+      const modalY = isMobile ? topSafeArea + 10 : (this.height - modalHeight) / 2;
 
       // Close button
       const buttonWidth = isMobile ? 180 : 220;
@@ -1477,10 +1479,12 @@ export default class UI {
 
     if (this.showScoreHistory) {
       const isMobile = this.width < 768;
+      const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
+      const bottomSafeArea = Math.max(this.safeArea.bottom, isMobile ? 34 : 0);
       const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
-      const modalHeight = isMobile ? this.height - 60 : this.height - 80;
+      const modalHeight = isMobile ? this.height - topSafeArea - bottomSafeArea - 20 : this.height - 80;
       const modalX = (this.width - modalWidth) / 2;
-      const modalY = (this.height - modalHeight) / 2;
+      const modalY = isMobile ? topSafeArea + 10 : (this.height - modalHeight) / 2;
 
       // Tab clicks
       const tabY = modalY + (isMobile ? 75 : 90);
@@ -2877,10 +2881,12 @@ export default class UI {
     ctx.fillStyle = `rgba(0, 0, 0, 0.8)`;
     ctx.fillRect(0, 0, this.width, this.height);
 
+    const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
+    const bottomSafeArea = Math.max(this.safeArea.bottom, isMobile ? 34 : 0);
     const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
-    const modalHeight = isMobile ? this.height - 60 : this.height - 80;
+    const modalHeight = isMobile ? this.height - topSafeArea - bottomSafeArea - 20 : this.height - 80;
     const modalX = (this.width - modalWidth) / 2;
-    const modalY = (this.height - modalHeight) / 2;
+    const modalY = isMobile ? topSafeArea + 10 : (this.height - modalHeight) / 2;
 
     this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
       shadowOffset: 8,
@@ -3071,10 +3077,13 @@ export default class UI {
     this.lastScrollTime = now;
     
     const isMobile = this.width < 768;
-    const modalHeight = isMobile ? this.height - 80 : this.height - 100;
-    const listStartY = (this.height - modalHeight) / 2 + (isMobile ? 90 : 110);
-    const listEndY = (this.height - modalHeight) / 2 + modalHeight - (isMobile ? 90 : 100);
-    
+    const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
+    const bottomSafeArea = Math.max(this.safeArea.bottom, isMobile ? 34 : 0);
+    const modalHeight = isMobile ? this.height - topSafeArea - bottomSafeArea - 20 : this.height - 80;
+    const modalY = isMobile ? topSafeArea + 10 : (this.height - modalHeight) / 2;
+    const listStartY = modalY + (isMobile ? 90 : 110);
+    const listEndY = modalY + modalHeight - (isMobile ? 90 : 100);
+
     if (y >= listStartY && y <= listEndY) {
       this.achievementScrollOffset += deltaY;
       
@@ -3130,9 +3139,12 @@ export default class UI {
     this.scoreHistoryLastTouchY = y;
 
     const isMobile = this.width < 768;
-    const modalHeight = isMobile ? this.height - 60 : this.height - 80;
-    const listStartY = (this.height - modalHeight) / 2 + (isMobile ? 130 : 150);
-    const listEndY = (this.height - modalHeight) / 2 + modalHeight - (isMobile ? 80 : 90);
+    const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
+    const bottomSafeArea = Math.max(this.safeArea.bottom, isMobile ? 34 : 0);
+    const modalHeight = isMobile ? this.height - topSafeArea - bottomSafeArea - 20 : this.height - 80;
+    const modalY = isMobile ? topSafeArea + 10 : (this.height - modalHeight) / 2;
+    const listStartY = modalY + (isMobile ? 130 : 150);
+    const listEndY = modalY + modalHeight - (isMobile ? 80 : 90);
 
     if (y >= listStartY && y <= listEndY) {
       this.scoreHistoryScrollOffset += deltaY;
@@ -3165,10 +3177,12 @@ export default class UI {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
     ctx.fillRect(0, 0, this.width, this.height);
 
+    const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
+    const bottomSafeArea = Math.max(this.safeArea.bottom, isMobile ? 34 : 0);
     const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
-    const modalHeight = isMobile ? this.height - 60 : this.height - 80;
+    const modalHeight = isMobile ? this.height - topSafeArea - bottomSafeArea - 20 : this.height - 80;
     const modalX = (this.width - modalWidth) / 2;
-    const modalY = (this.height - modalHeight) / 2;
+    const modalY = isMobile ? topSafeArea + 10 : (this.height - modalHeight) / 2;
 
     this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
       shadowOffset: 8,
@@ -3316,10 +3330,12 @@ export default class UI {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
     ctx.fillRect(0, 0, this.width, this.height);
 
+    const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
+    const bottomSafeArea = Math.max(this.safeArea.bottom, isMobile ? 34 : 0);
     const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
-    const modalHeight = isMobile ? this.height - 60 : this.height - 80;
+    const modalHeight = isMobile ? this.height - topSafeArea - bottomSafeArea - 20 : this.height - 80;
     const modalX = (this.width - modalWidth) / 2;
-    const modalY = (this.height - modalHeight) / 2;
+    const modalY = isMobile ? topSafeArea + 10 : (this.height - modalHeight) / 2;
 
     this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
       shadowOffset: 8,
@@ -4103,10 +4119,12 @@ export default class UI {
 
     if (this.showSkills) {
       const isMobile = this.width < 768;
+      const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
+      const bottomSafeArea = Math.max(this.safeArea.bottom, isMobile ? 34 : 0);
       const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
-      const modalHeight = isMobile ? this.height - 60 : this.height - 80;
+      const modalHeight = isMobile ? this.height - topSafeArea - bottomSafeArea - 20 : this.height - 80;
       const modalX = (this.width - modalWidth) / 2;
-      const modalY = (this.height - modalHeight) / 2;
+      const modalY = isMobile ? topSafeArea + 10 : (this.height - modalHeight) / 2;
 
       const closeButtonWidth = isMobile ? 180 : 220;
       const closeButtonHeight = isMobile ? 48 : 56;
@@ -4330,10 +4348,12 @@ export default class UI {
     ctx.fillStyle = `rgba(0, 0, 0, 0.8)`;
     ctx.fillRect(0, 0, this.width, this.height);
 
+    const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
+    const bottomSafeArea = Math.max(this.safeArea.bottom, isMobile ? 34 : 0);
     const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
-    const modalHeight = isMobile ? this.height - 80 : this.height - 100;
+    const modalHeight = isMobile ? this.height - topSafeArea - bottomSafeArea - 20 : this.height - 100;
     const modalX = (this.width - modalWidth) / 2;
-    const modalY = (this.height - modalHeight) / 2;
+    const modalY = isMobile ? topSafeArea + 10 : (this.height - modalHeight) / 2;
 
     this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
       shadowOffset: 8,
@@ -4524,10 +4544,12 @@ export default class UI {
     ctx.fillStyle = `rgba(0, 0, 0, 0.8)`;
     ctx.fillRect(0, 0, this.width, this.height);
 
+    const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
+    const bottomSafeArea = Math.max(this.safeArea.bottom, isMobile ? 34 : 0);
     const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
-    const modalHeight = isMobile ? this.height - 60 : this.height - 80;
+    const modalHeight = isMobile ? this.height - topSafeArea - bottomSafeArea - 20 : this.height - 80;
     const modalX = (this.width - modalWidth) / 2;
-    const modalY = (this.height - modalHeight) / 2;
+    const modalY = isMobile ? topSafeArea + 10 : (this.height - modalHeight) / 2;
 
     this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
       shadowOffset: 8,
@@ -5006,9 +5028,12 @@ export default class UI {
     }
 
     const isMobile2 = this.width < 768;
-    const modalHeight = isMobile2 ? this.height - 60 : this.height - 80;
-    const listStartY = (this.height - modalHeight) / 2 + (isMobile2 ? 100 : 120);
-    const listEndY = (this.height - modalHeight) / 2 + modalHeight - (isMobile2 ? 130 : 150);
+    const topSafeArea2 = Math.max(this.safeArea.top, isMobile2 ? 44 : 0);
+    const bottomSafeArea2 = Math.max(this.safeArea.bottom, isMobile2 ? 34 : 0);
+    const modalHeight = isMobile2 ? this.height - topSafeArea2 - bottomSafeArea2 - 20 : this.height - 80;
+    const modalY = isMobile2 ? topSafeArea2 + 10 : (this.height - modalHeight) / 2;
+    const listStartY = modalY + (isMobile2 ? 100 : 120);
+    const listEndY = modalY + modalHeight - (isMobile2 ? 130 : 150);
     const listHeight = listEndY - listStartY;
     const headerOffset = (isMobile2 ? 35 : 45) / 2;
 
@@ -5043,10 +5068,13 @@ export default class UI {
     this.shopLastScrollTime = now;
     
     const isMobile = this.width < 768;
-    const modalHeight = isMobile ? this.height - 80 : this.height - 100;
-    const listStartY = (this.height - modalHeight) / 2 + (isMobile ? 90 : 110);
-    const listEndY = (this.height - modalHeight) / 2 + modalHeight - (isMobile ? 120 : 140);
-    
+    const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
+    const bottomSafeArea = Math.max(this.safeArea.bottom, isMobile ? 34 : 0);
+    const modalHeight = isMobile ? this.height - topSafeArea - bottomSafeArea - 20 : this.height - 100;
+    const modalY = isMobile ? topSafeArea + 10 : (this.height - modalHeight) / 2;
+    const listStartY = modalY + (isMobile ? 90 : 110);
+    const listEndY = modalY + modalHeight - (isMobile ? 120 : 140);
+
     if (y >= listStartY && y <= listEndY) {
       this.shopScrollOffset += deltaY;
       
