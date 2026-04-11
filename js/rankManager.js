@@ -11,6 +11,7 @@ export default class RankManager {
     this.sharedCanvas = null;
     this.friendData = [];
     this.onFriendData = null;
+    this.dataTimeout = null;
   }
 
   init() {
@@ -24,6 +25,10 @@ export default class RankManager {
       // 监听开放数据域回传的好友数据
       openDataContext.onMessage((message) => {
         if (message.type === 'friendData') {
+          if (this.dataTimeout) {
+            clearTimeout(this.dataTimeout);
+            this.dataTimeout = null;
+          }
           this.friendData = message.data || [];
           if (this.onFriendData) {
             this.onFriendData(this.friendData);
@@ -70,6 +75,16 @@ export default class RankManager {
     this.isOpen = true;
     this.onCloseCallback = onClose;
     this.sendMessageToOpenData({ type: 'show' });
+
+    // 超时保护：5秒内未收到数据则返回空列表
+    if (this.dataTimeout) clearTimeout(this.dataTimeout);
+    this.dataTimeout = setTimeout(() => {
+      this.dataTimeout = null;
+      if (this.onFriendData && this.friendData.length === 0) {
+        this.onFriendData([]);
+      }
+    }, 5000);
+
     return true;
   }
 

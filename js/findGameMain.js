@@ -1196,9 +1196,17 @@ export default class FindGameMain {
   openRank() {
     this.ui.friendRankData = null;
     this.ui.showRankView();
-    this.rankManager.open(() => {
+    const opened = this.rankManager.open(() => {
       this.ui.hideRankView();
     });
+    // 非微信环境或打开失败时，直接显示空列表
+    if (!opened) {
+      setTimeout(() => {
+        if (this.ui.friendRankData === null) {
+          this.ui.friendRankData = [];
+        }
+      }, 1000);
+    }
   }
 
   closeRank() {
