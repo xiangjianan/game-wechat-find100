@@ -549,6 +549,33 @@ export default class UI {
       ctx.lineTo(iconCenterX + s * 0.15, iconCenterY + s * 0.15);
       ctx.lineTo(iconCenterX + s * 0.3, iconCenterY + s * 0.8);
       ctx.stroke();
+    } else if (icon === 'rank') {
+      ctx.strokeStyle = iconColor || '#8B5CF6';
+      // 皇冠底座弧线
+      ctx.beginPath();
+      ctx.moveTo(iconCenterX - s * 0.8, iconCenterY + s * 0.4);
+      ctx.quadraticCurveTo(iconCenterX, iconCenterY + s * 0.8, iconCenterX + s * 0.8, iconCenterY + s * 0.4);
+      ctx.stroke();
+      // 皇冠主体
+      ctx.beginPath();
+      ctx.moveTo(iconCenterX - s * 0.8, iconCenterY + s * 0.4);
+      ctx.lineTo(iconCenterX - s * 0.75, iconCenterY - s * 0.15);
+      ctx.lineTo(iconCenterX - s * 0.4, iconCenterY + s * 0.15);
+      ctx.lineTo(iconCenterX, iconCenterY - s * 0.7);
+      ctx.lineTo(iconCenterX + s * 0.4, iconCenterY + s * 0.15);
+      ctx.lineTo(iconCenterX + s * 0.75, iconCenterY - s * 0.15);
+      ctx.lineTo(iconCenterX + s * 0.8, iconCenterY + s * 0.4);
+      ctx.stroke();
+      // 三颗宝珠
+      ctx.beginPath();
+      ctx.arc(iconCenterX - s * 0.75, iconCenterY - s * 0.15, s * 0.08, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(iconCenterX, iconCenterY - s * 0.7, s * 0.08, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(iconCenterX + s * 0.75, iconCenterY - s * 0.15, s * 0.08, 0, Math.PI * 2);
+      ctx.stroke();
     } else if (icon === 'share') {
       ctx.strokeStyle = iconColor || '#3B82F6';
       // 三个节点
@@ -1205,22 +1232,22 @@ export default class UI {
         cardHoverGlow: 'rgba(16, 185, 129, 0.12)',
         action: () => this.onOpenSkills()
       },
-      // 历史最高分 - 金色卡片
+      // 排行榜 - 紫色卡片
       {
-        id: 'scoreHistory',
-        text: '历史最高分',
+        id: 'leaderboard',
+        text: '排行榜',
         type: 'card',
         x: margin,
         y: cardRow2Y,
         width: cardWidth,
         height: cardHeight,
-        icon: 'medal',
-        iconBg: '#FFF8E1',
-        iconColor: '#D97706',
+        icon: 'rank',
+        iconBg: '#F3E8FF',
+        iconColor: '#8B5CF6',
         cardBg: 'rgba(255, 255, 255, 0.95)',
-        cardBorder: 'rgba(245, 197, 66, 0.2)',
-        cardHoverGlow: 'rgba(245, 197, 66, 0.12)',
-        action: () => { if (this.onOpenScoreHistory) this.onOpenScoreHistory(); }
+        cardBorder: 'rgba(139, 92, 246, 0.2)',
+        cardHoverGlow: 'rgba(139, 92, 246, 0.12)',
+        action: () => this.onOpenRank()
       },
       // 成就 - 珊瑚卡片
       {
@@ -1238,22 +1265,6 @@ export default class UI {
         cardBorder: 'rgba(232, 114, 90, 0.2)',
         cardHoverGlow: 'rgba(232, 114, 90, 0.12)',
         action: () => this.onOpenAchievements()
-      },
-      {
-        id: 'leaderboard',
-        text: '排行榜',
-        type: 'card',
-        x: margin,
-        y: cardRow2Y + cardHeight + cardGap,
-        width: startButtonWidth,
-        height: isMobile ? 48 : 54,
-        icon: 'star',
-        iconBg: '#F3E8FF',
-        iconColor: '#8B5CF6',
-        cardBg: 'rgba(255, 255, 255, 0.95)',
-        cardBorder: 'rgba(139, 92, 246, 0.2)',
-        cardHoverGlow: 'rgba(139, 92, 246, 0.12)',
-        action: () => this.onOpenRank()
       }
     ];
 
@@ -4519,8 +4530,8 @@ export default class UI {
 
   renderSkillsCategories(ctx, modalX, modalY, modalWidth, modalHeight, isMobile) {
     const scheme = this.getScheme();
-    const listStartY = modalY + (isMobile ? 100 : 120);
-    const listEndY = modalY + modalHeight - (isMobile ? 130 : 150);
+    const listStartY = modalY + (isMobile ? 90 : 110);
+    const listEndY = modalY + modalHeight - (isMobile ? 140 : 160);
     const listHeight = listEndY - listStartY;
 
     const itemHeight = isMobile ? 85 : 100;
@@ -5078,8 +5089,10 @@ export default class UI {
     const isMobile = this.width < 768;
     const buttonWidth = isMobile ? 180 : 220;
     const buttonHeight = isMobile ? 48 : 56;
-    const modalHeight = isMobile ? this.height - 80 : this.height - 100;
-    const modalY = (this.height - modalHeight) / 2;
+    const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
+    const bottomSafeArea = Math.max(this.safeArea.bottom, isMobile ? 34 : 0);
+    const modalHeight = isMobile ? this.height - topSafeArea - bottomSafeArea - 20 : this.height - 80;
+    const modalY = isMobile ? topSafeArea + 10 : (this.height - modalHeight) / 2;
     const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
     const modalX = (this.width - modalWidth) / 2;
     const buttonX = (this.width - buttonWidth) / 2;

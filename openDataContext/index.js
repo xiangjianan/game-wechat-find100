@@ -51,6 +51,9 @@ function handleMessage(message) {
       isShow = false;
       clearCanvas();
       break;
+    case 'refresh':
+      fetchFriendData();
+      break;
     case 'touchStart':
       isTouching = true;
       touchStartY = message.y;
