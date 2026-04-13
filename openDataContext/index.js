@@ -49,9 +49,7 @@ function handleMessage(message) {
       clearCanvas();
       break;
     case 'refresh':
-      if (isShow) {
-        fetchFriendData();
-      }
+      fetchFriendData();
       break;
     case 'touchStart':
       isTouching = true;

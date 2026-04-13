@@ -64,6 +64,13 @@ export default class RankManager {
     this.onCloseCallback = onClose;
     this.sendMessageToOpenData({ type: 'show' });
 
+    // 延迟刷新，确保云存储数据传播后重新拉取
+    setTimeout(() => {
+      if (this.isOpen) {
+        this.sendMessageToOpenData({ type: 'refresh' });
+      }
+    }, 1500);
+
     return true;
   }
 
