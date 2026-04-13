@@ -41,6 +41,7 @@ function handleMessage(message) {
     case 'show':
       isShow = true;
       scrollOffset = 0;
+      friendData = null; // 重置数据，强制重新从云端获取
       render();
       fetchFriendData();
       break;

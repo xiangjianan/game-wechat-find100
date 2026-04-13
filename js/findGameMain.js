@@ -103,6 +103,7 @@ export default class FindGameMain {
     this.shareManager = new ShareManager();
     this.scoreManager = new ScoreManager();
     this.aniId = 0;
+    this.pendingUpload = null; // 追踪进行中的分数上传
 
     // 情绪化计时器视觉效果
     this.vignetteIntensity = 0;       // 当前暗角强度 (0~1)，平滑过渡
@@ -779,7 +780,7 @@ export default class FindGameMain {
     const scoreResult = this.scoreManager.recordScore(level, numbersFound, time);
 
     // 上传分数到微信排行榜
-    this.rankManager.uploadScore(numbersFound, time, level);
+    this.pendingUpload = this.rankManager.uploadScore(numbersFound, time, level);
 
     const hasNextLevel = this.gameManager.hasNextLevel();
 
@@ -860,7 +861,7 @@ export default class FindGameMain {
 
     // 上传分数到微信排行榜（部分完成也算）
     if (progress > 0) {
-      this.rankManager.uploadScore(progress, time, level);
+      this.pendingUpload = this.rankManager.uploadScore(progress, time, level);
     }
 
     this.achievementManager.checkAchievement('game_fail', {
@@ -1212,15 +1213,25 @@ export default class FindGameMain {
   }
 
   openRank() {
-    this.ui.showRankView();
-    const opened = this.rankManager.open(() => {
-      this.ui.hideRankView();
-    });
-    if (!opened) {
-      // 非微信环境：延迟后关闭
-      setTimeout(() => {
+    // 等待分数上传完成后再打开排行榜，确保数据是最新的
+    const openAfterUpload = () => {
+      this.ui.showRankView();
+      const opened = this.rankManager.open(() => {
         this.ui.hideRankView();
-      }, 1500);
+      });
+      if (!opened) {
+        // 非微信环境：延迟后关闭
+        setTimeout(() => {
+          this.ui.hideRankView();
+        }, 1500);
+      }
+    };
+
+    if (this.pendingUpload) {
+      this.pendingUpload.then(openAfterUpload).catch(openAfterUpload);
+      this.pendingUpload = null;
+    } else {
+      openAfterUpload();
     }
   }
 

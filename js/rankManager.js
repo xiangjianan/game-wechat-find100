@@ -34,23 +34,27 @@ export default class RankManager {
 
   uploadScore(numbersFound, time, level = 1) {
     if (!this.isWeChatGame) {
-      return;
+      return Promise.resolve();
     }
 
     const hiddenScore = this.calculateScore(numbersFound, time);
 
-    wx.setUserCloudStorage({
-      KVDataList: [
-        { key: 'numbersFound', value: numbersFound.toString() },
-        { key: 'time', value: time.toString() },
-        { key: 'hiddenScore', value: hiddenScore.toString() }
-      ],
-      success: () => {
-        console.log('RankManager: uploadScore success', { numbersFound, time, hiddenScore });
-      },
-      fail: (err) => {
-        console.error('RankManager: uploadScore failed', err);
-      }
+    return new Promise((resolve) => {
+      wx.setUserCloudStorage({
+        KVDataList: [
+          { key: 'numbersFound', value: numbersFound.toString() },
+          { key: 'time', value: time.toString() },
+          { key: 'hiddenScore', value: hiddenScore.toString() }
+        ],
+        success: () => {
+          console.log('RankManager: uploadScore success', { numbersFound, time, hiddenScore });
+          resolve();
+        },
+        fail: (err) => {
+          console.error('RankManager: uploadScore failed', err);
+          resolve(); // 即使失败也 resolve，不阻塞后续流程
+        }
+      });
     });
   }
 
