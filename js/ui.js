@@ -45,6 +45,7 @@ export default class UI {
     this.showRank = false;
     this.onOpenRank = null;
     this.onCloseRank = null;
+    this.sharedCanvas = null;
 
     this.eggTriggered = false;
     this.eggTriggerTime = 0;
@@ -146,7 +147,6 @@ export default class UI {
     this.scoreHistoryTab = 1;
     this.rankTab = 1;
     this.rankData = { 1: [], 2: [] };
-    this.friendRankData = null;
     this.scoreHistoryScrollOffset = 0;
     this.scoreHistoryTouchStartY = 0;
     this.scoreHistoryLastTouchY = 0;
@@ -3170,123 +3170,21 @@ export default class UI {
   // ── Leaderboard ──
 
   renderLeaderboard(ctx) {
-    const scheme = this.getScheme();
-    const isMobile = this.width < 768;
-
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-    ctx.fillRect(0, 0, this.width, this.height);
-
-    const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
-    const bottomSafeArea = Math.max(this.safeArea.bottom, isMobile ? 34 : 0);
-    const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
-    const modalHeight = isMobile ? this.height - topSafeArea - bottomSafeArea - 20 : this.height - 80;
-    const modalX = (this.width - modalWidth) / 2;
-    const modalY = isMobile ? topSafeArea + 10 : (this.height - modalHeight) / 2;
-
-    this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
-      shadowOffset: 8,
-      borderWidth: 0
-    });
-
-    // Title
-    const titleY = modalY + (isMobile ? 40 : 50);
-    ctx.fillStyle = scheme.text;
-    ctx.font = `bold ${isMobile ? 28 : 34}px "Arial Black", Arial, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('好友排行榜', this.width / 2, titleY);
-
-    const titleWidth = ctx.measureText('好友排行榜').width;
-    ctx.strokeStyle = '#FBBF24';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(this.width / 2 - titleWidth / 2 - 20, titleY + 25);
-    ctx.lineTo(this.width / 2 + titleWidth / 2 + 20, titleY + 25);
-    ctx.stroke();
-
-    const friends = this.friendRankData;
-
-    if (friends === null) {
-      // Loading
-      ctx.fillStyle = scheme.textSecondary;
-      ctx.font = `${isMobile ? 16 : 18}px Arial, sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('加载中...', this.width / 2, modalY + modalHeight / 2 - 10);
-    } else if (friends.length === 0) {
-      // No data
-      ctx.fillStyle = scheme.textSecondary;
-      ctx.font = `${isMobile ? 16 : 18}px Arial, sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('暂无好友排行数据', this.width / 2, modalY + modalHeight / 2 - 20);
-      ctx.fillStyle = '#9CA3AF';
-      ctx.font = `${isMobile ? 13 : 14}px Arial, sans-serif`;
-      ctx.fillText('完成一局游戏后即可上榜', this.width / 2, modalY + modalHeight / 2 + 10);
-    } else {
-      // Friend list
-      const listStartY = modalY + (isMobile ? 80 : 95);
-      const listEndY = modalY + modalHeight - (isMobile ? 80 : 90);
-      const listHeight = listEndY - listStartY;
-      const itemHeight = isMobile ? 56 : 64;
-      const itemPadding = isMobile ? 6 : 8;
-      const itemWidth = modalWidth - (isMobile ? 20 : 30);
-      const itemX = modalX + (isMobile ? 10 : 15);
-      const medals = ['#FBBF24', '#3B82F6', '#10B981'];
-
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(modalX, listStartY, modalWidth, listHeight);
-      ctx.clip();
-
-      friends.forEach((friend, index) => {
-        const itemY = listStartY + index * (itemHeight + itemPadding);
-        if (itemY + itemHeight < listStartY || itemY > listEndY) return;
-
-        const isTop3 = index < 3;
-        const bgColor = isTop3 ? 'rgba(255, 252, 245, 0.95)' : scheme.cardBg;
-        this.drawBrutalismRect(ctx, itemX, itemY, itemWidth, itemHeight, bgColor, {
-          shadowOffset: isTop3 ? 4 : 2,
-          borderWidth: isTop3 ? 3 : 2
-        });
-
-        // Rank badge
-        const rankX = itemX + (isMobile ? 14 : 18);
-        const rankY = itemY + itemHeight / 2;
-        if (isTop3) {
-          ctx.beginPath();
-          ctx.arc(rankX, rankY, isMobile ? 16 : 18, 0, Math.PI * 2);
-          ctx.fillStyle = medals[index];
-          ctx.fill();
-          ctx.fillStyle = '#FFFFFF';
-        } else {
-          ctx.fillStyle = scheme.textSecondary;
-        }
-        ctx.font = `bold ${isMobile ? 14 : 16}px Arial, sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(`${index + 1}`, rankX, rankY);
-
-        // Nickname
-        const infoX = itemX + (isMobile ? 38 : 46);
-        ctx.textAlign = 'left';
-        ctx.fillStyle = scheme.text;
-        ctx.font = `bold ${isMobile ? 15 : 17}px "Arial Black", Arial, sans-serif`;
-        ctx.fillText(truncateText(friend.nickname, 8), infoX, itemY + (isMobile ? 20 : 22));
-
-        // Score
-        ctx.fillStyle = scheme.textSecondary;
-        ctx.font = `${isMobile ? 12 : 14}px Arial, sans-serif`;
-        ctx.fillText(`找到 ${friend.numbersFound} 个 · 用时 ${friend.time.toFixed(1)} 秒`, infoX, itemY + (isMobile ? 40 : 44));
-      });
-
-      ctx.restore();
+    // Draw the shared canvas (rendered by the open data domain)
+    if (this.sharedCanvas) {
+      ctx.drawImage(this.sharedCanvas, 0, 0, this.width, this.height);
     }
 
-    // Close button
+    // Close button (rendered by main domain)
+    const scheme = this.getScheme();
+    const isMobile = this.width < 768;
+    const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
+    const bottomSafeArea = Math.max(this.safeArea.bottom, isMobile ? 34 : 0);
+    const modalHeight = isMobile ? this.height - topSafeArea - bottomSafeArea - 20 : this.height - 80;
+    const modalY = isMobile ? topSafeArea + 10 : (this.height - modalHeight) / 2;
+
     const buttonWidth = isMobile ? 180 : 220;
     const buttonHeight = isMobile ? 48 : 56;
-    const buttonX = (this.width - buttonWidth) / 2;
     const buttonY = modalY + modalHeight - (isMobile ? 70 : 80);
 
     const isHovered = this.hoveredButton === 'rank_close';

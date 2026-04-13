@@ -1,7 +1,7 @@
 /**
  * 排行榜管理器
  * 主域通过 postMessage 与开放数据域通信
- * 开放数据域获取好友数据后通过 wx.postMessage 回传给主域
+ * 开放数据域使用共享 Canvas 渲染排行榜（微信推荐方式）
  */
 export default class RankManager {
   constructor() {
@@ -9,9 +9,6 @@ export default class RankManager {
     this.onCloseCallback = null;
     this.isWeChatGame = typeof wx !== 'undefined';
     this.sharedCanvas = null;
-    this.friendData = [];
-    this.onFriendData = null;
-    this.dataTimeout = null;
   }
 
   init() {
@@ -21,24 +18,14 @@ export default class RankManager {
     try {
       const openDataContext = wx.getOpenDataContext();
       this.sharedCanvas = openDataContext.canvas;
-
-      // 监听开放数据域回传的好友数据
-      openDataContext.onMessage((message) => {
-        if (message.type === 'friendData') {
-          if (this.dataTimeout) {
-            clearTimeout(this.dataTimeout);
-            this.dataTimeout = null;
-          }
-          this.friendData = message.data || [];
-          if (this.onFriendData) {
-            this.onFriendData(this.friendData);
-          }
-        }
-      });
     } catch (e) {
-      // ignore
+      console.error('RankManager: init failed', e);
     }
     return true;
+  }
+
+  getSharedCanvas() {
+    return this.sharedCanvas;
   }
 
   calculateScore(numbersFound, time) {
@@ -76,15 +63,6 @@ export default class RankManager {
     this.onCloseCallback = onClose;
     this.sendMessageToOpenData({ type: 'show' });
 
-    // 超时保护：5秒内未收到数据则返回空列表
-    if (this.dataTimeout) clearTimeout(this.dataTimeout);
-    this.dataTimeout = setTimeout(() => {
-      this.dataTimeout = null;
-      if (this.onFriendData && this.friendData.length === 0) {
-        this.onFriendData([]);
-      }
-    }, 5000);
-
     return true;
   }
 
@@ -100,6 +78,11 @@ export default class RankManager {
       this.onCloseCallback();
       this.onCloseCallback = null;
     }
+  }
+
+  forwardTouch(type, x, y) {
+    if (!this.isOpen) return;
+    this.sendMessageToOpenData({ type, x, y });
   }
 
   sendMessageToOpenData(message) {

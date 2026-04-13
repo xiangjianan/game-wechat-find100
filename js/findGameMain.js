@@ -113,6 +113,7 @@ export default class FindGameMain {
     CacheManager.init();
     this.shareManager.init();
     this.rankManager.init();
+    this.ui.sharedCanvas = this.rankManager.getSharedCanvas();
     this.vibrationManager.checkSupport();
     this.achievementManager.loadProgress();
     this.coinManager.init();
@@ -257,7 +258,9 @@ export default class FindGameMain {
 
         this.ui.updateMousePosition(x, y);
 
-        if (this.ui.showSkills) {
+        if (this.ui.showRank) {
+          this.rankManager.forwardTouch('touchStart', x, y);
+        } else if (this.ui.showSkills) {
           this.ui.handleSkillsTouchStart(y);
         } else if (this.ui.showShop) {
           this.ui.handleShopTouchStart(y);
@@ -291,7 +294,9 @@ export default class FindGameMain {
 
         this.ui.updateMousePosition(x, y);
 
-        if (this.ui.showSkills) {
+        if (this.ui.showRank) {
+          this.rankManager.forwardTouch('touchMove', x, y);
+        } else if (this.ui.showSkills) {
           this.ui.handleSkillsTouchMove(y);
         } else if (this.ui.showShop) {
           this.ui.handleShopTouchMove(y);
@@ -307,6 +312,15 @@ export default class FindGameMain {
 
     const handleTouchEnd = (res) => {
       try {
+        // 排行榜：转发 touchEnd + 点击关闭按钮
+        if (this.ui.showRank) {
+          this.rankManager.forwardTouch('touchEnd', 0, 0);
+          if (touchStartPos && !touchMoved) {
+            this.handleInput(touchStartPos.x, touchStartPos.y);
+          }
+          touchStartPos = null;
+          return;
+        }
         // 滚动面板场景：touchend 时判断是否为点击
         if (isScrollable() && touchStartPos && !touchMoved) {
           this.handleInput(touchStartPos.x, touchStartPos.y);
@@ -351,7 +365,9 @@ export default class FindGameMain {
 
           this.ui.updateMousePosition(x, y);
 
-          if (this.ui.showSkills) {
+          if (this.ui.showRank) {
+            this.rankManager.forwardTouch('touchStart', x, y);
+          } else if (this.ui.showSkills) {
             this.ui.handleSkillsTouchStart(y);
           } else if (this.ui.showShop) {
             this.ui.handleShopTouchStart(y);
@@ -387,7 +403,9 @@ export default class FindGameMain {
 
             this.ui.updateMousePosition(x, y);
 
-            if (this.ui.showSkills) {
+            if (this.ui.showRank) {
+              this.rankManager.forwardTouch('touchMove', x, y);
+            } else if (this.ui.showSkills) {
               this.ui.handleSkillsTouchMove(y);
             } else if (this.ui.showScoreHistory) {
               this.ui.handleScoreHistoryTouchMove(y);
@@ -402,6 +420,14 @@ export default class FindGameMain {
 
       const handleTouchEndEvent = (e) => {
         try {
+          if (this.ui.showRank) {
+            this.rankManager.forwardTouch('touchEnd', 0, 0);
+            if (touchStartPos && !touchMoved) {
+              this.handleInput(touchStartPos.x, touchStartPos.y);
+            }
+            touchStartPos = null;
+            return;
+          }
           // 滚动面板场景：touchend 时判断是否为点击
           if (isScrollable() && touchStartPos && !touchMoved) {
             this.handleInput(touchStartPos.x, touchStartPos.y);
@@ -483,14 +509,6 @@ export default class FindGameMain {
 
     this.ui.onPlayClickSound = () => {
       this.soundManager.playUiClick();
-    };
-
-    this.rankManager.onPlayClickSound = () => {
-      this.soundManager.playUiClick();
-    };
-
-    this.rankManager.onFriendData = (data) => {
-      this.ui.friendRankData = data;
     };
 
     this.ui.onOpenRank = () => {
@@ -1194,18 +1212,15 @@ export default class FindGameMain {
   }
 
   openRank() {
-    this.ui.friendRankData = null;
     this.ui.showRankView();
     const opened = this.rankManager.open(() => {
       this.ui.hideRankView();
     });
-    // 非微信环境或打开失败时，直接显示空列表
     if (!opened) {
+      // 非微信环境：延迟后关闭
       setTimeout(() => {
-        if (this.ui.friendRankData === null) {
-          this.ui.friendRankData = [];
-        }
-      }, 1000);
+        this.ui.hideRankView();
+      }, 1500);
     }
   }
 
