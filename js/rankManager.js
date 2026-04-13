@@ -47,6 +47,7 @@ export default class RankManager {
       ],
       success: () => {
         console.log('RankManager: uploadScore success', { numbersFound, time, hiddenScore });
+        this.sendMessageToOpenData({ type: 'refresh' });
       },
       fail: (err) => {
         console.error('RankManager: uploadScore failed', err);
