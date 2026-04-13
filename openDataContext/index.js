@@ -26,11 +26,14 @@ function init() {
     var sysInfo = wx.getSystemInfoSync();
     screenWidth = sysInfo.windowWidth;
     screenHeight = sysInfo.windowHeight;
-    sharedCanvas.width = screenWidth;
-    sharedCanvas.height = screenHeight;
+    var dpr = sysInfo.pixelRatio || 1;
+
+    sharedCanvas.width = screenWidth * dpr;
+    sharedCanvas.height = screenHeight * dpr;
+    ctx.scale(dpr, dpr);
 
     wx.onMessage(handleMessage);
-    console.log('openDataContext: init success', screenWidth, screenHeight);
+    console.log('openDataContext: init success', screenWidth, screenHeight, 'dpr=' + dpr);
   } catch (e) {
     console.error('openDataContext: init failed', e);
   }
@@ -103,7 +106,10 @@ function fetchFriendData() {
 
 function clearCanvas() {
   if (ctx) {
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, sharedCanvas.width, sharedCanvas.height);
+    ctx.restore();
   }
 }
 
