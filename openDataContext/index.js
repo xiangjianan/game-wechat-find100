@@ -14,7 +14,6 @@ var sharedCanvas = null;
 var ctx = null;
 var isShow = false;
 var friendData = null; // null = 加载中, [] = 暂无数据
-var _prevFriendData = null;  // 打开排行榜前的数据备份，API 返回空时恢复
 var selfScore = null;  // 主域上传的最新分数，用于覆盖缓存旧数据
 var scrollOffset = 0;
 var touchStartY = 0;
@@ -22,6 +21,7 @@ var lastTouchY = 0;
 var isTouching = false;
 var screenWidth = 0;
 var screenHeight = 0;
+var fetchId = 0;       // 每次 fetch 递增，丢弃旧响应避免并发覆盖
 
 function init() {
   try {
@@ -54,8 +54,7 @@ function handleMessage(message) {
     case 'show':
       isShow = true;
       scrollOffset = 0;
-      _prevFriendData = friendData;  // 备份已有数据
-      friendData = null;             // 显示加载中
+      friendData = null;  // 显示加载中
       render();
       fetchFriendData();
       break;
@@ -95,9 +94,14 @@ function handleMessage(message) {
 }
 
 function fetchFriendData() {
+  var myId = ++fetchId;
+
   wx.getFriendCloudStorage({
     keyList: ['numbersFound', 'time', 'hiddenScore'],
     success: function (res) {
+      // 丢弃旧响应，只处理最新一次 fetch 的结果
+      if (myId !== fetchId) return;
+
       var newData = res.data.map(function (item) {
         var nf = item.KVDataList.find(function (kv) { return kv.key === 'numbersFound'; });
         var td = item.KVDataList.find(function (kv) { return kv.key === 'time'; });
@@ -111,15 +115,13 @@ function fetchFriendData() {
         };
       });
 
-      // API 返回有效数据时使用新数据；返回空数据时恢复备份
+      // 有数据就用新数据；API 返回空（缓存问题）则保留旧数据
       if (newData.length > 0) {
         friendData = newData;
-        _prevFriendData = null;  // 数据有效，清除备份
-      } else if (_prevFriendData && _prevFriendData.length > 0) {
-        friendData = _prevFriendData;  // 恢复备份
-      } else {
-        friendData = newData;  // 确实没有数据
+      } else if (!friendData || friendData.length === 0) {
+        friendData = newData;
       }
+      // else: newData 为空但 friendData 有数据，保留旧数据不动
 
       applySelfScore();
 
@@ -127,10 +129,11 @@ function fetchFriendData() {
       friendData.forEach(function (item, i) { item.rank = i + 1; });
       friendData = friendData.slice(0, 100);
 
-      console.log('openDataContext: fetched', newData.length, 'friends, current total', friendData.length);
+      console.log('openDataContext: fetched', newData.length, 'friends, total', friendData.length);
       render();
     },
     fail: function (error) {
+      if (myId !== fetchId) return;
       console.error('openDataContext: getFriendCloudStorage failed', error);
       if (friendData === null) {
         friendData = [];
@@ -146,13 +149,12 @@ function applySelfScore() {
   if (!selfScore || !friendData || friendData.length === 0) return;
 
   // 查找当前用户：hiddenScore <= selfScore.hiddenScore 的条目中
-  // 找 numbersFound + time 最接近的（即旧分数最接近新分数的）
+  // 找最接近的（即旧分数最接近新分数的）
   var bestIdx = -1;
   var bestDiff = Infinity;
   for (var i = 0; i < friendData.length; i++) {
     var entry = friendData[i];
     var diff = Math.abs(entry.hiddenScore - selfScore.hiddenScore);
-    // 只看 hiddenScore 不超过 selfScore 的条目（排除分数更高的好友）
     if (entry.hiddenScore <= selfScore.hiddenScore && diff < bestDiff) {
       bestDiff = diff;
       bestIdx = i;
@@ -320,15 +322,12 @@ function renderList(modalX, modalY, modalWidth, modalHeight, isMobile) {
 }
 
 function drawBrutalRect(c, x, y, w, h, fill, shadow, border) {
-  // Shadow
   if (shadow > 0) {
     c.fillStyle = 'rgba(0, 0, 0, 0.15)';
     c.fillRect(x + shadow, y + shadow, w, h);
   }
-  // Fill
   c.fillStyle = fill;
   c.fillRect(x, y, w, h);
-  // Border
   if (border > 0) {
     c.strokeStyle = '#000000';
     c.lineWidth = border;
