@@ -190,7 +190,7 @@ function render() {
   var bottomSafe = isMobile ? 34 : 0;
 
   // ── Background overlay ──
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
   ctx.fillRect(0, 0, screenWidth, screenHeight);
 
   // ── Modal ──
@@ -199,11 +199,14 @@ function render() {
   var modalX = (screenWidth - modalWidth) / 2;
   var modalY = isMobile ? topSafe + 10 : (screenHeight - modalHeight) / 2;
 
-  drawBrutalRect(ctx, modalX, modalY, modalWidth, modalHeight, '#FFFFFF', 8, 3);
+  drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, 'rgba(255, 255, 255, 0.94)', {
+    shadowOffset: 8,
+    borderWidth: 0
+  });
 
   // ── Title ──
   var titleY = modalY + (isMobile ? 40 : 50);
-  ctx.fillStyle = '#1F2937';
+  ctx.fillStyle = '#374151';
   ctx.font = 'bold ' + (isMobile ? 28 : 34) + 'px "Arial Black", Arial, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -239,12 +242,12 @@ function render() {
 }
 
 function renderList(modalX, modalY, modalWidth, modalHeight, isMobile) {
-  var listStartY = modalY + (isMobile ? 80 : 95);
+  var listStartY = modalY + (isMobile ? 90 : 110);
   var closeBtnSpace = isMobile ? 70 : 80;
   var listEndY = modalY + modalHeight - closeBtnSpace;
   var listHeight = listEndY - listStartY;
-  var itemHeight = isMobile ? 56 : 64;
-  var itemPadding = isMobile ? 6 : 8;
+  var itemHeight = isMobile ? 70 : 80;
+  var itemPadding = isMobile ? 8 : 10;
   var itemWidth = modalWidth - (isMobile ? 20 : 30);
   var itemX = modalX + (isMobile ? 10 : 15);
   var medals = ['#FBBF24', '#3B82F6', '#10B981'];
@@ -256,7 +259,7 @@ function renderList(modalX, modalY, modalWidth, modalHeight, isMobile) {
 
   ctx.save();
   ctx.beginPath();
-  ctx.rect(modalX, listStartY, modalWidth, listHeight);
+  ctx.rect(modalX, listStartY - 10, modalWidth, listHeight + 10);
   ctx.clip();
 
   for (var i = 0; i < friendData.length; i++) {
@@ -266,11 +269,12 @@ function renderList(modalX, modalY, modalWidth, modalHeight, isMobile) {
     if (itemY + itemHeight < listStartY || itemY > listEndY) continue;
 
     var isTop3 = i < 3;
+    var bgColor = isTop3 ? '#FFFCF5' : 'rgba(255, 255, 255, 0.94)';
 
-    drawBrutalRect(ctx, itemX, itemY, itemWidth, itemHeight,
-      isTop3 ? '#FFFCF5' : '#FFFFFF',
-      isTop3 ? 4 : 2,
-      isTop3 ? 3 : 2);
+    drawBrutalismRect(ctx, itemX, itemY, itemWidth, itemHeight, bgColor, {
+      shadowOffset: isTop3 ? 4 : 2,
+      borderWidth: isTop3 ? 3 : 2
+    });
 
     var rankX = itemX + (isMobile ? 14 : 18);
     var rankY = itemY + itemHeight / 2;
@@ -292,43 +296,69 @@ function renderList(modalX, modalY, modalWidth, modalHeight, isMobile) {
 
     var infoX = itemX + (isMobile ? 38 : 46);
     ctx.textAlign = 'left';
-    ctx.fillStyle = '#1F2937';
-    ctx.font = 'bold ' + (isMobile ? 15 : 17) + 'px "Arial Black", Arial, sans-serif';
-    ctx.fillText(truncate(friend.nickname, 8), infoX, itemY + (isMobile ? 20 : 22));
+    ctx.fillStyle = '#374151';
+    ctx.font = 'bold ' + (isMobile ? 16 : 18) + 'px "Arial Black", Arial, sans-serif';
+    ctx.fillText(truncate(friend.nickname, 8), infoX, itemY + (isMobile ? 24 : 28));
 
     ctx.fillStyle = '#6B7280';
     ctx.font = (isMobile ? 12 : 14) + 'px Arial, sans-serif';
     ctx.fillText(
       '\u627e\u5230 ' + friend.numbersFound + ' \u4e2a \u00b7 \u7528\u65f6 ' + friend.time.toFixed(1) + ' \u79d2',
-      infoX, itemY + (isMobile ? 40 : 44)
+      infoX, itemY + (isMobile ? 48 : 54)
     );
   }
 
   ctx.restore();
+}
 
-  if (totalHeight > listHeight) {
-    var barH = Math.max(30, listHeight * listHeight / totalHeight);
-    var barY = listStartY + (scrollOffset / totalHeight) * (listHeight - barH);
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-    ctx.beginPath();
-    ctx.roundRect
-      ? ctx.roundRect(modalX + modalWidth - 8, barY, 4, barH, 2)
-      : ctx.rect(modalX + modalWidth - 8, barY, 4, barH);
-    ctx.fill();
+// 与主域 drawBrutalismRect 一致的圆角矩形绘制
+function drawBrutalismRect(c, x, y, w, h, fill, options) {
+  var radius = options.radius !== undefined ? options.radius : 18;
+  var shadowOffset = options.shadowOffset || 0;
+  var borderWidth = options.borderWidth || 0;
+
+  if (shadowOffset > 0) {
+    c.shadowColor = 'rgba(0, 0, 0, 0.08)';
+    c.shadowBlur = shadowOffset * 2;
+    c.shadowOffsetY = shadowOffset;
+  }
+
+  c.fillStyle = fill;
+  roundRect(c, x, y, w, h, radius);
+  c.fill();
+
+  c.shadowBlur = 0;
+  c.shadowOffsetY = 0;
+  c.shadowColor = 'transparent';
+
+  if (borderWidth > 0) {
+    c.strokeStyle = 'rgba(59, 130, 246, 0.1)';
+    c.lineWidth = borderWidth;
+    roundRect(c, x, y, w, h, radius);
+    c.stroke();
   }
 }
 
-function drawBrutalRect(c, x, y, w, h, fill, shadow, border) {
-  if (shadow > 0) {
-    c.fillStyle = 'rgba(0, 0, 0, 0.15)';
-    c.fillRect(x + shadow, y + shadow, w, h);
-  }
-  c.fillStyle = fill;
-  c.fillRect(x, y, w, h);
-  if (border > 0) {
-    c.strokeStyle = '#000000';
-    c.lineWidth = border;
-    c.strokeRect(x, y, w, h);
+function roundRect(c, x, y, w, h, radius) {
+  if (radius === 0) {
+    c.beginPath();
+    c.moveTo(x, y);
+    c.lineTo(x + w, y);
+    c.lineTo(x + w, y + h);
+    c.lineTo(x, y + h);
+    c.closePath();
+  } else {
+    c.beginPath();
+    c.moveTo(x + radius, y);
+    c.lineTo(x + w - radius, y);
+    c.quadraticCurveTo(x + w, y, x + w, y + radius);
+    c.lineTo(x + w, y + h - radius);
+    c.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+    c.lineTo(x + radius, y + h);
+    c.quadraticCurveTo(x, y + h, x, y + h - radius);
+    c.lineTo(x, y + radius);
+    c.quadraticCurveTo(x, y, x + radius, y);
+    c.closePath();
   }
 }
 
