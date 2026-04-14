@@ -47,6 +47,13 @@ export default class RankManager {
       ],
       success: () => {
         console.log('RankManager: uploadScore success', { numbersFound, time, hiddenScore });
+        // 发送最新分数到开放数据域，作为本地覆盖层
+        this.sendMessageToOpenData({
+          type: 'selfScore',
+          numbersFound,
+          time,
+          hiddenScore
+        });
         this.sendMessageToOpenData({ type: 'refresh' });
       },
       fail: (err) => {

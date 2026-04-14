@@ -14,6 +14,7 @@ var sharedCanvas = null;
 var ctx = null;
 var isShow = false;
 var friendData = null; // null = 加载中, [] = 暂无数据
+var selfScore = null;  // 主域上传的最新分数，用于覆盖缓存旧数据
 var scrollOffset = 0;
 var touchStartY = 0;
 var lastTouchY = 0;
@@ -53,19 +54,24 @@ function handleMessage(message) {
       isShow = true;
       scrollOffset = 0;
       render();
-      // 仅首次打开（无数据）时拉取，避免 getFriendCloudStorage 缓存旧数据
-      // 覆盖 uploadScore 后已拿到的最新数据
-      if (friendData === null) {
-        fetchFriendData();
-      }
+      fetchFriendData();
       break;
     case 'hide':
       isShow = false;
       clearCanvas();
       break;
     case 'refresh':
-      // 不重置 friendData，保留已有数据；拉取成功后自动替换
       fetchFriendData();
+      break;
+    case 'selfScore':
+      // 主域上传分数后发送的最新成绩，用于覆盖 API 缓存旧数据
+      selfScore = {
+        numbersFound: message.numbersFound || 0,
+        time: message.time || 0,
+        hiddenScore: message.hiddenScore || 0
+      };
+      applySelfScore();
+      if (isShow) render();
       break;
     case 'touchStart':
       isTouching = true;
@@ -102,6 +108,8 @@ function fetchFriendData() {
         };
       });
 
+      applySelfScore();
+
       friendData.sort(function (a, b) { return b.hiddenScore - a.hiddenScore; });
       friendData.forEach(function (item, i) { item.rank = i + 1; });
       friendData = friendData.slice(0, 100);
@@ -117,6 +125,33 @@ function fetchFriendData() {
       render();
     }
   });
+}
+
+// 用主域上传的最新分数覆盖 friendData 中对应条目
+// 解决 getFriendCloudStorage 缓存导致当前用户分数不更新的问题
+function applySelfScore() {
+  if (!selfScore || !friendData || friendData.length === 0) return;
+
+  // 查找当前用户：hiddenScore <= selfScore.hiddenScore 的条目中
+  // 找 numbersFound + time 最接近的（即旧分数最接近新分数的）
+  var bestIdx = -1;
+  var bestDiff = Infinity;
+  for (var i = 0; i < friendData.length; i++) {
+    var entry = friendData[i];
+    var diff = Math.abs(entry.hiddenScore - selfScore.hiddenScore);
+    // 只看 hiddenScore 不超过 selfScore 的条目（排除分数更高的好友）
+    if (entry.hiddenScore <= selfScore.hiddenScore && diff < bestDiff) {
+      bestDiff = diff;
+      bestIdx = i;
+    }
+  }
+
+  if (bestIdx >= 0 && friendData[bestIdx].hiddenScore < selfScore.hiddenScore) {
+    friendData[bestIdx].numbersFound = selfScore.numbersFound;
+    friendData[bestIdx].time = selfScore.time;
+    friendData[bestIdx].hiddenScore = selfScore.hiddenScore;
+    console.log('openDataContext: applied selfScore to entry', bestIdx);
+  }
 }
 
 function clearCanvas() {
