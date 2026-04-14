@@ -52,7 +52,7 @@ function handleMessage(message) {
     case 'show':
       isShow = true;
       scrollOffset = 0;
-      friendData = null;  // 重置数据，强制重新加载
+      friendData = null;  // 首次打开重置，显示加载中
       render();
       fetchFriendData();
       break;
@@ -61,8 +61,7 @@ function handleMessage(message) {
       clearCanvas();
       break;
     case 'refresh':
-      friendData = null;  // 重置数据，强制重新加载
-      render();
+      // 不重置 friendData，保留已有数据；拉取成功后自动替换
       fetchFriendData();
       break;
     case 'touchStart':
