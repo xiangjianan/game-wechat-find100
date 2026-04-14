@@ -95,7 +95,7 @@ function fetchFriendData() {
   wx.getFriendCloudStorage({
     keyList: ['numbersFound', 'time', 'hiddenScore'],
     success: function (res) {
-      friendData = res.data.map(function (item) {
+      var newData = res.data.map(function (item) {
         var nf = item.KVDataList.find(function (kv) { return kv.key === 'numbersFound'; });
         var td = item.KVDataList.find(function (kv) { return kv.key === 'time'; });
         var hs = item.KVDataList.find(function (kv) { return kv.key === 'hiddenScore'; });
@@ -108,13 +108,18 @@ function fetchFriendData() {
         };
       });
 
+      // API 返回空数据时保留已有数据，防止缓存空响应覆盖好数据
+      if (newData.length > 0 || friendData === null) {
+        friendData = newData;
+      }
+
       applySelfScore();
 
       friendData.sort(function (a, b) { return b.hiddenScore - a.hiddenScore; });
       friendData.forEach(function (item, i) { item.rank = i + 1; });
       friendData = friendData.slice(0, 100);
 
-      console.log('openDataContext: fetched', friendData.length, 'friends');
+      console.log('openDataContext: fetched', newData.length, 'friends, current total', friendData.length);
       render();
     },
     fail: function (error) {
