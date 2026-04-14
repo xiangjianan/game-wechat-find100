@@ -52,9 +52,8 @@ function handleMessage(message) {
     case 'show':
       isShow = true;
       scrollOffset = 0;
-      friendData = null;  // 首次打开重置，显示加载中
-      render();
-      fetchFriendData();
+      render();           // 用已有数据立即渲染
+      fetchFriendData();  // 后台拉取最新数据
       break;
     case 'hide':
       isShow = false;
