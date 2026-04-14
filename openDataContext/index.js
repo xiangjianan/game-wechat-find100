@@ -22,6 +22,8 @@ var lastTouchY = 0;
 var isTouching = false;
 var screenWidth = 0;
 var screenHeight = 0;
+var canvasScaleX = 1;
+var canvasScaleY = 1;
 
 function init() {
   try {
@@ -36,22 +38,18 @@ function init() {
 
     var dpr = sysInfo.pixelRatio || 1;
 
-    // 将 sharedCanvas 设置为设备像素尺寸，使文字以高清分辨率渲染
+    // 尝试将 sharedCanvas 设置为设备像素尺寸，提升文字清晰度
     var targetWidth = Math.round(screenWidth * dpr);
     var targetHeight = Math.round(screenHeight * dpr);
+    var origWidth = sharedCanvas.width;
+    var origHeight = sharedCanvas.height;
 
     sharedCanvas.width = targetWidth;
     sharedCanvas.height = targetHeight;
 
-    if (sharedCanvas.width === targetWidth && sharedCanvas.height === targetHeight) {
-      // resize 生效，使用 DPR 缩放实现高清渲染
-      ctx.scale(dpr, dpr);
-    } else {
-      // resize 未生效，回退到自适应缩放
-      var sx = sharedCanvas.width / screenWidth;
-      var sy = sharedCanvas.height / screenHeight;
-      ctx.scale(sx, sy);
-    }
+    // 计算 canvas 像素与逻辑尺寸的比值（即有效缩放因子）
+    canvasScaleX = sharedCanvas.width / screenWidth;
+    canvasScaleY = sharedCanvas.height / screenHeight;
 
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
@@ -59,7 +57,8 @@ function init() {
     wx.onMessage(handleMessage);
     console.log('openDataContext: init success', screenWidth, screenHeight,
       'canvas=' + sharedCanvas.width + 'x' + sharedCanvas.height,
-      'dpr=' + dpr);
+      'dpr=' + dpr,
+      'scale=' + canvasScaleX.toFixed(2) + 'x' + canvasScaleY.toFixed(2));
   } catch (e) {
     console.error('openDataContext: init failed', e);
   }
@@ -210,16 +209,17 @@ function applySelfScore() {
 
 function clearCanvas() {
   if (ctx) {
-    ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, sharedCanvas.width, sharedCanvas.height);
-    ctx.restore();
   }
 }
 
 function render() {
   if (!isShow || !ctx) return;
   clearCanvas();
+
+  // 每次渲染前重新设置缩放，防止平台内部重置上下文导致模糊
+  ctx.setTransform(canvasScaleX, 0, 0, canvasScaleY, 0, 0);
 
   var isMobile = screenWidth < 768;
   var topSafe = isMobile ? 44 : 0;

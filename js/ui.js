@@ -1,5 +1,5 @@
 import { COLORS, getColorScheme, BRUTALISM_STYLES } from './constants/colors';
-import { SAFE_AREA } from './render';
+import { SAFE_AREA, getDevicePixelRatio } from './render';
 
 export default class UI {
   constructor(width, height) {
@@ -3181,11 +3181,17 @@ export default class UI {
   // ── Leaderboard ──
 
   renderLeaderboard(ctx) {
-    // Draw the shared canvas (rendered by the open data domain)
-    // 开放数据域已自适应缩放，内容以逻辑坐标渲染覆盖整个 sharedCanvas
-    // 主域用逻辑坐标指定目标尺寸，DPR 缩放由主画布上下文自动处理
+    // 将 sharedCanvas 以像素坐标直接绘制到主画布，避免 DPR 缩放引起二次插值
     if (this.sharedCanvas) {
-      ctx.drawImage(this.sharedCanvas, 0, 0, this.width, this.height);
+      const dpr = getDevicePixelRatio();
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage(
+        this.sharedCanvas,
+        0, 0, this.sharedCanvas.width, this.sharedCanvas.height,
+        0, 0, this.width * dpr, this.height * dpr
+      );
+      ctx.restore();
     }
 
     // Close button (rendered by main domain)
