@@ -6,8 +6,8 @@
  * 主域 postMessage('show') → 本文件 fetchFriendData → 渲染到 sharedCanvas
  * 主域 drawImage(sharedCanvas) 将结果绘制到主画布
  *
- * 不主动 resize sharedCanvas，而是根据其实际尺寸自适应缩放，
- * 避免 resize 不生效时 ctx.scale(dpr) 导致内容溢出画布。
+ * 将 sharedCanvas 设置为设备像素尺寸并按 DPR 缩放上下文，
+ * 使文字在 Retina 屏幕上清晰渲染。若 resize 不生效则回退到自适应缩放。
  */
 
 var sharedCanvas = null;
@@ -34,16 +34,32 @@ function init() {
     screenWidth = sysInfo.screenWidth;
     screenHeight = sysInfo.screenHeight;
 
-    // 自适应缩放：将逻辑坐标映射到 sharedCanvas 实际像素
-    // 无论平台是否支持 resize，内容都能正确填满画布
-    var sx = sharedCanvas.width / screenWidth;
-    var sy = sharedCanvas.height / screenHeight;
-    ctx.scale(sx, sy);
+    var dpr = sysInfo.pixelRatio || 1;
+
+    // 将 sharedCanvas 设置为设备像素尺寸，使文字以高清分辨率渲染
+    var targetWidth = Math.round(screenWidth * dpr);
+    var targetHeight = Math.round(screenHeight * dpr);
+
+    sharedCanvas.width = targetWidth;
+    sharedCanvas.height = targetHeight;
+
+    if (sharedCanvas.width === targetWidth && sharedCanvas.height === targetHeight) {
+      // resize 生效，使用 DPR 缩放实现高清渲染
+      ctx.scale(dpr, dpr);
+    } else {
+      // resize 未生效，回退到自适应缩放
+      var sx = sharedCanvas.width / screenWidth;
+      var sy = sharedCanvas.height / screenHeight;
+      ctx.scale(sx, sy);
+    }
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
 
     wx.onMessage(handleMessage);
     console.log('openDataContext: init success', screenWidth, screenHeight,
       'canvas=' + sharedCanvas.width + 'x' + sharedCanvas.height,
-      'scale=' + sx.toFixed(2) + 'x' + sy.toFixed(2));
+      'dpr=' + dpr);
   } catch (e) {
     console.error('openDataContext: init failed', e);
   }
@@ -210,7 +226,7 @@ function render() {
   var bottomSafe = isMobile ? 34 : 0;
 
   // ── Background overlay ──
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
   ctx.fillRect(0, 0, screenWidth, screenHeight);
 
   // ── Modal ──
@@ -219,11 +235,14 @@ function render() {
   var modalX = (screenWidth - modalWidth) / 2;
   var modalY = isMobile ? topSafe + 10 : (screenHeight - modalHeight) / 2;
 
-  drawBrutalRect(ctx, modalX, modalY, modalWidth, modalHeight, '#FFFFFF', 8, 3);
+  drawBrutalRect(ctx, modalX, modalY, modalWidth, modalHeight, 'rgba(255, 255, 255, 0.94)', {
+    shadowOffset: 8,
+    borderWidth: 0
+  });
 
   // ── Title ──
   var titleY = modalY + (isMobile ? 40 : 50);
-  ctx.fillStyle = '#1F2937';
+  ctx.fillStyle = '#374151';
   ctx.font = 'bold ' + (isMobile ? 28 : 34) + 'px "Arial Black", Arial, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -239,13 +258,13 @@ function render() {
 
   // ── Content ──
   if (friendData === null) {
-    ctx.fillStyle = '#6B7280';
+    ctx.fillStyle = '#374151';
     ctx.font = (isMobile ? 16 : 18) + 'px Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('\u52a0\u8f7d\u4e2d...', screenWidth / 2, modalY + modalHeight / 2 - 10);
   } else if (friendData.length === 0) {
-    ctx.fillStyle = '#6B7280';
+    ctx.fillStyle = '#374151';
     ctx.font = (isMobile ? 16 : 18) + 'px Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -267,6 +286,7 @@ function renderList(modalX, modalY, modalWidth, modalHeight, isMobile) {
   var itemPadding = isMobile ? 6 : 8;
   var itemWidth = modalWidth - (isMobile ? 20 : 30);
   var itemX = modalX + (isMobile ? 10 : 15);
+  var itemRadius = 14;
   var medals = ['#FBBF24', '#3B82F6', '#10B981'];
 
   var totalHeight = friendData.length * (itemHeight + itemPadding);
@@ -288,9 +308,11 @@ function renderList(modalX, modalY, modalWidth, modalHeight, isMobile) {
     var isTop3 = i < 3;
 
     drawBrutalRect(ctx, itemX, itemY, itemWidth, itemHeight,
-      isTop3 ? '#FFFCF5' : '#FFFFFF',
-      isTop3 ? 4 : 2,
-      isTop3 ? 3 : 2);
+      isTop3 ? '#FFFCF5' : '#FFFFFF', {
+        shadowOffset: isTop3 ? 4 : 2,
+        borderWidth: isTop3 ? 2 : 1,
+        radius: itemRadius
+      });
 
     var rankX = itemX + (isMobile ? 14 : 18);
     var rankY = itemY + itemHeight / 2;
@@ -312,7 +334,7 @@ function renderList(modalX, modalY, modalWidth, modalHeight, isMobile) {
 
     var infoX = itemX + (isMobile ? 38 : 46);
     ctx.textAlign = 'left';
-    ctx.fillStyle = '#1F2937';
+    ctx.fillStyle = '#374151';
     ctx.font = 'bold ' + (isMobile ? 15 : 17) + 'px "Arial Black", Arial, sans-serif';
     ctx.fillText(truncate(friend.nickname, 8), infoX, itemY + (isMobile ? 20 : 22));
 
@@ -338,17 +360,48 @@ function renderList(modalX, modalY, modalWidth, modalHeight, isMobile) {
   }
 }
 
-function drawBrutalRect(c, x, y, w, h, fill, shadow, border) {
-  if (shadow > 0) {
-    c.fillStyle = 'rgba(0, 0, 0, 0.15)';
-    c.fillRect(x + shadow, y + shadow, w, h);
+function roundRect(c, x, y, w, h, r) {
+  c.beginPath();
+  if (c.roundRect) {
+    c.roundRect(x, y, w, h, r);
+  } else {
+    c.moveTo(x + r, y);
+    c.lineTo(x + w - r, y);
+    c.quadraticCurveTo(x + w, y, x + w, y + r);
+    c.lineTo(x + w, y + h - r);
+    c.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    c.lineTo(x + r, y + h);
+    c.quadraticCurveTo(x, y + h, x, y + h - r);
+    c.lineTo(x, y + r);
+    c.quadraticCurveTo(x, y, x + r, y);
+    c.closePath();
   }
+}
+
+function drawBrutalRect(c, x, y, w, h, fill, options) {
+  var radius = options.radius !== undefined ? options.radius : 18;
+  var shadowOffset = options.shadowOffset || 0;
+  var borderWidth = options.borderWidth || 0;
+
+  if (shadowOffset > 0) {
+    c.shadowColor = 'rgba(0, 0, 0, 0.08)';
+    c.shadowBlur = shadowOffset * 2;
+    c.shadowOffsetY = shadowOffset;
+  }
+
   c.fillStyle = fill;
-  c.fillRect(x, y, w, h);
-  if (border > 0) {
-    c.strokeStyle = '#000000';
-    c.lineWidth = border;
-    c.strokeRect(x, y, w, h);
+  roundRect(c, x, y, w, h, radius);
+  c.fill();
+
+  c.shadowBlur = 0;
+  c.shadowOffsetY = 0;
+  c.shadowColor = 'transparent';
+
+  if (borderWidth > 0) {
+    c.strokeStyle = 'rgba(59, 130, 246, 0.1)';
+    c.lineWidth = borderWidth;
+    roundRect(c, x, y, w, h, radius);
+    c.stroke();
   }
 }
 
