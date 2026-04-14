@@ -10,6 +10,7 @@ export default class RankManager {
     this.isWeChatGame = typeof wx !== 'undefined';
     this.sharedCanvas = null;
     this.previousScore = null; // 上次上传的分数，用于开放数据域精确匹配当前用户
+    this.playerId = null; // 唯一标识，用于开放数据域可靠识别当前用户
   }
 
   init() {
@@ -19,6 +20,13 @@ export default class RankManager {
     try {
       const openDataContext = wx.getOpenDataContext();
       this.sharedCanvas = openDataContext.canvas;
+
+      // 加载或生成唯一 playerId，用于开放数据域识别当前用户
+      this.playerId = wx.getStorageSync('rankPlayerId');
+      if (!this.playerId) {
+        this.playerId = 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        wx.setStorageSync('rankPlayerId', this.playerId);
+      }
     } catch (e) {
       console.error('RankManager: init failed', e);
     }
@@ -46,7 +54,8 @@ export default class RankManager {
       KVDataList: [
         { key: 'numbersFound', value: numbersFound.toString() },
         { key: 'time', value: time.toString() },
-        { key: 'hiddenScore', value: hiddenScore.toString() }
+        { key: 'hiddenScore', value: hiddenScore.toString() },
+        { key: 'playerId', value: this.playerId || '' }
       ],
       success: () => {
         console.log('RankManager: uploadScore success', { numbersFound, time, hiddenScore });
@@ -55,7 +64,8 @@ export default class RankManager {
           numbersFound,
           time,
           hiddenScore,
-          prevHiddenScore
+          prevHiddenScore,
+          playerId: this.playerId
         });
         this.sendMessageToOpenData({ type: 'refresh' });
       },

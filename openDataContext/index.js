@@ -76,7 +76,8 @@ function handleMessage(message) {
         numbersFound: message.numbersFound || 0,
         time: message.time || 0,
         hiddenScore: message.hiddenScore || 0,
-        prevHiddenScore: message.prevHiddenScore != null ? message.prevHiddenScore : null
+        prevHiddenScore: message.prevHiddenScore != null ? message.prevHiddenScore : null,
+        playerId: message.playerId || ''
       };
       applySelfScore();
       if (isShow) render();
@@ -101,18 +102,20 @@ function handleMessage(message) {
 
 function fetchFriendData() {
   wx.getFriendCloudStorage({
-    keyList: ['numbersFound', 'time', 'hiddenScore'],
+    keyList: ['numbersFound', 'time', 'hiddenScore', 'playerId'],
     success: function (res) {
       var newData = res.data.map(function (item) {
         var nf = item.KVDataList.find(function (kv) { return kv.key === 'numbersFound'; });
         var td = item.KVDataList.find(function (kv) { return kv.key === 'time'; });
         var hs = item.KVDataList.find(function (kv) { return kv.key === 'hiddenScore'; });
+        var pid = item.KVDataList.find(function (kv) { return kv.key === 'playerId'; });
         return {
           nickname: item.nickname || '',
           avatarUrl: item.avatarUrl || '',
           numbersFound: nf ? parseInt(nf.value) : 0,
           time: td ? parseFloat(td.value) : 0,
-          hiddenScore: hs ? parseFloat(hs.value) : 0
+          hiddenScore: hs ? parseFloat(hs.value) : 0,
+          playerId: pid ? pid.value : ''
         };
       });
 
@@ -152,43 +155,20 @@ function fetchFriendData() {
 }
 
 // 用主域上传的最新分数覆盖 friendData 中当前用户的条目
-// 优先用 prevHiddenScore 精确匹配（主域记录的上次上传分数），回退到最近分数匹配
+// 通过唯一 playerId 精确匹配当前用户，避免误匹配其他好友
 function applySelfScore() {
   if (!selfScore || !friendData || friendData.length === 0) return;
+  if (!selfScore.playerId) return; // 无 playerId，无法可靠匹配，跳过
 
-  var selfIdx = -1;
-
-  // 优先：用上次上传的分数精确匹配当前用户
-  if (selfScore.prevHiddenScore != null) {
-    for (var i = 0; i < friendData.length; i++) {
-      if (friendData[i].hiddenScore === selfScore.prevHiddenScore) {
-        selfIdx = i;
-        break;
-      }
+  for (var i = 0; i < friendData.length; i++) {
+    if (friendData[i].playerId === selfScore.playerId) {
+      if (friendData[i].hiddenScore >= selfScore.hiddenScore) return; // 分数已是最新
+      friendData[i].numbersFound = selfScore.numbersFound;
+      friendData[i].time = selfScore.time;
+      friendData[i].hiddenScore = selfScore.hiddenScore;
+      console.log('openDataContext: applied selfScore to entry', i);
+      return;
     }
-  }
-
-  // 回退：找最接近的分数（旧逻辑）
-  if (selfIdx === -1) {
-    var bestDiff = Infinity;
-    for (var i = 0; i < friendData.length; i++) {
-      var entry = friendData[i];
-      var diff = Math.abs(entry.hiddenScore - selfScore.hiddenScore);
-      if (entry.hiddenScore <= selfScore.hiddenScore && diff < bestDiff) {
-        bestDiff = diff;
-        selfIdx = i;
-      }
-    }
-    if (selfIdx >= 0 && friendData[selfIdx].hiddenScore >= selfScore.hiddenScore) {
-      return; // 分数已是最新，无需更新
-    }
-  }
-
-  if (selfIdx >= 0) {
-    friendData[selfIdx].numbersFound = selfScore.numbersFound;
-    friendData[selfIdx].time = selfScore.time;
-    friendData[selfIdx].hiddenScore = selfScore.hiddenScore;
-    console.log('openDataContext: applied selfScore to entry', selfIdx);
   }
 }
 
@@ -366,6 +346,7 @@ function deepCopyFriendData(data) {
       numbersFound: item.numbersFound,
       time: item.time,
       hiddenScore: item.hiddenScore,
+      playerId: item.playerId,
       rank: item.rank
     };
   });
