@@ -33,9 +33,16 @@ function init() {
     // 逻辑尺寸用于布局（与主域一致）
     screenWidth = sysInfo.screenWidth;
     screenHeight = sysInfo.screenHeight;
+    var pixelRatio = sysInfo.pixelRatio || 1;
+
+    // 将 sharedCanvas resize 到物理像素尺寸，确保文字以高分辨率渲染
+    // 避免 drawImage 时因画布过小被拉伸导致文字模糊
+    sharedCanvas.width = screenWidth * pixelRatio;
+    sharedCanvas.height = screenHeight * pixelRatio;
 
     // 自适应缩放：将逻辑坐标映射到 sharedCanvas 实际像素
-    // 无论平台是否支持 resize，内容都能正确填满画布
+    // 如果 resize 生效，sx/sy 等于 pixelRatio（高分辨率）
+    // 如果 resize 未生效，仍按实际尺寸映射（降级但不溢出）
     var sx = sharedCanvas.width / screenWidth;
     var sy = sharedCanvas.height / screenHeight;
     ctx.scale(sx, sy);
@@ -43,7 +50,7 @@ function init() {
     wx.onMessage(handleMessage);
     console.log('openDataContext: init success', screenWidth, screenHeight,
       'canvas=' + sharedCanvas.width + 'x' + sharedCanvas.height,
-      'scale=' + sx.toFixed(2) + 'x' + sy.toFixed(2));
+      'dpr=' + pixelRatio, 'scale=' + sx.toFixed(2) + 'x' + sy.toFixed(2));
   } catch (e) {
     console.error('openDataContext: init failed', e);
   }
