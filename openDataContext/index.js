@@ -13,15 +13,15 @@
 var sharedCanvas = null;
 var ctx = null;
 var isShow = false;
-var friendData = null; // null = 加载中, [] = 暂无数据
-var selfScore = null;  // 主域上传的最新分数，用于覆盖缓存旧数据
+var friendData = null;     // null = 加载中, [] = 暂无数据
+var selfScore = null;      // 主域上传的最新分数，用于覆盖缓存旧数据
+var _backupFriendData = null;  // 每次打开排行榜前的数据备份，API 返回空时恢复
 var scrollOffset = 0;
 var touchStartY = 0;
 var lastTouchY = 0;
 var isTouching = false;
 var screenWidth = 0;
 var screenHeight = 0;
-var fetchId = 0;       // 每次 fetch 递增，丢弃旧响应避免并发覆盖
 
 function init() {
   try {
@@ -54,7 +54,13 @@ function handleMessage(message) {
     case 'show':
       isShow = true;
       scrollOffset = 0;
-      friendData = null;  // 显示加载中
+      // 备份已有数据，设置 null 显示加载中
+      if (friendData && friendData.length > 0) {
+        _backupFriendData = friendData.slice();  // 浅拷贝
+      } else {
+        _backupFriendData = null;
+      }
+      friendData = null;
       render();
       fetchFriendData();
       break;
@@ -66,7 +72,6 @@ function handleMessage(message) {
       fetchFriendData();
       break;
     case 'selfScore':
-      // 主域上传分数后发送的最新成绩，用于覆盖 API 缓存旧数据
       selfScore = {
         numbersFound: message.numbersFound || 0,
         time: message.time || 0,
@@ -94,14 +99,9 @@ function handleMessage(message) {
 }
 
 function fetchFriendData() {
-  var myId = ++fetchId;
-
   wx.getFriendCloudStorage({
     keyList: ['numbersFound', 'time', 'hiddenScore'],
     success: function (res) {
-      // 丢弃旧响应，只处理最新一次 fetch 的结果
-      if (myId !== fetchId) return;
-
       var newData = res.data.map(function (item) {
         var nf = item.KVDataList.find(function (kv) { return kv.key === 'numbersFound'; });
         var td = item.KVDataList.find(function (kv) { return kv.key === 'time'; });
@@ -115,13 +115,18 @@ function fetchFriendData() {
         };
       });
 
-      // 有数据就用新数据；API 返回空（缓存问题）则保留旧数据
       if (newData.length > 0) {
+        // API 返回有效数据，直接使用
         friendData = newData;
-      } else if (!friendData || friendData.length === 0) {
+        _backupFriendData = null;
+      } else if (_backupFriendData && _backupFriendData.length > 0) {
+        // API 返回空（缓存问题），恢复备份
+        friendData = _backupFriendData;
+      } else if (friendData === null) {
+        // 确实没有数据（首次加载、无备份）
         friendData = newData;
       }
-      // else: newData 为空但 friendData 有数据，保留旧数据不动
+      // else: friendData 已有数据且 API 返回空，保留现有数据不动
 
       applySelfScore();
 
@@ -133,9 +138,11 @@ function fetchFriendData() {
       render();
     },
     fail: function (error) {
-      if (myId !== fetchId) return;
       console.error('openDataContext: getFriendCloudStorage failed', error);
-      if (friendData === null) {
+      // API 调用失败，尝试恢复备份
+      if (_backupFriendData && _backupFriendData.length > 0) {
+        friendData = _backupFriendData;
+      } else if (friendData === null) {
         friendData = [];
       }
       render();
@@ -144,12 +151,9 @@ function fetchFriendData() {
 }
 
 // 用主域上传的最新分数覆盖 friendData 中对应条目
-// 解决 getFriendCloudStorage 缓存导致当前用户分数不更新的问题
 function applySelfScore() {
   if (!selfScore || !friendData || friendData.length === 0) return;
 
-  // 查找当前用户：hiddenScore <= selfScore.hiddenScore 的条目中
-  // 找最接近的（即旧分数最接近新分数的）
   var bestIdx = -1;
   var bestDiff = Infinity;
   for (var i = 0; i < friendData.length; i++) {
@@ -246,7 +250,6 @@ function renderList(modalX, modalY, modalWidth, modalHeight, isMobile) {
   var itemX = modalX + (isMobile ? 10 : 15);
   var medals = ['#FBBF24', '#3B82F6', '#10B981'];
 
-  // Clamp scroll
   var totalHeight = friendData.length * (itemHeight + itemPadding);
   var maxScroll = Math.max(0, totalHeight - listHeight);
   if (scrollOffset < 0) scrollOffset = 0;
@@ -265,13 +268,11 @@ function renderList(modalX, modalY, modalWidth, modalHeight, isMobile) {
 
     var isTop3 = i < 3;
 
-    // Item card
     drawBrutalRect(ctx, itemX, itemY, itemWidth, itemHeight,
       isTop3 ? '#FFFCF5' : '#FFFFFF',
       isTop3 ? 4 : 2,
       isTop3 ? 3 : 2);
 
-    // Rank badge
     var rankX = itemX + (isMobile ? 14 : 18);
     var rankY = itemY + itemHeight / 2;
 
@@ -290,14 +291,12 @@ function renderList(modalX, modalY, modalWidth, modalHeight, isMobile) {
     ctx.textBaseline = 'middle';
     ctx.fillText('' + (i + 1), rankX, rankY);
 
-    // Nickname
     var infoX = itemX + (isMobile ? 38 : 46);
     ctx.textAlign = 'left';
     ctx.fillStyle = '#1F2937';
     ctx.font = 'bold ' + (isMobile ? 15 : 17) + 'px "Arial Black", Arial, sans-serif';
     ctx.fillText(truncate(friend.nickname, 8), infoX, itemY + (isMobile ? 20 : 22));
 
-    // Score
     ctx.fillStyle = '#6B7280';
     ctx.font = (isMobile ? 12 : 14) + 'px Arial, sans-serif';
     ctx.fillText(
@@ -308,7 +307,6 @@ function renderList(modalX, modalY, modalWidth, modalHeight, isMobile) {
 
   ctx.restore();
 
-  // Scroll indicator
   if (totalHeight > listHeight) {
     var barH = Math.max(30, listHeight * listHeight / totalHeight);
     var barY = listStartY + (scrollOffset / totalHeight) * (listHeight - barH);
