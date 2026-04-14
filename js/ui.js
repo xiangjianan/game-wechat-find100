@@ -3181,21 +3181,57 @@ export default class UI {
   // ── Leaderboard ──
 
   renderLeaderboard(ctx) {
-    // Draw the shared canvas (rendered by the open data domain)
-    // 开放数据域已自适应缩放，内容以逻辑坐标渲染覆盖整个 sharedCanvas
-    // 主域用逻辑坐标指定目标尺寸，DPR 缩放由主画布上下文自动处理
-    if (this.sharedCanvas) {
-      ctx.drawImage(this.sharedCanvas, 0, 0, this.width, this.height);
-    }
-
-    // Close button (rendered by main domain)
     const scheme = this.getScheme();
     const isMobile = this.width < 768;
+
+    // Background overlay
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(0, 0, this.width, this.height);
+
     const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
     const bottomSafeArea = Math.max(this.safeArea.bottom, isMobile ? 34 : 0);
+    const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
     const modalHeight = isMobile ? this.height - topSafeArea - bottomSafeArea - 20 : this.height - 80;
+    const modalX = (this.width - modalWidth) / 2;
     const modalY = isMobile ? topSafeArea + 10 : (this.height - modalHeight) / 2;
 
+    // Modal frame
+    this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
+      shadowOffset: 8,
+      borderWidth: 0
+    });
+
+    // Title
+    const titleY = modalY + (isMobile ? 40 : 50);
+    ctx.fillStyle = scheme.text;
+    ctx.font = `bold ${isMobile ? 28 : 34}px "Arial Black", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('好友排行榜', this.width / 2, titleY);
+
+    const titleWidth = ctx.measureText('好友排行榜').width;
+    ctx.strokeStyle = '#FBBF24';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(this.width / 2 - titleWidth / 2 - 20, titleY + 25);
+    ctx.lineTo(this.width / 2 + titleWidth / 2 + 20, titleY + 25);
+    ctx.stroke();
+
+    // List area: draw shared canvas content (friend list from open data context)
+    if (this.sharedCanvas) {
+      const listStartY = modalY + (isMobile ? 90 : 110);
+      const closeBtnSpace = isMobile ? 70 : 80;
+      const listEndY = modalY + modalHeight - closeBtnSpace;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(modalX, listStartY - 10, modalWidth, listEndY - listStartY + 10);
+      ctx.clip();
+      ctx.drawImage(this.sharedCanvas, 0, 0, this.width, this.height);
+      ctx.restore();
+    }
+
+    // Close button
     const buttonWidth = isMobile ? 180 : 220;
     const buttonHeight = isMobile ? 48 : 56;
     const buttonY = modalY + modalHeight - (isMobile ? 70 : 80);
