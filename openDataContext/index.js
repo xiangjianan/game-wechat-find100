@@ -22,6 +22,7 @@ var screenWidth = 0;
 var screenHeight = 0;
 var safeAreaTop = 0;       // 与主域一致的 safeArea.top
 var safeAreaBottom = 0;    // 与主域一致的 bottom inset
+var avatarImages = {};     // 头像缓存: url -> { img, loaded }
 
 function init() {
   try {
@@ -181,6 +182,53 @@ function clearCanvas() {
   }
 }
 
+// 头像加载与绘制
+function loadAvatar(url) {
+  if (!url || avatarImages[url]) return;
+  var entry = { img: null, loaded: false };
+  avatarImages[url] = entry;
+  var img = wx.createImage();
+  img.onload = function () {
+    entry.img = img;
+    entry.loaded = true;
+    if (isShow) render();
+  };
+  img.onerror = function () {
+    // 加载失败不重试
+  };
+  img.src = url;
+}
+
+function drawAvatar(c, url, x, y, size) {
+  if (!url) return false;
+  loadAvatar(url);
+  var cached = avatarImages[url];
+  if (!cached || !cached.loaded || !cached.img) return false;
+
+  c.save();
+  c.beginPath();
+  c.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2);
+  c.clip();
+  c.drawImage(cached.img, x, y, size, size);
+  c.restore();
+  return true;
+}
+
+// 绘制头像占位符（灰色圆 + 首字）
+function drawAvatarPlaceholder(c, nickname, x, y, size) {
+  c.save();
+  c.beginPath();
+  c.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2);
+  c.fillStyle = '#E5E7EB';
+  c.fill();
+  c.fillStyle = '#9CA3AF';
+  c.font = 'bold ' + (size * 0.45) + 'px Arial, sans-serif';
+  c.textAlign = 'center';
+  c.textBaseline = 'middle';
+  c.fillText(nickname ? nickname.charAt(0) : '?', x + size / 2, y + size / 2);
+  c.restore();
+}
+
 // 计算与主域一致的弹框布局参数
 function getLayout(isMobile) {
   var topSafe = Math.max(safeAreaTop, isMobile ? 44 : 0);
@@ -256,7 +304,16 @@ function renderList(modalX, modalY, modalWidth, modalHeight, isMobile) {
     ctx.textBaseline = 'middle';
     ctx.fillText('' + (i + 1), rankX, rankY);
 
-    var infoX = itemX + (isMobile ? 38 : 46);
+    // 头像
+    var avatarSize = isMobile ? 40 : 48;
+    var avatarX = itemX + (isMobile ? 36 : 44);
+    var avatarY = itemY + (itemHeight - avatarSize) / 2;
+
+    if (!drawAvatar(ctx, friend.avatarUrl, avatarX, avatarY, avatarSize)) {
+      drawAvatarPlaceholder(ctx, friend.nickname, avatarX, avatarY, avatarSize);
+    }
+
+    var infoX = avatarX + avatarSize + (isMobile ? 10 : 12);
     ctx.textAlign = 'left';
     ctx.fillStyle = '#374151';
     ctx.font = 'bold ' + (isMobile ? 16 : 18) + 'px "Arial Black", Arial, sans-serif';
