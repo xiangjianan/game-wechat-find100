@@ -382,7 +382,7 @@ export default class GameManager {
     ctx.clip();
 
     // 不透明背景，遮挡连击流动效果
-    ctx.fillStyle = '#FFFAF5';
+    ctx.fillStyle = '#F5F7FA';
     ctx.fillRect(clipX, clipY, clipW, clipH);
 
     // 先绘制所有多边形的形状（底层）

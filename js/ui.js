@@ -239,21 +239,21 @@ export default class UI {
     const scaledHeight = button.height * scale;
     const scaledX = centerX - scaledWidth / 2;
     const scaledY = centerY - scaledHeight / 2;
-    const radius = 28;
+    const radius = 20;
 
     ctx.save();
     ctx.globalAlpha = alpha;
 
-    // Vibrant glow shadow
-    ctx.shadowColor = isHovered ? 'rgba(59, 130, 246, 0.4)' : 'rgba(59, 130, 246, 0.25)';
-    ctx.shadowBlur = isHovered ? 32 : 20;
+    // Subtle shadow
+    ctx.shadowColor = isHovered ? 'rgba(30, 136, 229, 0.3)' : 'rgba(0, 0, 0, 0.15)';
+    ctx.shadowBlur = isHovered ? 20 : 12;
     ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = isHovered ? 8 : 4;
+    ctx.shadowOffsetY = isHovered ? 6 : 3;
 
-    // Vibrant gradient
-    const gradient = ctx.createLinearGradient(scaledX, scaledY, scaledX + scaledWidth, scaledY + scaledHeight);
-    gradient.addColorStop(0, button.color || '#F97316');
-    gradient.addColorStop(1, button.colorEnd || '#60A5FA');
+    // Blue gradient
+    const gradient = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight);
+    gradient.addColorStop(0, button.color || '#1E88E5');
+    gradient.addColorStop(1, button.colorEnd || '#1565C0');
     ctx.fillStyle = gradient;
     this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
     ctx.fill();
@@ -263,28 +263,9 @@ export default class UI {
     ctx.shadowOffsetX = 0;
     ctx.shadowColor = 'transparent';
 
-    // Top gloss (clipped to rounded shape)
-    ctx.save();
-    this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
-    ctx.clip();
-    const shineGradient = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.5);
-    shineGradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
-    shineGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.08)');
-    shineGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    ctx.fillStyle = shineGradient;
-    ctx.fillRect(scaledX, scaledY, scaledWidth, scaledHeight * 0.55);
-
-    // Bottom edge glow
-    const bottomShine = ctx.createLinearGradient(scaledX, scaledY + scaledHeight * 0.7, scaledX, scaledY + scaledHeight);
-    bottomShine.addColorStop(0, 'rgba(255, 255, 255, 0)');
-    bottomShine.addColorStop(1, 'rgba(255, 255, 255, 0.08)');
-    ctx.fillStyle = bottomShine;
-    ctx.fillRect(scaledX, scaledY + scaledHeight * 0.7, scaledWidth, scaledHeight * 0.3);
-    ctx.restore();
-
     // Text
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = `700 ${isMobile ? 18 : 20}px Arial, sans-serif`;
+    ctx.font = `500 ${isMobile ? 18 : 20}px Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
@@ -293,15 +274,7 @@ export default class UI {
       const textX = centerX - 12;
       const iconX = centerX + textWidth / 2 + 10;
 
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
-      ctx.shadowBlur = 4;
-      ctx.shadowOffsetY = 1;
-
       ctx.fillText(button.text, textX, centerY);
-
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetY = 0;
-      ctx.shadowColor = 'transparent';
 
       ctx.beginPath();
       ctx.moveTo(iconX, centerY - 8);
@@ -323,30 +296,30 @@ export default class UI {
 
     let scale = 1;
     if (isClicked) scale = 0.97;
-    else if (isHovered) scale = 1.02;
+    else if (isHovered) scale = 1.01;
 
     const scaledWidth = button.width * scale;
     const scaledHeight = button.height * scale;
     const scaledX = button.x + (button.width - scaledWidth) / 2;
     const scaledY = button.y + (button.height - scaledHeight) / 2;
-    const radius = 26;
+    const radius = 16;
 
     ctx.save();
     ctx.globalAlpha = alpha;
 
-    // Card shadow with theme-colored glow on hover
+    // Card shadow
     if (isHovered) {
-      ctx.shadowColor = button.cardHoverGlow || 'rgba(0, 0, 0, 0.12)';
-      ctx.shadowBlur = 20;
-      ctx.shadowOffsetY = 6;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+      ctx.shadowBlur = 16;
+      ctx.shadowOffsetY = 4;
     } else {
       ctx.shadowColor = 'rgba(0, 0, 0, 0.06)';
-      ctx.shadowBlur = 12;
-      ctx.shadowOffsetY = 4;
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetY = 2;
     }
 
-    // Card background
-    ctx.fillStyle = button.cardBg || 'rgba(255, 255, 255, 0.9)';
+    // White card background
+    ctx.fillStyle = '#FFFFFF';
     this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
     ctx.fill();
 
@@ -354,21 +327,9 @@ export default class UI {
     ctx.shadowOffsetY = 0;
     ctx.shadowColor = 'transparent';
 
-    // Gloss effect - subtle top shine (clipped to rounded shape)
-    ctx.save();
-    this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
-    ctx.clip();
-    const cardShine = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight * 0.4);
-    cardShine.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
-    cardShine.addColorStop(0.5, 'rgba(255, 255, 255, 0.1)');
-    cardShine.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    ctx.fillStyle = cardShine;
-    ctx.fillRect(scaledX, scaledY, scaledWidth, scaledHeight * 0.4);
-    ctx.restore();
-
-    // Colored border
-    ctx.strokeStyle = button.cardBorder || 'rgba(148, 163, 184, 0.15)';
-    ctx.lineWidth = 1.5;
+    // Subtle border
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.06)';
+    ctx.lineWidth = 1;
     this.roundRect(ctx, scaledX, scaledY, scaledWidth, scaledHeight, radius);
     ctx.stroke();
 
@@ -378,21 +339,17 @@ export default class UI {
       const iconX = scaledX + (isMobile ? 14 : 18);
       const iconY = scaledY + (scaledHeight - iconSize) / 2;
 
-      ctx.fillStyle = button.iconBg || '#FFF3E8';
+      ctx.fillStyle = button.iconBg || '#E3F2FD';
       this.roundRect(ctx, iconX, iconY, iconSize, iconSize, iconSize / 2);
       ctx.fill();
-
-      ctx.fillStyle = button.iconColor || '#3B82F6';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
 
       const iconCenterX = iconX + iconSize / 2;
       const iconCenterY = iconY + iconSize / 2;
 
       this._drawIcon(ctx, button.icon, iconCenterX, iconCenterY, isMobile, button.iconColor);
 
-      ctx.fillStyle = '#374151';
-      ctx.font = `600 ${isMobile ? 15 : 17}px Arial, sans-serif`;
+      ctx.fillStyle = '#333333';
+      ctx.font = `500 ${isMobile ? 15 : 17}px Arial, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(button.text, scaledX + scaledWidth / 2 + iconSize / 4, scaledY + scaledHeight / 2);
@@ -406,13 +363,12 @@ export default class UI {
     const iconX = scaledX + (scaledWidth - iconSize) / 2;
     const iconY = scaledY + (isMobile ? 16 : 18);
 
-    ctx.fillStyle = button.iconBg || '#FFF3E8';
+    ctx.fillStyle = button.iconBg || '#E3F2FD';
     this.roundRect(ctx, iconX, iconY, iconSize, iconSize, iconSize / 2);
     ctx.fill();
 
     // Draw icon
-    ctx.fillStyle = button.iconColor || '#3B82F6';
-    ctx.font = `bold ${isMobile ? 20 : 24}px Arial, sans-serif`;
+    ctx.fillStyle = button.iconColor || '#1E88E5';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
@@ -421,17 +377,17 @@ export default class UI {
 
     this._drawIcon(ctx, button.icon, iconCenterX, iconCenterY, isMobile, button.iconColor);
 
-    // Title - centered below icon (square card vertical layout)
+    // Title
     const textY = iconY + iconSize + (isMobile ? 14 : 16);
-    ctx.fillStyle = '#374151';
-    ctx.font = `600 ${isMobile ? 14 : 16}px Arial, sans-serif`;
+    ctx.fillStyle = '#333333';
+    ctx.font = `500 ${isMobile ? 14 : 16}px Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(button.text, scaledX + scaledWidth / 2, textY);
 
-    // Subtitle - centered below title
+    // Subtitle
     if (button.subtitle) {
-      ctx.fillStyle = '#6B7280';
+      ctx.fillStyle = '#757575';
       ctx.font = `${isMobile ? 11 : 12}px Arial, sans-serif`;
       ctx.fillText(button.subtitle, scaledX + scaledWidth / 2, textY + (isMobile ? 16 : 18));
     }
@@ -446,7 +402,7 @@ export default class UI {
     ctx.lineJoin = 'round';
 
     if (icon === 'book') {
-      ctx.strokeStyle = iconColor || '#3B82F6';
+      ctx.strokeStyle = iconColor || '#1E88E5';
       // 左页
       ctx.beginPath();
       ctx.moveTo(iconCenterX, iconCenterY - s * 0.8);
@@ -467,7 +423,7 @@ export default class UI {
       ctx.lineTo(iconCenterX, iconCenterY + s * 0.8);
       ctx.stroke();
     } else if (icon === 'cart') {
-      ctx.strokeStyle = iconColor || '#FBBF24';
+      ctx.strokeStyle = iconColor || '#1E88E5';
       // 袋身
       ctx.beginPath();
       ctx.moveTo(iconCenterX - s * 0.7, iconCenterY - s * 0.1);
@@ -482,7 +438,7 @@ export default class UI {
       ctx.arc(iconCenterX, iconCenterY - s * 0.35, s * 0.4, Math.PI * 0.15, Math.PI * 0.85);
       ctx.stroke();
     } else if (icon === 'lightning') {
-      ctx.strokeStyle = iconColor || '#FBBF24';
+      ctx.strokeStyle = iconColor || '#1E88E5';
       ctx.beginPath();
       ctx.moveTo(iconCenterX + s * 0.1, iconCenterY - s);
       ctx.lineTo(iconCenterX - s * 0.3, iconCenterY - s * 0.05);
@@ -492,7 +448,7 @@ export default class UI {
       ctx.lineTo(iconCenterX - s * 0.1, iconCenterY + s * 0.05);
       ctx.stroke();
     } else if (icon === 'trophy') {
-      ctx.strokeStyle = iconColor || '#3B82F6';
+      ctx.strokeStyle = iconColor || '#1E88E5';
       // 杯身
       ctx.beginPath();
       ctx.moveTo(iconCenterX - s * 0.55, iconCenterY - s * 0.7);
@@ -525,7 +481,7 @@ export default class UI {
       ctx.arc(iconCenterX, iconCenterY - s * 0.25, s * 0.12, 0, Math.PI * 2);
       ctx.stroke();
     } else if (icon === 'medal') {
-      ctx.strokeStyle = iconColor || '#3B82F6';
+      ctx.strokeStyle = iconColor || '#1E88E5';
       // 奖牌圆形外框
       ctx.beginPath();
       ctx.arc(iconCenterX, iconCenterY - s * 0.05, s * 0.7, 0, Math.PI * 2);
@@ -550,7 +506,7 @@ export default class UI {
       ctx.lineTo(iconCenterX + s * 0.3, iconCenterY + s * 0.8);
       ctx.stroke();
     } else if (icon === 'rank') {
-      ctx.strokeStyle = iconColor || '#8B5CF6';
+      ctx.strokeStyle = iconColor || '#1E88E5';
       // 皇冠底座弧线
       ctx.beginPath();
       ctx.moveTo(iconCenterX - s * 0.8, iconCenterY + s * 0.4);
@@ -577,7 +533,7 @@ export default class UI {
       ctx.arc(iconCenterX + s * 0.75, iconCenterY - s * 0.15, s * 0.08, 0, Math.PI * 2);
       ctx.stroke();
     } else if (icon === 'share') {
-      ctx.strokeStyle = iconColor || '#3B82F6';
+      ctx.strokeStyle = iconColor || '#1E88E5';
       // 三个节点
       ctx.beginPath();
       ctx.arc(iconCenterX - s * 0.55, iconCenterY + s * 0.3, s * 0.2, 0, Math.PI * 2);
@@ -609,7 +565,6 @@ export default class UI {
   }
 
   drawModeSwitcher(ctx, x, y, width, height) {
-    const scheme = this.getScheme();
     const isMobile = this.width < 768;
 
     this.modeSwitcher.x = x;
@@ -629,7 +584,7 @@ export default class UI {
     ctx.fill();
     ctx.restore();
 
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.2)';
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
     ctx.lineWidth = 1;
     this.roundRect(ctx, x, y, width, height, radius);
     ctx.stroke();
@@ -647,32 +602,27 @@ export default class UI {
     }
 
     ctx.save();
-    ctx.shadowColor = isTimedActive ? 'rgba(59, 130, 246, 0.18)' : 'rgba(16, 185, 129, 0.18)';
-    ctx.shadowBlur = 10;
+    ctx.shadowColor = 'rgba(30, 136, 229, 0.15)';
+    ctx.shadowBlur = 8;
     ctx.shadowOffsetY = 2;
 
     const activeGradient = ctx.createLinearGradient(activeX, y, activeX + segmentWidth, y + height);
-    if (isTimedActive) {
-      activeGradient.addColorStop(0, '#F97316');
-      activeGradient.addColorStop(1, '#FB923C');
-    } else {
-      activeGradient.addColorStop(0, '#10B981');
-      activeGradient.addColorStop(1, '#34D399');
-    }
+    activeGradient.addColorStop(0, '#1E88E5');
+    activeGradient.addColorStop(1, '#1565C0');
     ctx.fillStyle = activeGradient;
     this.roundRect(ctx, activeX + 3 + offsetX, y + 3 + offsetY, segmentWidth - 6, height - 6, radius - 3);
     ctx.fill();
     ctx.restore();
 
     const fontSize = isMobile ? 13 : 15;
-    ctx.font = `600 ${fontSize}px Arial, sans-serif`;
+    ctx.font = `500 ${fontSize}px Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    ctx.fillStyle = isTimedActive ? '#FFFFFF' : '#6B7280';
+    ctx.fillStyle = isTimedActive ? '#FFFFFF' : '#757575';
     ctx.fillText('限时模式', x + segmentWidth / 2, y + height / 2);
 
-    ctx.fillStyle = !isTimedActive ? '#FFFFFF' : '#6B7280';
+    ctx.fillStyle = !isTimedActive ? '#FFFFFF' : '#757575';
     ctx.fillText('自由模式', x + segmentWidth + segmentWidth / 2, y + height / 2);
   }
 
@@ -872,9 +822,9 @@ export default class UI {
       // 根据奖励类型选择颜色
       let bgColor = scheme.accent;
       if (reward.type === 'hint') {
-        bgColor = '#FBBF24';
+        bgColor = '#1E88E5';
       } else if (reward.type === 'coin') {
-        bgColor = '#3B82F6';
+        bgColor = '#1E88E5';
       } else if (reward.type === 'time') {
         bgColor = '#60A5FA';
       }
@@ -970,8 +920,8 @@ export default class UI {
         if (this.bgParticles.length < 40 && Math.random() < deltaTime * 10) {
           const comboLevel = this.comboData.level;
           const colors = comboLevel
-            ? [comboLevel.color, '#FBBF24', '#3B82F6']
-            : ['#FBBF24', '#3B82F6', '#10B981'];
+            ? [comboLevel.color, '#1E88E5', '#1E88E5']
+            : ['#1E88E5', '#1E88E5', '#10B981'];
           this.bgParticles.push({
             x: Math.random() * this.width,
             y: this.height + 10,
@@ -1183,7 +1133,7 @@ export default class UI {
     const cardRow2Y = cardRow1Y + cardHeight + cardGap;
 
     const buttons = [
-      // 开始游戏 - 渐变色醒目按钮
+      // 开始游戏 - 蓝色渐变按钮
       {
         id: 'start',
         text: '开始游戏',
@@ -1192,13 +1142,13 @@ export default class UI {
         y: startY,
         width: startButtonWidth,
         height: startButtonHeight,
-        color: '#F97316',
-        colorEnd: '#FB923C',
-        glowColor: 'rgba(249, 115, 22, 0.35)',
+        color: '#1E88E5',
+        colorEnd: '#1565C0',
+        glowColor: 'rgba(30, 136, 229, 0.3)',
         icon: 'play',
         action: () => this.onStartGame()
       },
-      // 游戏规则 - 琥珀色卡片
+      // 游戏规则
       {
         id: 'instructions',
         text: '游戏规则',
@@ -1208,14 +1158,14 @@ export default class UI {
         width: cardWidth,
         height: cardHeight,
         icon: 'book',
-        iconBg: '#EBF3FC',
-        iconColor: '#3B82F6',
-        cardBg: 'rgba(255, 255, 255, 0.95)',
-        cardBorder: 'rgba(59, 130, 246, 0.18)',
-        cardHoverGlow: 'rgba(59, 130, 246, 0.12)',
+        iconBg: '#E3F2FD',
+        iconColor: '#1E88E5',
+        cardBg: '#FFFFFF',
+        cardBorder: 'rgba(0, 0, 0, 0.06)',
+        cardHoverGlow: 'rgba(30, 136, 229, 0.1)',
         action: () => this.onShowInstructions()
       },
-      // 技能 - 薄荷卡片（合并原商店内容）
+      // 技能
       {
         id: 'skills',
         text: '技能',
@@ -1225,14 +1175,14 @@ export default class UI {
         width: cardWidth,
         height: cardHeight,
         icon: 'lightning',
-        iconBg: '#ECFDF5',
-        iconColor: '#10B981',
-        cardBg: 'rgba(255, 255, 255, 0.95)',
-        cardBorder: 'rgba(16, 185, 129, 0.2)',
-        cardHoverGlow: 'rgba(16, 185, 129, 0.12)',
+        iconBg: '#E3F2FD',
+        iconColor: '#1E88E5',
+        cardBg: '#FFFFFF',
+        cardBorder: 'rgba(0, 0, 0, 0.06)',
+        cardHoverGlow: 'rgba(30, 136, 229, 0.1)',
         action: () => this.onOpenSkills()
       },
-      // 排行榜 - 紫色卡片
+      // 排行榜
       {
         id: 'leaderboard',
         text: '排行榜',
@@ -1242,14 +1192,14 @@ export default class UI {
         width: cardWidth,
         height: cardHeight,
         icon: 'rank',
-        iconBg: '#F3E8FF',
-        iconColor: '#8B5CF6',
-        cardBg: 'rgba(255, 255, 255, 0.95)',
-        cardBorder: 'rgba(139, 92, 246, 0.2)',
-        cardHoverGlow: 'rgba(139, 92, 246, 0.12)',
+        iconBg: '#E3F2FD',
+        iconColor: '#1E88E5',
+        cardBg: '#FFFFFF',
+        cardBorder: 'rgba(0, 0, 0, 0.06)',
+        cardHoverGlow: 'rgba(30, 136, 229, 0.1)',
         action: () => this.onOpenRank()
       },
-      // 成就 - 珊瑚卡片
+      // 成就
       {
         id: 'achievements',
         text: '成就',
@@ -1259,11 +1209,11 @@ export default class UI {
         width: cardWidth,
         height: cardHeight,
         icon: 'trophy',
-        iconBg: '#FDECE8',
-        iconColor: '#EF4444',
-        cardBg: 'rgba(255, 255, 255, 0.95)',
-        cardBorder: 'rgba(232, 114, 90, 0.2)',
-        cardHoverGlow: 'rgba(232, 114, 90, 0.12)',
+        iconBg: '#E3F2FD',
+        iconColor: '#1E88E5',
+        cardBg: '#FFFFFF',
+        cardBorder: 'rgba(0, 0, 0, 0.06)',
+        cardHoverGlow: 'rgba(30, 136, 229, 0.1)',
         action: () => this.onOpenAchievements()
       }
     ];
@@ -2298,7 +2248,7 @@ export default class UI {
     ctx.font = sloganFont;
     ctx.fillText(sloganBefore, sloganStartX, sloganY);
 
-    ctx.fillStyle = '#FBBF24';
+    ctx.fillStyle = '#1E88E5';
     ctx.font = highlightFont;
     ctx.fillText(sloganHighlight, sloganStartX + wBefore, sloganY);
 
@@ -2333,133 +2283,22 @@ export default class UI {
   }
 
   renderModernBackground(ctx) {
-    const scheme = this.getScheme();
-
-    const gradient = ctx.createLinearGradient(0, 0, this.width, this.height);
-    gradient.addColorStop(0, '#FFFAF5');
-    gradient.addColorStop(0.5, '#FFF3E8');
-    gradient.addColorStop(1, '#FFF7F0');
+    const gradient = ctx.createLinearGradient(0, 0, 0, this.height);
+    gradient.addColorStop(0, '#F5F7FA');
+    gradient.addColorStop(1, '#EEF1F5');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, this.width, this.height);
-
-    this.renderFloatingOrbs(ctx);
-  }
-
-  renderFloatingOrbs(ctx) {
-    const t = Date.now() / 1000;
-    const orbs = [
-      { x: this.width * 0.1, y: this.height * 0.15, r: 140, color: 'rgba(59, 130, 246, 0.08)' },
-      { x: this.width * 0.9, y: this.height * 0.25, r: 180, color: 'rgba(251, 191, 36, 0.08)' },
-      { x: this.width * 0.5, y: this.height * 0.55, r: 160, color: 'rgba(239, 68, 68, 0.06)' },
-      { x: this.width * 0.15, y: this.height * 0.75, r: 120, color: 'rgba(20, 184, 166, 0.06)' },
-      { x: this.width * 0.8, y: this.height * 0.7, r: 150, color: 'rgba(139, 92, 246, 0.06)' }
-    ];
-
-    orbs.forEach((orb, i) => {
-      const offsetX = Math.sin(t * 0.4 + i * 1.5) * 20;
-      const offsetY = Math.cos(t * 0.25 + i * 1.0) * 15;
-      const cx = orb.x + offsetX;
-      const cy = orb.y + offsetY;
-      const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, orb.r);
-      gradient.addColorStop(0, orb.color);
-      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      ctx.fillStyle = gradient;
-      ctx.beginPath();
-      ctx.arc(cx, cy, orb.r, 0, Math.PI * 2);
-      ctx.fill();
-    });
   }
 
   renderModernTitle(ctx, x, y, size) {
-    const scheme = this.getScheme();
-    const chars = ['数', '一', '数', '噻'];
-    const tileColors = [
-      { start: '#3B82F6', end: '#60A5FA' },
-      { start: '#EF4444', end: '#F09A88' },
-      { start: '#10B981', end: '#6EE7B7' },
-      { start: '#FBBF24', end: '#FCD34D' }
-    ];
-    const tileNumbers = ['1', '2', '3', '4'];
-
-    const tilePaddingX = size * 0.32;
-    const tilePaddingY = size * 0.28;
-    const tileGap = size * 0.12;
-    const tileRadius = size * 0.36;
-
     ctx.save();
-    ctx.font = `800 ${size}px "Arial Black", Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    const charWidths = chars.map(c => ctx.measureText(c).width);
-    const tileWidth = Math.max(...charWidths) + tilePaddingX * 2;
-    const tileHeight = size + tilePaddingY * 2;
-    const totalWidth = tileWidth * chars.length + tileGap * (chars.length - 1);
-    const startX = x - totalWidth / 2;
-
-    const t = Date.now() / 1000;
-
-    for (let i = 0; i < chars.length; i++) {
-      const tx = startX + i * (tileWidth + tileGap);
-      const ty = y - tileHeight / 2;
-      const bounceOffset = Math.sin(t * 1.8 + i * 0.9) * 3;
-
-      ctx.save();
-
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
-      ctx.shadowBlur = 16;
-      ctx.shadowOffsetY = 4 + bounceOffset * 0.5;
-
-      const grad = ctx.createLinearGradient(tx, ty + bounceOffset, tx + tileWidth, ty + tileHeight + bounceOffset);
-      grad.addColorStop(0, tileColors[i].start);
-      grad.addColorStop(1, tileColors[i].end);
-      ctx.fillStyle = grad;
-      this.roundRect(ctx, tx, ty + bounceOffset, tileWidth, tileHeight, tileRadius);
-      ctx.fill();
-
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetY = 0;
-      ctx.shadowColor = 'transparent';
-
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
-      this.roundRect(ctx, tx, ty + bounceOffset, tileWidth, tileHeight * 0.45, tileRadius);
-      ctx.fill();
-
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillText(chars[i], tx + tileWidth / 2, y + 2 + bounceOffset);
-
-      const numSize = Math.round(size * 0.22);
-      ctx.font = `bold ${numSize}px Arial, sans-serif`;
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-      ctx.fillText(tileNumbers[i], tx + tileWidth - numSize * 0.6, ty + bounceOffset + numSize * 0.8);
-
-      ctx.font = `800 ${size}px "Arial Black", Arial, sans-serif`;
-      ctx.restore();
-    }
-
-    const decorNumbers = ['1', '2', '3', '5', '8', '13'];
-    const decorPositions = [
-      { px: -0.42, py: -0.7, s: 0.18 },
-      { px: 0.38, py: -0.65, s: 0.15 },
-      { px: -0.5, py: 0.6, s: 0.14 },
-      { px: 0.48, py: 0.55, s: 0.17 },
-      { px: -0.15, py: -0.78, s: 0.12 },
-      { px: 0.2, py: 0.72, s: 0.13 }
-    ];
-    const decorColors = ['rgba(99,102,241,0.15)', 'rgba(236,72,153,0.12)', 'rgba(16,185,129,0.12)', 'rgba(245,158,11,0.12)', 'rgba(59,130,246,0.10)', 'rgba(139,92,246,0.10)'];
-
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    decorPositions.forEach((pos, i) => {
-      const dx = x + totalWidth * pos.px;
-      const dy = y + tileHeight * pos.py;
-      const drift = Math.sin(t * 0.8 + i * 1.2) * 4;
-      const fontSize = Math.round(size * pos.s);
-      ctx.font = `900 ${fontSize}px "Arial Black", Arial, sans-serif`;
-      ctx.fillStyle = decorColors[i];
-      ctx.fillText(decorNumbers[i], dx, dy + drift);
-    });
+    // Simple clean title text with blue color
+    ctx.font = `700 ${size}px Arial, sans-serif`;
+    ctx.fillStyle = '#333333';
+    ctx.fillText('数一数噻', x, y);
 
     ctx.restore();
   }
@@ -2479,12 +2318,12 @@ export default class UI {
   renderHeader(ctx, headerHeight, topSafeArea, isMobile, timeLeft, currentNumber, totalNumbers) {
     const scheme = this.getScheme();
     
-    // 半透明背景，让连击背景流动效果透出来
-    ctx.fillStyle = 'rgba(255, 250, 245, 0.85)';
+    // 半透明背景
+    ctx.fillStyle = 'rgba(245, 247, 250, 0.9)';
     ctx.fillRect(0, 0, this.width, headerHeight);
-    
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.2)';
-    ctx.fillRect(0, headerHeight - 4, this.width, 4);
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+    ctx.fillRect(0, headerHeight - 1, this.width, 1);
 
     const buttonSize = isMobile ? 46 : 52;
     const buttonSpacing = isMobile ? 12 : 16;
@@ -2621,12 +2460,12 @@ export default class UI {
     const coinIconX = coinBoxX + (isMobile ? 10 : 12);
     const coinIconY = coinBoxY + (coinBoxHeight - coinIconSize) / 2;
 
-    ctx.fillStyle = '#FBBF24';
+    ctx.fillStyle = '#1E88E5';
     ctx.beginPath();
     ctx.arc(coinIconX + coinIconSize / 2, coinIconY + coinIconSize / 2, coinIconSize / 2, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = '#374151';
+    ctx.fillStyle = '#FFFFFF';
     ctx.font = `bold ${isMobile ? 11 : 13}px Arial, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -2644,12 +2483,12 @@ export default class UI {
     const footerY = this.height - footerHeight;
     const centerX = this.width / 2;
     
-    // 半透明背景，让连击背景流动效果透出来
-    ctx.fillStyle = 'rgba(255, 250, 245, 0.85)';
+    // 半透明背景
+    ctx.fillStyle = 'rgba(245, 247, 250, 0.9)';
     ctx.fillRect(0, footerY, this.width, footerHeight);
-    
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.2)';
-    ctx.fillRect(0, footerY, this.width, 4);
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+    ctx.fillRect(0, footerY, this.width, 1);
     
     const progressBarWidth = isMobile ? 220 : 300;
     const progressBarHeight = isMobile ? 28 : 34;
@@ -3261,7 +3100,7 @@ export default class UI {
     ctx.fillText('历史最高分', this.width / 2, titleY);
 
     const titleWidth = ctx.measureText('历史最高分').width;
-    ctx.strokeStyle = '#FBBF24';
+    ctx.strokeStyle = '#1E88E5';
     ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(this.width / 2 - titleWidth / 2 - 20, titleY + 25);
@@ -3326,7 +3165,7 @@ export default class UI {
       const isHovered = this.hoveredButton === `scoreTab_${tab.id}`;
       const isClicked = this.clickedButton === `scoreTab_${tab.id}`;
 
-      let bgColor = isActive ? '#FBBF24' : scheme.cardBg;
+      let bgColor = isActive ? '#1E88E5' : scheme.cardBg;
       if (!isActive && isHovered) bgColor = 'rgba(91, 168, 143, 0.1)';
 
       let scale = 1;
@@ -3380,7 +3219,7 @@ export default class UI {
       ctx.fillText('暂无记录，快去挑战吧！', this.width / 2, listStartY + listHeight / 2);
     }
 
-    const medals = ['#FBBF24', '#3B82F6', '#10B981'];
+    const medals = ['#1E88E5', '#1E88E5', '#10B981'];
 
     scores.forEach((score, index) => {
       const itemY = listStartY + index * (itemHeight + itemPadding) - this.scoreHistoryScrollOffset;
@@ -3445,7 +3284,7 @@ export default class UI {
       const timePrefixW = ctx.measureText(timePrefix).width;
       ctx.fillText(timePrefix, infoX, timeLineY);
 
-      ctx.fillStyle = '#F97316';
+      ctx.fillStyle = '#1E88E5';
       ctx.font = `bold ${isMobile ? 14 : 16}px Arial, sans-serif`;
       const timeStr = `${score.timeSpent.toFixed(1)}`;
       const timeW = ctx.measureText(timeStr).width;
@@ -3493,7 +3332,7 @@ export default class UI {
         vx: (Math.random() - 0.5) * 12,
         vy: (Math.random() - 0.5) * 12 - 4,
         size: Math.random() * 6 + 3,
-        color: ['#3B82F6', '#EF4444', '#10B981', '#FBBF24', '#8B5CF6', '#3B82F6'][Math.floor(Math.random() * 6)],
+        color: ['#1E88E5', '#EF4444', '#10B981', '#1E88E5', '#1E88E5', '#1E88E5'][Math.floor(Math.random() * 6)],
         alpha: 1,
         rotation: Math.random() * Math.PI * 2,
         rotationSpeed: (Math.random() - 0.5) * 0.2
@@ -3555,7 +3394,7 @@ export default class UI {
     // Glow
     ctx.shadowColor = 'rgba(245, 158, 11, 0.6)';
     ctx.shadowBlur = 30;
-    this.drawBrutalismRect(ctx, cardX, cardY, cardWidth, cardHeight, '#FFFAF5', {
+    this.drawBrutalismRect(ctx, cardX, cardY, cardWidth, cardHeight, '#F5F7FA', {
       shadowOffset: 8,
       borderWidth: 4,
       radius: 24
@@ -3567,7 +3406,7 @@ export default class UI {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.font = `bold ${isMobile ? 40 : 48}px Arial, sans-serif`;
-    ctx.fillStyle = '#FBBF24';
+    ctx.fillStyle = '#1E88E5';
     ctx.fillText('🏆', this.width / 2, cardY + (isMobile ? 45 : 55));
 
     ctx.font = `bold ${isMobile ? 22 : 26}px "Arial Black", Arial, sans-serif`;
@@ -3638,7 +3477,7 @@ export default class UI {
 
   createComboParticles(level, count, center) {
     const particleCount = Math.min(count || 5, 15);
-    const color = level ? level.color : '#FBBF24';
+    const color = level ? level.color : '#1E88E5';
     const originX = center ? center.x : this.width / 2;
     const originY = center ? center.y : this.height / 3;
 
@@ -3742,7 +3581,7 @@ export default class UI {
       const r = 10;
       ctx.shadowColor = 'rgba(245, 197, 66, 0.4)';
       ctx.shadowBlur = 8;
-      ctx.fillStyle = '#FBBF24';
+      ctx.fillStyle = '#1E88E5';
       ctx.beginPath();
       ctx.arc(0, 0, r, 0, Math.PI * 2);
       ctx.fill();
@@ -3760,7 +3599,7 @@ export default class UI {
       if (anim.amount > 0 && t < 0.6) {
         ctx.save();
         ctx.globalAlpha = 1 - t / 0.6;
-        ctx.fillStyle = '#FBBF24';
+        ctx.fillStyle = '#1E88E5';
         ctx.font = 'bold 14px Arial, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -4200,7 +4039,7 @@ export default class UI {
     ctx.save();
     ctx.shadowColor = 'rgba(245, 158, 11, 0.3)';
     ctx.shadowBlur = 6;
-    ctx.fillStyle = '#FBBF24';
+    ctx.fillStyle = '#1E88E5';
     ctx.beginPath();
     ctx.arc(coinX + coinSize / 2, coinY + coinSize / 2, coinSize / 2, 0, Math.PI * 2);
     ctx.fill();
@@ -4278,7 +4117,7 @@ export default class UI {
     ctx.fillText('商店', this.width / 2, titleY);
 
     const titleWidth = ctx.measureText('商店').width;
-    ctx.strokeStyle = '#FBBF24';
+    ctx.strokeStyle = '#1E88E5';
     ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(this.width / 2 - titleWidth / 2 - 20, titleY + 25);
@@ -4474,7 +4313,7 @@ export default class UI {
     ctx.fillText('技能', this.width / 2, titleY);
 
     const titleWidth = ctx.measureText('技能').width;
-    ctx.strokeStyle = '#FBBF24';
+    ctx.strokeStyle = '#1E88E5';
     ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(this.width / 2 - titleWidth / 2 - 20, titleY + 25);
@@ -4606,8 +4445,8 @@ export default class UI {
         const isBuyButtonClicked = this.clickedButton === `shop_buy_${product.id}`;
 
         if (canBuy) {
-          let buyButtonColor = '#F97316';
-          if (isBuyButtonHovered) buyButtonColor = this.lightenColor('#F97316', 0.15);
+          let buyButtonColor = '#1E88E5';
+          if (isBuyButtonHovered) buyButtonColor = this.lightenColor('#1E88E5', 0.15);
           let buyButtonScale = 1;
           if (isBuyButtonHovered) buyButtonScale = 1.02;
           if (isBuyButtonClicked) buyButtonScale = 0.95;
@@ -4674,7 +4513,7 @@ export default class UI {
         });
 
         ctx.font = `bold ${isMobile ? 32 : 40}px Arial, sans-serif`;
-        ctx.fillStyle = skill.isUnlocked ? '#FBBF24' : scheme.text;
+        ctx.fillStyle = skill.isUnlocked ? '#1E88E5' : scheme.text;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
         ctx.fillText(skill.icon || '⭐', itemX + (isMobile ? 12 : 15), currentY + itemHeight / 2);
@@ -4700,14 +4539,14 @@ export default class UI {
         const isUnlockButtonClicked = this.clickedButton === `skill_unlock_${skill.id}`;
 
         if (skill.isUnlocked) {
-          ctx.fillStyle = '#FBBF24';
+          ctx.fillStyle = '#1E88E5';
           ctx.font = `bold ${isMobile ? 12 : 14}px "Arial Black", Arial, sans-serif`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText('已解锁', unlockButtonX + unlockButtonWidth / 2, unlockButtonY + unlockButtonHeight / 2);
         } else if (skill.canUnlock) {
-          let unlockButtonColor = '#F97316';
-          if (isUnlockButtonHovered) unlockButtonColor = this.lightenColor('#F97316', 0.15);
+          let unlockButtonColor = '#1E88E5';
+          if (isUnlockButtonHovered) unlockButtonColor = this.lightenColor('#1E88E5', 0.15);
 
           let unlockButtonScale = 1;
           if (isUnlockButtonHovered) unlockButtonScale = 1.02;
@@ -4799,8 +4638,8 @@ export default class UI {
       const isBuyButtonClicked = this.clickedButton === `shop_buy_${resetProduct.id}`;
 
       if (canBuy) {
-        let buyButtonColor = '#F97316';
-        if (isBuyButtonHovered) buyButtonColor = this.lightenColor('#F97316', 0.15);
+        let buyButtonColor = '#1E88E5';
+        if (isBuyButtonHovered) buyButtonColor = this.lightenColor('#1E88E5', 0.15);
         let buyButtonScale = 1;
         if (isBuyButtonHovered) buyButtonScale = 1.02;
         if (isBuyButtonClicked) buyButtonScale = 0.95;

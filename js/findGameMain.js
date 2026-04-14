@@ -908,10 +908,9 @@ export default class FindGameMain {
 
     if (intensity < 0.1) {
       // Static background
-      const gradient = ctx.createLinearGradient(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-      gradient.addColorStop(0, '#FFFAF5');
-      gradient.addColorStop(0.5, '#FFF3E8');
-      gradient.addColorStop(1, '#FFF7F0');
+      const gradient = ctx.createLinearGradient(0, 0, 0, SCREEN_HEIGHT);
+      gradient.addColorStop(0, '#F5F7FA');
+      gradient.addColorStop(1, '#EEF1F5');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
       return;
@@ -921,9 +920,9 @@ export default class FindGameMain {
     const t = Date.now() / 1000;
 
     // Flowing gradient based on combo intensity
-    const baseColors = ['#FFFAF5', '#FFF3E8', '#FFF7F0'];
-    const warmColors = ['#FFF3E8', '#FFE8D6', '#FFF0E0'];
-    const hotColors = ['#FFE4CC', '#FFD4B8', '#FFE0C8'];
+    const baseColors = ['#F5F7FA', '#EEF1F5', '#F2F4F8'];
+    const warmColors = ['#EEF1F5', '#E3EAF5', '#EAF0F8'];
+    const hotColors = ['#DCE4F0', '#D0DAE8', '#D8E2F0'];
 
     const blendFactor = Math.min(1, (intensity - 0.5) / 1.0);
 
@@ -1059,8 +1058,8 @@ export default class FindGameMain {
         0,
         cx, cy, r
       );
-      calm.addColorStop(0, `rgba(134, 239, 172, ${breathAlpha})`);
-      calm.addColorStop(0.5, `rgba(253, 230, 138, ${breathAlpha * 0.6})`);
+      calm.addColorStop(0, `rgba(144, 202, 249, ${breathAlpha})`);
+      calm.addColorStop(0.5, `rgba(227, 242, 253, ${breathAlpha * 0.6})`);
       calm.addColorStop(1, 'rgba(0, 0, 0, 0)');
       ctx.fillStyle = calm;
       ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -1088,13 +1087,13 @@ export default class FindGameMain {
     const borderHeight = SCREEN_HEIGHT - headerHeight - footerHeight - borderPadding * 2 + 8;
     const borderRadius = 18;
     
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.2)';
+    ctx.strokeStyle = 'rgba(30, 136, 229, 0.1)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     this.drawRoundedRect(ctx, borderX, borderY, borderWidth, borderHeight, borderRadius);
     ctx.stroke();
 
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.1)';
+    ctx.strokeStyle = 'rgba(30, 136, 229, 0.05)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     this.drawRoundedRect(ctx, borderX + 4, borderY + 4, borderWidth - 8, borderHeight - 8, 14);

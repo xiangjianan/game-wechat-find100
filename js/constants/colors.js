@@ -1,49 +1,54 @@
-// 波普糖果色系 (高饱和): 蔚蓝 #3B82F6 · 亮黄 #FBBF24 · 粉白 #FFFAF5
-// 点缀: 鲜珊瑚 #EF6C4A · 翠绿 #10B981 · 紫水晶 #8B5CF6
+// 简约蓝色系 (低饱和): 主题蓝 #1E88E5 · 深蓝 #1565C0
+// 点缀: 浅蓝 #90CAF9 · 柔绿 #4CAF50 · 珊瑚红 #EF5350
 
 export const COLOR_SCHEME = {
-  name: '波普糖果',
-  id: 'pop-candy',
-  background: '#FFFAF5',
-  backgroundEnd: '#FFF3E8',
-  primary: '#3B82F6',
-  secondary: '#FBBF24',
-  accent: '#10B981',
-  danger: '#EF4444',
-  text: '#374151',
-  textSecondary: '#6B7280',
+  name: '简约蓝',
+  id: 'minimalist-blue',
+  background: '#F5F7FA',
+  backgroundEnd: '#EEF1F5',
+  primary: '#1E88E5',
+  secondary: '#90CAF9',
+  accent: '#4CAF50',
+  danger: '#EF5350',
+  text: '#333333',
+  textSecondary: '#757575',
   textLight: '#FFFFFF',
-  border: 'rgba(59, 130, 246, 0.15)',
-  borderActive: 'rgba(251, 191, 36, 0.45)',
-  borderSubtle: 'rgba(59, 130, 246, 0.1)',
-  shadow: 'rgba(0, 0, 0, 0.08)',
-  cardBg: 'rgba(255, 255, 255, 0.94)',
+  border: 'rgba(30, 136, 229, 0.12)',
+  borderActive: 'rgba(30, 136, 229, 0.35)',
+  borderSubtle: 'rgba(30, 136, 229, 0.08)',
+  shadow: 'rgba(0, 0, 0, 0.1)',
+  cardBg: 'rgba(255, 255, 255, 0.96)',
   cardBgSolid: '#FFFFFF',
-  buttonPrimary: '#F97316',
-  buttonPrimaryEnd: '#FB923C',
-  buttonSecondary: '#FB923C',
-  buttonSuccess: '#10B981',
-  buttonDanger: '#EF4444',
+  buttonPrimary: '#1E88E5',
+  buttonPrimaryEnd: '#1565C0',
+  buttonSecondary: '#90CAF9',
+  buttonSuccess: '#4CAF50',
+  buttonDanger: '#EF5350',
   numberColors: [
-    '#3B82F6', '#EF4444', '#10B981', '#FBBF24', '#8B5CF6',
-    '#F97316', '#3B82F6', '#EF4444', '#10B981', '#8B5CF6'
+    '#1E88E5', '#EF5350', '#4CAF50', '#FF9800', '#7E57C2',
+    '#26A69A', '#1E88E5', '#EF5350', '#4CAF50', '#7E57C2'
   ],
   polygonColors: [
-    'rgba(59, 130, 246, 0.06)', 'rgba(251, 191, 36, 0.06)',
-    'rgba(20, 184, 166, 0.06)', 'rgba(239, 68, 68, 0.06)',
-    'rgba(139, 92, 246, 0.06)', 'rgba(249, 115, 22, 0.06)',
-    'rgba(59, 130, 246, 0.06)', 'rgba(251, 191, 36, 0.06)',
-    'rgba(20, 184, 166, 0.06)', 'rgba(239, 68, 68, 0.06)',
-    'rgba(139, 92, 246, 0.06)', 'rgba(249, 115, 22, 0.06)',
-    'rgba(59, 130, 246, 0.06)', 'rgba(251, 191, 36, 0.06)',
-    'rgba(20, 184, 166, 0.06)'
+    'rgba(30, 136, 229, 0.04)', 'rgba(144, 202, 249, 0.04)',
+    'rgba(76, 175, 80, 0.04)', 'rgba(239, 83, 80, 0.04)',
+    'rgba(126, 87, 194, 0.04)', 'rgba(38, 166, 154, 0.04)',
+    'rgba(30, 136, 229, 0.04)', 'rgba(144, 202, 249, 0.04)',
+    'rgba(76, 175, 80, 0.04)', 'rgba(239, 83, 80, 0.04)',
+    'rgba(126, 87, 194, 0.04)', 'rgba(38, 166, 154, 0.04)',
+    'rgba(30, 136, 229, 0.04)', 'rgba(144, 202, 249, 0.04)',
+    'rgba(76, 175, 80, 0.04)'
   ],
-  gradientStart: '#F97316',
-  gradientEnd: '#FB923C',
-  glowPrimary: 'rgba(59, 130, 246, 0.25)',
-  glowAccent: 'rgba(251, 191, 36, 0.25)',
-  glassBg: 'rgba(255, 255, 255, 0.85)',
-  glassBorder: 'rgba(59, 130, 246, 0.1)'
+  gradientStart: '#1E88E5',
+  gradientEnd: '#1565C0',
+  glowPrimary: 'rgba(30, 136, 229, 0.2)',
+  glowAccent: 'rgba(144, 202, 249, 0.2)',
+  glassBg: 'rgba(255, 255, 255, 0.9)',
+  glassBorder: 'rgba(30, 136, 229, 0.08)',
+  // Minimalist theme extras
+  iconBg: '#E3F2FD',
+  iconColor: '#1E88E5',
+  lightBlueBg: '#E3F2FD',
+  warmGrayBg: '#F5F5F5'
 };
 
 export function getColorScheme() {
@@ -79,17 +84,17 @@ export const COLORS = {
 export const BRUTALISM_STYLES = {
   borderWidth: 0,
   shadowOffset: 0,
-  borderRadius: 18,
+  borderRadius: 16,
   fontSize: {
-    title: 48,
-    subtitle: 24,
-    button: 20,
-    body: 16
+    title: 42,
+    subtitle: 22,
+    button: 18,
+    body: 15
   },
   fontWeight: {
-    title: '800',
-    subtitle: '700',
-    button: '600',
+    title: '700',
+    subtitle: '600',
+    button: '500',
     body: '400'
   }
 };
