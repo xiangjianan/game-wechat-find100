@@ -15,7 +15,7 @@ var ctx = null;
 var isShow = false;
 var friendData = null;     // null = 加载中, [] = 暂无数据
 var selfScore = null;      // 主域上传的最新分数，用于覆盖缓存旧数据
-var _backupFriendData = null;  // 每次打开排行榜前的数据备份，API 返回空时恢复
+var _backupFriendData = null;  // 每次打开排行榜前的数据备份（深拷贝），API 返回空时恢复
 var scrollOffset = 0;
 var touchStartY = 0;
 var lastTouchY = 0;
@@ -54,9 +54,9 @@ function handleMessage(message) {
     case 'show':
       isShow = true;
       scrollOffset = 0;
-      // 备份已有数据，设置 null 显示加载中
+      // 深拷贝备份数据，防止 in-place 修改污染备份
       if (friendData && friendData.length > 0) {
-        _backupFriendData = friendData.slice();  // 浅拷贝
+        _backupFriendData = deepCopyFriendData(friendData);
       } else {
         _backupFriendData = null;
       }
@@ -75,7 +75,8 @@ function handleMessage(message) {
       selfScore = {
         numbersFound: message.numbersFound || 0,
         time: message.time || 0,
-        hiddenScore: message.hiddenScore || 0
+        hiddenScore: message.hiddenScore || 0,
+        prevHiddenScore: message.prevHiddenScore != null ? message.prevHiddenScore : null
       };
       applySelfScore();
       if (isShow) render();
@@ -150,26 +151,44 @@ function fetchFriendData() {
   });
 }
 
-// 用主域上传的最新分数覆盖 friendData 中对应条目
+// 用主域上传的最新分数覆盖 friendData 中当前用户的条目
+// 优先用 prevHiddenScore 精确匹配（主域记录的上次上传分数），回退到最近分数匹配
 function applySelfScore() {
   if (!selfScore || !friendData || friendData.length === 0) return;
 
-  var bestIdx = -1;
-  var bestDiff = Infinity;
-  for (var i = 0; i < friendData.length; i++) {
-    var entry = friendData[i];
-    var diff = Math.abs(entry.hiddenScore - selfScore.hiddenScore);
-    if (entry.hiddenScore <= selfScore.hiddenScore && diff < bestDiff) {
-      bestDiff = diff;
-      bestIdx = i;
+  var selfIdx = -1;
+
+  // 优先：用上次上传的分数精确匹配当前用户
+  if (selfScore.prevHiddenScore != null) {
+    for (var i = 0; i < friendData.length; i++) {
+      if (friendData[i].hiddenScore === selfScore.prevHiddenScore) {
+        selfIdx = i;
+        break;
+      }
     }
   }
 
-  if (bestIdx >= 0 && friendData[bestIdx].hiddenScore < selfScore.hiddenScore) {
-    friendData[bestIdx].numbersFound = selfScore.numbersFound;
-    friendData[bestIdx].time = selfScore.time;
-    friendData[bestIdx].hiddenScore = selfScore.hiddenScore;
-    console.log('openDataContext: applied selfScore to entry', bestIdx);
+  // 回退：找最接近的分数（旧逻辑）
+  if (selfIdx === -1) {
+    var bestDiff = Infinity;
+    for (var i = 0; i < friendData.length; i++) {
+      var entry = friendData[i];
+      var diff = Math.abs(entry.hiddenScore - selfScore.hiddenScore);
+      if (entry.hiddenScore <= selfScore.hiddenScore && diff < bestDiff) {
+        bestDiff = diff;
+        selfIdx = i;
+      }
+    }
+    if (selfIdx >= 0 && friendData[selfIdx].hiddenScore >= selfScore.hiddenScore) {
+      return; // 分数已是最新，无需更新
+    }
+  }
+
+  if (selfIdx >= 0) {
+    friendData[selfIdx].numbersFound = selfScore.numbersFound;
+    friendData[selfIdx].time = selfScore.time;
+    friendData[selfIdx].hiddenScore = selfScore.hiddenScore;
+    console.log('openDataContext: applied selfScore to entry', selfIdx);
   }
 }
 
@@ -337,6 +356,19 @@ function truncate(text, max) {
   if (!text) return '';
   if (text.length <= max) return text;
   return text.substring(0, max) + '...';
+}
+
+function deepCopyFriendData(data) {
+  return data.map(function (item) {
+    return {
+      nickname: item.nickname,
+      avatarUrl: item.avatarUrl,
+      numbersFound: item.numbersFound,
+      time: item.time,
+      hiddenScore: item.hiddenScore,
+      rank: item.rank
+    };
+  });
 }
 
 init();

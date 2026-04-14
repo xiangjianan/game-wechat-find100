@@ -9,6 +9,7 @@ export default class RankManager {
     this.onCloseCallback = null;
     this.isWeChatGame = typeof wx !== 'undefined';
     this.sharedCanvas = null;
+    this.previousScore = null; // 上次上传的分数，用于开放数据域精确匹配当前用户
   }
 
   init() {
@@ -38,6 +39,8 @@ export default class RankManager {
     }
 
     const hiddenScore = this.calculateScore(numbersFound, time);
+    const prevHiddenScore = this.previousScore ? this.previousScore.hiddenScore : null;
+    this.previousScore = { numbersFound, time, hiddenScore };
 
     wx.setUserCloudStorage({
       KVDataList: [
@@ -47,12 +50,12 @@ export default class RankManager {
       ],
       success: () => {
         console.log('RankManager: uploadScore success', { numbersFound, time, hiddenScore });
-        // 发送最新分数到开放数据域，作为本地覆盖层
         this.sendMessageToOpenData({
           type: 'selfScore',
           numbersFound,
           time,
-          hiddenScore
+          hiddenScore,
+          prevHiddenScore
         });
         this.sendMessageToOpenData({ type: 'refresh' });
       },
