@@ -5,6 +5,9 @@
  * 数据流：
  * 主域 postMessage('show') → 本文件 fetchFriendData → 渲染到 sharedCanvas
  * 主域 drawImage(sharedCanvas) 将结果绘制到主画布
+ *
+ * 不主动 resize sharedCanvas，而是根据其实际尺寸自适应缩放，
+ * 避免 resize 不生效时 ctx.scale(dpr) 导致内容溢出画布。
  */
 
 var sharedCanvas = null;
@@ -24,16 +27,21 @@ function init() {
     ctx = sharedCanvas.getContext('2d');
 
     var sysInfo = wx.getSystemInfoSync();
-    screenWidth = sysInfo.windowWidth;
-    screenHeight = sysInfo.windowHeight;
-    var dpr = sysInfo.pixelRatio || 1;
 
-    sharedCanvas.width = screenWidth * dpr;
-    sharedCanvas.height = screenHeight * dpr;
-    ctx.scale(dpr, dpr);
+    // 逻辑尺寸用于布局（与主域一致）
+    screenWidth = sysInfo.screenWidth;
+    screenHeight = sysInfo.screenHeight;
+
+    // 自适应缩放：将逻辑坐标映射到 sharedCanvas 实际像素
+    // 无论平台是否支持 resize，内容都能正确填满画布
+    var sx = sharedCanvas.width / screenWidth;
+    var sy = sharedCanvas.height / screenHeight;
+    ctx.scale(sx, sy);
 
     wx.onMessage(handleMessage);
-    console.log('openDataContext: init success', screenWidth, screenHeight, 'dpr=' + dpr);
+    console.log('openDataContext: init success', screenWidth, screenHeight,
+      'canvas=' + sharedCanvas.width + 'x' + sharedCanvas.height,
+      'scale=' + sx.toFixed(2) + 'x' + sy.toFixed(2));
   } catch (e) {
     console.error('openDataContext: init failed', e);
   }
@@ -44,6 +52,7 @@ function handleMessage(message) {
     case 'show':
       isShow = true;
       scrollOffset = 0;
+      friendData = null;  // 重置数据，强制重新加载
       render();
       fetchFriendData();
       break;
@@ -52,6 +61,8 @@ function handleMessage(message) {
       clearCanvas();
       break;
     case 'refresh':
+      friendData = null;  // 重置数据，强制重新加载
+      render();
       fetchFriendData();
       break;
     case 'touchStart':
@@ -98,7 +109,6 @@ function fetchFriendData() {
     },
     fail: function (error) {
       console.error('openDataContext: getFriendCloudStorage failed', error);
-      // 只在首次（无缓存）时置空，避免覆盖已有缓存数据
       if (friendData === null) {
         friendData = [];
       }

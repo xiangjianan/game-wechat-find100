@@ -3182,12 +3182,10 @@ export default class UI {
 
   renderLeaderboard(ctx) {
     // Draw the shared canvas (rendered by the open data domain)
-    // 重置变换矩阵，用物理像素 1:1 绘制，避免 DPR 二次缩放
+    // 开放数据域已自适应缩放，内容以逻辑坐标渲染覆盖整个 sharedCanvas
+    // 主域用逻辑坐标指定目标尺寸，DPR 缩放由主画布上下文自动处理
     if (this.sharedCanvas) {
-      ctx.save();
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.drawImage(this.sharedCanvas, 0, 0);
-      ctx.restore();
+      ctx.drawImage(this.sharedCanvas, 0, 0, this.width, this.height);
     }
 
     // Close button (rendered by main domain)
