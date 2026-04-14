@@ -14,6 +14,7 @@ var sharedCanvas = null;
 var ctx = null;
 var isShow = false;
 var friendData = null; // null = 加载中, [] = 暂无数据
+var _prevFriendData = null;  // 打开排行榜前的数据备份，API 返回空时恢复
 var selfScore = null;  // 主域上传的最新分数，用于覆盖缓存旧数据
 var scrollOffset = 0;
 var touchStartY = 0;
@@ -53,6 +54,8 @@ function handleMessage(message) {
     case 'show':
       isShow = true;
       scrollOffset = 0;
+      _prevFriendData = friendData;  // 备份已有数据
+      friendData = null;             // 显示加载中
       render();
       fetchFriendData();
       break;
@@ -108,9 +111,14 @@ function fetchFriendData() {
         };
       });
 
-      // API 返回空数据时保留已有数据，防止缓存空响应覆盖好数据
-      if (newData.length > 0 || friendData === null) {
+      // API 返回有效数据时使用新数据；返回空数据时恢复备份
+      if (newData.length > 0) {
         friendData = newData;
+        _prevFriendData = null;  // 数据有效，清除备份
+      } else if (_prevFriendData && _prevFriendData.length > 0) {
+        friendData = _prevFriendData;  // 恢复备份
+      } else {
+        friendData = newData;  // 确实没有数据
       }
 
       applySelfScore();
