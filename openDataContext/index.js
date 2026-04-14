@@ -52,8 +52,12 @@ function handleMessage(message) {
     case 'show':
       isShow = true;
       scrollOffset = 0;
-      render();           // 用已有数据立即渲染
-      fetchFriendData();  // 后台拉取最新数据
+      render();
+      // 仅首次打开（无数据）时拉取，避免 getFriendCloudStorage 缓存旧数据
+      // 覆盖 uploadScore 后已拿到的最新数据
+      if (friendData === null) {
+        fetchFriendData();
+      }
       break;
     case 'hide':
       isShow = false;

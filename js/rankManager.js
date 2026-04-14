@@ -64,12 +64,15 @@ export default class RankManager {
     this.onCloseCallback = onClose;
     this.sendMessageToOpenData({ type: 'show' });
 
-    // 延迟刷新，确保云存储数据传播后重新拉取
-    setTimeout(() => {
-      if (this.isOpen) {
-        this.sendMessageToOpenData({ type: 'refresh' });
-      }
-    }, 1500);
+    // 多次延迟刷新，增加拿到最新数据的概率
+    const delays = [1500, 3000];
+    delays.forEach(delay => {
+      setTimeout(() => {
+        if (this.isOpen) {
+          this.sendMessageToOpenData({ type: 'refresh' });
+        }
+      }, delay);
+    });
 
     return true;
   }
