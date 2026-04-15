@@ -853,6 +853,7 @@ export default class FindGameMain {
   }
 
   handleGameFailed() {
+    this.soundManager.playFail();
     const progress = this.gameManager.getProgress();
     const time = this.gameManager.getCompletionTime();
     const level = this.gameManager.currentLevel;
