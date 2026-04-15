@@ -59,6 +59,7 @@ export default class SoundManager {
 
       this.sounds.fail = wx.createInnerAudioContext();
       this.sounds.fail.src = 'audio/fail.wav';
+      this.sounds.fail.volume = this.volume * 0.35;
       this.sounds.fail.onError(() => {
         this.useGeneratedAudio = true;
       });
