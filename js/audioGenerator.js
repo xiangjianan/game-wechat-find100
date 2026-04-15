@@ -139,14 +139,33 @@ export class AudioGenerator {
       this.playWxSound('audio/egg.wav');
       return;
     }
-    
+
     const audioContext = this.getAudioContext();
     if (!audioContext || !audioContext.destination) return;
-    
+
     try {
       const notes = [880, 1108.73, 1318.51, 1760];
       notes.forEach((frequency, index) => {
         this.createTone(audioContext, frequency, 'sine', 0.3, index * 0.1);
+      });
+    } catch (e) {
+      // 静默处理错误
+    }
+  }
+
+  static generateFailSound() {
+    if (this.isWxEnvironment()) {
+      this.playWxSound('audio/fail.wav');
+      return;
+    }
+
+    const audioContext = this.getAudioContext();
+    if (!audioContext || !audioContext.destination) return;
+
+    try {
+      const notes = [400, 350, 280];
+      notes.forEach((frequency, index) => {
+        this.createTone(audioContext, frequency, 'sawtooth', 0.3, index * 0.2);
       });
     } catch (e) {
       // 静默处理错误

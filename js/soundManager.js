@@ -56,6 +56,13 @@ export default class SoundManager {
       this.sounds.egg.onCanplay(() => {
         console.log('Egg audio ready to play');
       });
+
+      this.sounds.fail = wx.createInnerAudioContext();
+      this.sounds.fail.src = 'audio/fail.wav';
+      this.sounds.fail.volume = this.volume * 0.35;
+      this.sounds.fail.onError(() => {
+        this.useGeneratedAudio = true;
+      });
     } catch (e) {
       this.useGeneratedAudio = true;
     }
@@ -153,14 +160,14 @@ export default class SoundManager {
 
   playEgg() {
     if (!this.enabled) return;
-    
+
     if (this.useGeneratedAudio) {
       try {
         AudioGenerator.generateEggSound();
       } catch (e) {}
       return;
     }
-    
+
     if (!this.sounds.egg) {
       console.log('Egg sound not initialized');
       return;
@@ -172,6 +179,23 @@ export default class SoundManager {
     } catch (e) {
       console.log('Error playing egg sound:', e);
     }
+  }
+
+  playFail() {
+    if (!this.enabled) return;
+
+    if (this.useGeneratedAudio) {
+      try {
+        AudioGenerator.generateFailSound();
+      } catch (e) {}
+      return;
+    }
+
+    if (!this.sounds.fail) return;
+    try {
+      this.sounds.fail.stop();
+      this.sounds.fail.play();
+    } catch (e) {}
   }
 
   playBackground() {
