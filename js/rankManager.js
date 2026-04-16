@@ -27,6 +27,16 @@ export default class RankManager {
         this.playerId = 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         wx.setStorageSync('rankPlayerId', this.playerId);
       }
+
+      // 加载已上传的最高分，防止重启后低分覆盖排行榜
+      const savedBest = wx.getStorageSync('rankBestScore');
+      if (savedBest) {
+        try {
+          this.previousScore = JSON.parse(savedBest);
+        } catch (e) {
+          this.previousScore = null;
+        }
+      }
     } catch (e) {
       console.error('RankManager: init failed', e);
     }
@@ -47,6 +57,16 @@ export default class RankManager {
     }
 
     const hiddenScore = this.calculateScore(numbersFound, time);
+
+    // 只有新分数高于已上传的最高分时才上传，避免低分覆盖排行榜高分
+    if (this.previousScore && hiddenScore <= this.previousScore.hiddenScore) {
+      console.log('RankManager: skip upload, score not higher', {
+        newScore: hiddenScore,
+        previousBest: this.previousScore.hiddenScore
+      });
+      return;
+    }
+
     const prevHiddenScore = this.previousScore ? this.previousScore.hiddenScore : null;
     this.previousScore = { numbersFound, time, hiddenScore };
 
@@ -59,6 +79,12 @@ export default class RankManager {
       ],
       success: () => {
         console.log('RankManager: uploadScore success', { numbersFound, time, hiddenScore });
+        // 持久化最高分，防止重启后低分覆盖
+        try {
+          wx.setStorageSync('rankBestScore', JSON.stringify(this.previousScore));
+        } catch (e) {
+          // silent
+        }
         this.sendMessageToOpenData({
           type: 'selfScore',
           numbersFound,
