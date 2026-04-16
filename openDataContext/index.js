@@ -161,6 +161,7 @@ function applySelfScore() {
   if (!selfScore || !friendData || friendData.length === 0) return;
   if (!selfScore.playerId) return;
 
+  var updated = false;
   for (var i = 0; i < friendData.length; i++) {
     if (friendData[i].playerId === selfScore.playerId) {
       if (friendData[i].hiddenScore >= selfScore.hiddenScore) return;
@@ -168,8 +169,15 @@ function applySelfScore() {
       friendData[i].time = selfScore.time;
       friendData[i].hiddenScore = selfScore.hiddenScore;
       console.log('openDataContext: applied selfScore to entry', i);
-      return;
+      updated = true;
+      break;
     }
+  }
+
+  // 分数更新后重新排序并刷新排名
+  if (updated) {
+    friendData.sort(function (a, b) { return b.hiddenScore - a.hiddenScore; });
+    friendData.forEach(function (item, idx) { item.rank = idx + 1; });
   }
 }
 
