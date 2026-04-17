@@ -107,20 +107,11 @@ export default class AchievementManager {
       {
         id: 'A102',
         name: '完美主义者',
-        description: '连续3次零错误完成第二关',
+        description: '累计3次零错误完成第二关',
         category: 'perfect',
-        condition: { type: 'consecutive_perfect', count: 3, level: 2 },
+        condition: { type: 'total_perfect_games', count: 3, level: 2 },
         reward: { type: 'coins', amount: 1000 },
         icon: '💎'
-      },
-      {
-        id: 'A103',
-        name: '精准射手',
-        description: '累计10次零错误完成第二关',
-        category: 'perfect',
-        condition: { type: 'total_perfect_games', count: 10, level: 2 },
-        reward: { type: 'coins', amount: 3000 },
-        icon: '🎯'
       },
       {
         id: 'A501',
@@ -150,9 +141,18 @@ export default class AchievementManager {
         icon: '🔥'
       },
       {
+        id: 'A601',
+        name: '夜猫子',
+        description: '凌晨0-5点完成一局游戏',
+        category: 'fun',
+        condition: { type: 'late_night_gaming' },
+        reward: { type: 'coins', amount: 500 },
+        icon: '🦉'
+      },
+      {
         id: 'EGG001',
         name: '倒序之王',
-        description: '“谢谢你玩我的游戏”',
+        description: '”谢谢你玩我的游戏”',
         category: 'hidden',
         condition: { type: 'egg_triggered', eggId: 'reverse_king' },
         reward: { type: 'coins', amount: 10000 },
@@ -285,6 +285,13 @@ export default class AchievementManager {
 
       case 'mode_complete':
         return eventType === 'level_complete' && data.mode === condition.mode;
+
+      case 'late_night_gaming':
+        if (eventType === 'game_complete') {
+          const hour = new Date().getHours();
+          return hour >= 0 && hour < 5;
+        }
+        return false;
 
       default:
         return false;
