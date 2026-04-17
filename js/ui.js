@@ -42,11 +42,6 @@ export default class UI {
     this.shakeOffset = { x: 0, y: 0 };
     this.shakeTime = 0;
 
-    this.showRank = false;
-    this.onOpenRank = null;
-    this.onCloseRank = null;
-    this.sharedCanvas = null;
-
     this.eggTriggered = false;
     this.eggTriggerTime = 0;
     this.eggTriggerDuration = 5.0;
@@ -145,8 +140,6 @@ export default class UI {
     this.showScoreHistory = false;
     this.scoreHistoryData = { 1: [], 2: [] };
     this.scoreHistoryTab = 1;
-    this.rankTab = 1;
-    this.rankData = { 1: [], 2: [] };
     this.scoreHistoryScrollOffset = 0;
     this.scoreHistoryTouchStartY = 0;
     this.scoreHistoryLastTouchY = 0;
@@ -575,6 +568,26 @@ export default class UI {
       ctx.stroke();
       ctx.beginPath();
       ctx.arc(iconCenterX + s * 0.75, iconCenterY - s * 0.15, s * 0.08, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (icon === 'star') {
+      ctx.strokeStyle = iconColor || '#8B5CF6';
+      // 五角星
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const angle = -Math.PI / 2 + (i * 2 * Math.PI / 5);
+        const outerX = iconCenterX + Math.cos(angle) * s * 0.8;
+        const outerY = iconCenterY + Math.sin(angle) * s * 0.8;
+        if (i === 0) {
+          ctx.moveTo(outerX, outerY);
+        } else {
+          ctx.lineTo(outerX, outerY);
+        }
+        const innerAngle = angle + Math.PI / 5;
+        const innerX = iconCenterX + Math.cos(innerAngle) * s * 0.35;
+        const innerY = iconCenterY + Math.sin(innerAngle) * s * 0.35;
+        ctx.lineTo(innerX, innerY);
+      }
+      ctx.closePath();
       ctx.stroke();
     } else if (icon === 'share') {
       ctx.strokeStyle = iconColor || '#3B82F6';
@@ -1232,22 +1245,22 @@ export default class UI {
         cardHoverGlow: 'rgba(16, 185, 129, 0.12)',
         action: () => this.onOpenSkills()
       },
-      // 排行榜 - 紫色卡片
+      // 历史最高分 - 紫色卡片
       {
-        id: 'leaderboard',
-        text: '排行榜',
+        id: 'scoreHistory',
+        text: '历史最高分',
         type: 'card',
         x: margin,
         y: cardRow2Y,
         width: cardWidth,
         height: cardHeight,
-        icon: 'rank',
+        icon: 'star',
         iconBg: '#F3E8FF',
         iconColor: '#8B5CF6',
         cardBg: 'rgba(255, 255, 255, 0.95)',
         cardBorder: 'rgba(139, 92, 246, 0.2)',
         cardHoverGlow: 'rgba(139, 92, 246, 0.12)',
-        action: () => this.onOpenRank()
+        action: () => this.onOpenScoreHistory()
       },
       // 成就 - 珊瑚卡片
       {
@@ -1416,36 +1429,6 @@ export default class UI {
       return true;
     }
 
-    if (this.showRank) {
-      const isMobile = this.width < 768;
-      const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
-      const bottomSafeArea = Math.max(this.safeArea.bottom, isMobile ? 34 : 0);
-      const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
-      const modalHeight = isMobile ? this.height - topSafeArea - bottomSafeArea - 20 : this.height - 80;
-      const modalX = (this.width - modalWidth) / 2;
-      const modalY = isMobile ? topSafeArea + 10 : (this.height - modalHeight) / 2;
-
-      // Close button
-      const buttonWidth = isMobile ? 180 : 220;
-      const buttonHeight = isMobile ? 48 : 56;
-      const buttonX = (this.width - buttonWidth) / 2;
-      const buttonY = modalY + modalHeight - (isMobile ? 70 : 80);
-
-      if (x >= buttonX && x <= buttonX + buttonWidth &&
-          y >= buttonY && y <= buttonY + buttonHeight) {
-        this.clickedButton = 'rank_close';
-        this.clickAnimation = 1;
-        if (this.onPlayClickSound) this.onPlayClickSound();
-        setTimeout(() => {
-          this.clickedButton = null;
-          this.clickAnimation = 0;
-          this.hoveredButton = null;
-          if (this.onCloseRank) this.onCloseRank();
-        }, 150);
-        return true;
-      }
-      return true;
-    }
 
     if (this.showModal) {
       return this.handleModalClick(x, y);
@@ -1680,12 +1663,7 @@ export default class UI {
     }
   }
 
-  onOpenRank() {
-    if (this.onOpenRank) {
-      this.onOpenRank();
-    }
-  }
-  
+
   onOpenAchievements() {
     this.showAchievements = true;
     this.achievementScrollOffset = 0;
@@ -1754,15 +1732,6 @@ export default class UI {
     this.hintButtonAnimation = 1;
   }
 
-  showRankView() {
-    this.showRank = true;
-    this.buttons = [];
-  }
-
-  hideRankView() {
-    this.showRank = false;
-    this.initMenu();
-  }
 
   showModalDialog(type, title, message, buttons) {
     this.modalType = type;
@@ -2200,13 +2169,6 @@ export default class UI {
       return;
     }
 
-    if (this.showRank) {
-      this.renderMenu(ctx);
-      this.renderLeaderboard(ctx);
-      this.renderEffects(ctx);
-      this.renderAchievementNotifications(ctx);
-      return;
-    }
 
     if (this.showInstructions) {
       this.renderInstructions(ctx);
@@ -3176,91 +3138,6 @@ export default class UI {
     } else {
       this.scoreHistoryScrollVelocity = 0;
     }
-  }
-
-  // ── Leaderboard ──
-
-  renderLeaderboard(ctx) {
-    const scheme = this.getScheme();
-    const isMobile = this.width < 768;
-
-    // Background overlay
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    ctx.fillRect(0, 0, this.width, this.height);
-
-    const topSafeArea = Math.max(this.safeArea.top, isMobile ? 44 : 0);
-    const bottomSafeArea = Math.max(this.safeArea.bottom, isMobile ? 34 : 0);
-    const modalWidth = isMobile ? this.width - 20 : Math.min(500, this.width - 40);
-    const modalHeight = isMobile ? this.height - topSafeArea - bottomSafeArea - 20 : this.height - 80;
-    const modalX = (this.width - modalWidth) / 2;
-    const modalY = isMobile ? topSafeArea + 10 : (this.height - modalHeight) / 2;
-
-    // Modal frame
-    this.drawBrutalismRect(ctx, modalX, modalY, modalWidth, modalHeight, scheme.cardBg, {
-      shadowOffset: 8,
-      borderWidth: 0
-    });
-
-    // Title
-    const titleY = modalY + (isMobile ? 40 : 50);
-    ctx.fillStyle = scheme.text;
-    ctx.font = `bold ${isMobile ? 28 : 34}px "Arial Black", Arial, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('好友排行榜', this.width / 2, titleY);
-
-    const titleWidth = ctx.measureText('好友排行榜').width;
-    ctx.strokeStyle = '#FBBF24';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(this.width / 2 - titleWidth / 2 - 20, titleY + 25);
-    ctx.lineTo(this.width / 2 + titleWidth / 2 + 20, titleY + 25);
-    ctx.stroke();
-
-    // List area: draw shared canvas content (friend list from open data context)
-    if (this.sharedCanvas) {
-      const listStartY = modalY + (isMobile ? 90 : 110);
-      const closeBtnSpace = isMobile ? 70 : 80;
-      const listEndY = modalY + modalHeight - closeBtnSpace;
-
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(modalX, listStartY - 10, modalWidth, listEndY - listStartY + 10);
-      ctx.clip();
-      ctx.drawImage(this.sharedCanvas, 0, 0, this.width, this.height);
-      ctx.restore();
-    }
-
-    // Close button
-    const buttonWidth = isMobile ? 180 : 220;
-    const buttonHeight = isMobile ? 48 : 56;
-    const buttonY = modalY + modalHeight - (isMobile ? 70 : 80);
-
-    const isHovered = this.hoveredButton === 'rank_close';
-    const isClicked = this.clickedButton === 'rank_close';
-
-    let fillColor = scheme.buttonPrimary;
-    if (isHovered) fillColor = this.lightenColor(scheme.buttonPrimary, 0.15);
-
-    let scale = 1;
-    if (isHovered) scale = 1.02;
-    if (isClicked) scale = 0.95;
-
-    const sw = buttonWidth * scale;
-    const sh = buttonHeight * scale;
-    const sx = (this.width - sw) / 2;
-    const sy = buttonY + (buttonHeight - sh) / 2;
-
-    this.drawBrutalismRect(ctx, sx, sy, sw, sh, fillColor, {
-      shadowOffset: isClicked ? 2 : (isHovered ? 8 : 6),
-      borderWidth: 4
-    });
-
-    ctx.fillStyle = scheme.textLight;
-    ctx.font = `bold ${isMobile ? 18 : 20}px "Arial Black", Arial, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('返回', this.width / 2, sy + sh / 2);
   }
 
   truncateText(text, max) {
