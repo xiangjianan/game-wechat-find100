@@ -327,12 +327,48 @@ function renderList(modalX, modalY, modalWidth, modalHeight, isMobile) {
     ctx.font = 'bold ' + (isMobile ? 16 : 18) + 'px "Arial Black", Arial, sans-serif';
     ctx.fillText(truncate(friend.nickname, 8), infoX, itemY + (isMobile ? 24 : 28));
 
+    var statsY = itemY + (isMobile ? 48 : 54);
+    var statsFontSize = isMobile ? 12 : 14;
+    var statsX = infoX;
+
+    // 按排名区分数字颜色：找到个数 / 用时
+    // 第1名 金色/琥珀   第2名 蓝色/青色   第3名 绿色/翡翠   3名后 统一蓝色/紫色
+    var foundColors = ['#D97706', '#2563EB', '#059669', '#6366F1'];
+    var timeColors  = ['#F59E0B', '#06B6D4', '#10B981', '#8B5CF6'];
+    var colorIdx = isTop3 ? i : 3;
+
+    // "找到 "
     ctx.fillStyle = '#6B7280';
-    ctx.font = (isMobile ? 12 : 14) + 'px Arial, sans-serif';
-    ctx.fillText(
-      '\u627e\u5230 ' + friend.numbersFound + ' \u4e2a \u00b7 \u7528\u65f6 ' + friend.time.toFixed(1) + ' \u79d2',
-      infoX, itemY + (isMobile ? 48 : 54)
-    );
+    ctx.font = statsFontSize + 'px Arial, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('\u627e\u5230 ', statsX, statsY);
+    statsX += ctx.measureText('\u627e\u5230 ').width;
+
+    // 找到个数 — 加粗标色
+    ctx.fillStyle = foundColors[colorIdx];
+    ctx.font = 'bold ' + statsFontSize + 'px Arial, sans-serif';
+    var foundText = '' + friend.numbersFound;
+    ctx.fillText(foundText, statsX, statsY);
+    statsX += ctx.measureText(foundText).width;
+
+    // " 个 · 用时 "
+    ctx.fillStyle = '#6B7280';
+    ctx.font = statsFontSize + 'px Arial, sans-serif';
+    var sepText = ' \u4e2a \u00b7 \u7528\u65f6 ';
+    ctx.fillText(sepText, statsX, statsY);
+    statsX += ctx.measureText(sepText).width;
+
+    // 用时数字 — 加粗标色
+    ctx.fillStyle = timeColors[colorIdx];
+    ctx.font = 'bold ' + statsFontSize + 'px Arial, sans-serif';
+    var timeText = friend.time.toFixed(1);
+    ctx.fillText(timeText, statsX, statsY);
+    statsX += ctx.measureText(timeText).width;
+
+    // " 秒"
+    ctx.fillStyle = '#6B7280';
+    ctx.font = statsFontSize + 'px Arial, sans-serif';
+    ctx.fillText(' \u79d2', statsX, statsY);
   }
 
   ctx.restore();
