@@ -141,9 +141,18 @@ export default class AchievementManager {
         icon: '🔥'
       },
       {
+        id: 'A601',
+        name: '夜猫子',
+        description: '凌晨0-5点完成一局游戏',
+        category: 'fun',
+        condition: { type: 'late_night_gaming' },
+        reward: { type: 'coins', amount: 500 },
+        icon: '🦉'
+      },
+      {
         id: 'EGG001',
         name: '倒序之王',
-        description: '“谢谢你玩我的游戏”',
+        description: '”谢谢你玩我的游戏”',
         category: 'hidden',
         condition: { type: 'egg_triggered', eggId: 'reverse_king' },
         reward: { type: 'coins', amount: 10000 },
@@ -276,6 +285,13 @@ export default class AchievementManager {
 
       case 'mode_complete':
         return eventType === 'level_complete' && data.mode === condition.mode;
+
+      case 'late_night_gaming':
+        if (eventType === 'game_complete') {
+          const hour = new Date().getHours();
+          return hour >= 0 && hour < 5;
+        }
+        return false;
 
       default:
         return false;
