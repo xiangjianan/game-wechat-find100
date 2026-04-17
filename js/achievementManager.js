@@ -107,20 +107,11 @@ export default class AchievementManager {
       {
         id: 'A102',
         name: '完美主义者',
-        description: '连续3次零错误完成第二关',
+        description: '累计3次零错误完成第二关',
         category: 'perfect',
-        condition: { type: 'consecutive_perfect', count: 3, level: 2 },
+        condition: { type: 'total_perfect_games', count: 3, level: 2 },
         reward: { type: 'coins', amount: 1000 },
         icon: '💎'
-      },
-      {
-        id: 'A103',
-        name: '精准射手',
-        description: '累计10次零错误完成第二关',
-        category: 'perfect',
-        condition: { type: 'total_perfect_games', count: 10, level: 2 },
-        reward: { type: 'coins', amount: 3000 },
-        icon: '🎯'
       },
       {
         id: 'A501',
