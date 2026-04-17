@@ -2,7 +2,7 @@ import { SCREEN_WIDTH, SCREEN_HEIGHT, getContext, getCanvas, SAFE_AREA } from '.
 import GameManager from './gameManager';
 import UI from './ui';
 import SoundManager from './soundManager';
-import RankManager from './rankManager';
+
 import VibrationManager from './vibrationManager';
 import AchievementManager from './achievementManager';
 import CoinManager from './coinManager';
@@ -91,7 +91,7 @@ export default class FindGameMain {
     this.gameManager = new GameManager(SCREEN_WIDTH, SCREEN_HEIGHT);
     this.ui = new UI(SCREEN_WIDTH, SCREEN_HEIGHT);
     this.soundManager = new SoundManager();
-    this.rankManager = new RankManager();
+
     this.vibrationManager = new VibrationManager();
     this.achievementManager = new AchievementManager();
     this.coinManager = new CoinManager();
@@ -112,8 +112,7 @@ export default class FindGameMain {
     this.scoreManager.init();
     CacheManager.init();
     this.shareManager.init();
-    this.rankManager.init();
-    this.ui.sharedCanvas = this.rankManager.getSharedCanvas();
+
     this.vibrationManager.checkSupport();
     this.achievementManager.loadProgress();
     this.coinManager.init();
@@ -258,9 +257,7 @@ export default class FindGameMain {
 
         this.ui.updateMousePosition(x, y);
 
-        if (this.ui.showRank) {
-          this.rankManager.forwardTouch('touchStart', x, y);
-        } else if (this.ui.showSkills) {
+        if (this.ui.showSkills) {
           this.ui.handleSkillsTouchStart(y);
         } else if (this.ui.showShop) {
           this.ui.handleShopTouchStart(y);
@@ -294,9 +291,7 @@ export default class FindGameMain {
 
         this.ui.updateMousePosition(x, y);
 
-        if (this.ui.showRank) {
-          this.rankManager.forwardTouch('touchMove', x, y);
-        } else if (this.ui.showSkills) {
+        if (this.ui.showSkills) {
           this.ui.handleSkillsTouchMove(y);
         } else if (this.ui.showShop) {
           this.ui.handleShopTouchMove(y);
@@ -312,15 +307,6 @@ export default class FindGameMain {
 
     const handleTouchEnd = (res) => {
       try {
-        // 排行榜：转发 touchEnd + 点击关闭按钮
-        if (this.ui.showRank) {
-          this.rankManager.forwardTouch('touchEnd', 0, 0);
-          if (touchStartPos && !touchMoved) {
-            this.handleInput(touchStartPos.x, touchStartPos.y);
-          }
-          touchStartPos = null;
-          return;
-        }
         // 滚动面板场景：touchend 时判断是否为点击
         if (isScrollable() && touchStartPos && !touchMoved) {
           this.handleInput(touchStartPos.x, touchStartPos.y);
@@ -365,9 +351,7 @@ export default class FindGameMain {
 
           this.ui.updateMousePosition(x, y);
 
-          if (this.ui.showRank) {
-            this.rankManager.forwardTouch('touchStart', x, y);
-          } else if (this.ui.showSkills) {
+          if (this.ui.showSkills) {
             this.ui.handleSkillsTouchStart(y);
           } else if (this.ui.showShop) {
             this.ui.handleShopTouchStart(y);
@@ -403,9 +387,7 @@ export default class FindGameMain {
 
             this.ui.updateMousePosition(x, y);
 
-            if (this.ui.showRank) {
-              this.rankManager.forwardTouch('touchMove', x, y);
-            } else if (this.ui.showSkills) {
+            if (this.ui.showSkills) {
               this.ui.handleSkillsTouchMove(y);
             } else if (this.ui.showScoreHistory) {
               this.ui.handleScoreHistoryTouchMove(y);
@@ -420,14 +402,6 @@ export default class FindGameMain {
 
       const handleTouchEndEvent = (e) => {
         try {
-          if (this.ui.showRank) {
-            this.rankManager.forwardTouch('touchEnd', 0, 0);
-            if (touchStartPos && !touchMoved) {
-              this.handleInput(touchStartPos.x, touchStartPos.y);
-            }
-            touchStartPos = null;
-            return;
-          }
           // 滚动面板场景：touchend 时判断是否为点击
           if (isScrollable() && touchStartPos && !touchMoved) {
             this.handleInput(touchStartPos.x, touchStartPos.y);
@@ -511,14 +485,8 @@ export default class FindGameMain {
       this.soundManager.playUiClick();
     };
 
-    this.ui.onOpenRank = () => {
-      this.openRank();
-    };
 
-    this.ui.onCloseRank = () => {
-      this.closeRank();
-    };
-    
+
     this.ui.onAchievementsOpen = () => {
       this.openAchievements();
     };
@@ -778,9 +746,6 @@ export default class FindGameMain {
     const numbersFound = this.gameManager.totalNumbers;
     const scoreResult = this.scoreManager.recordScore(level, numbersFound, time);
 
-    // 上传分数到微信排行榜
-    this.rankManager.uploadScore(numbersFound, time, level);
-
     const hasNextLevel = this.gameManager.hasNextLevel();
 
     const achievementData = {
@@ -858,11 +823,6 @@ export default class FindGameMain {
     const time = this.gameManager.getCompletionTime();
     const level = this.gameManager.currentLevel;
     const scoreResult = this.scoreManager.recordScore(level, progress, time);
-
-    // 上传分数到微信排行榜（部分完成也算）
-    if (progress > 0) {
-      this.rankManager.uploadScore(progress, time, level);
-    }
 
     this.achievementManager.checkAchievement('game_fail', {
       level: this.gameManager.currentLevel,
@@ -1212,23 +1172,6 @@ export default class FindGameMain {
     return 'timed';
   }
 
-  openRank() {
-    this.ui.showRankView();
-    const opened = this.rankManager.open(() => {
-      this.ui.hideRankView();
-    });
-    if (!opened) {
-      // 非微信环境：延迟后关闭
-      setTimeout(() => {
-        this.ui.hideRankView();
-      }, 1500);
-    }
-  }
-
-  closeRank() {
-    this.rankManager.close();
-    this.ui.hideRankView();
-  }
 
   openAchievements() {
     this.ui.achievementsData = this.achievementManager.getAllAchievements();
