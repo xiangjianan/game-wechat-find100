@@ -39,7 +39,7 @@ export default class AchievementManager {
         category: 'speed',
         condition: { type: 'fast_complete', level: 1, maxTime: 5 },
         reward: { type: 'coins', amount: 500 },
-        icon: '⚡'
+        icon: '🎯'
       },
       {
         id: 'A005',
